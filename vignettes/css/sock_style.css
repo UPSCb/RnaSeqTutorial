@@ -1,0 +1,71 @@
+input {
+    margin: 10px 10px 0 0 !important;
+}
+
+form {
+    background-color: rgba(184, 43, 43, 0.2);
+    padding: 2em;
+    border: 1px solid rgba(120,120,120,0.2);
+    border-radius: 5px;
+}
+
+.s-btn {
+	margin: 10px auto 10px auto;
+}
+
+#answer-popup-wrapper {
+	position: fixed;
+	top: 20%;
+	left: 7.5%;
+	width: 85%;
+	border-radius: 5px;
+	display: none;
+	color: black;
+	text-align: right;
+	padding: 1%;
+	z-index: 10;
+}
+
+#overlay {
+	position: fixed;
+	height: 100%;
+	width: 100%;
+	background-color: rgba(198, 198, 198, 0.5);
+	display: none;
+	z-index: 2;
+}
+
+#answer-popup-wrapper button {
+	margin: 1em;
+}
+
+.corr-popup {
+	border: 5px solid rgba(83, 175, 0, 0.5);
+	border-radius: 5px;
+	text-align: center;
+	font-size: 1.5em;
+	margin: 0.25em 0 0.25em 0;
+	background-color: white;
+}
+
+.err-popup {
+	border: 5px solid rgba(176, 0, 36, 0.5);
+	border-radius: 5px;
+	text-align: center;
+	font-size: 1.5em;
+	margin: 0.25em 0 0.25em 0;
+	background-color: white;
+}
+
+.questcomment {
+	border: 5px solid rgba(60, 180, 255, 0.5);
+	border-radius: 5px;
+	text-align: center;
+	font-size: 1.5em;
+	margin: 1em 0 1em 0;
+	background-color: white;
+}
+
+#partid {
+	text-align: right;
+}

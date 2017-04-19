@@ -1,0 +1,17 @@
+<!-- From 02-Introduction.Rmd l.19 and l.106 -->
+[^1]: Do not worry if some of this is illegible to you at present, it should be clear by the end of the workshop if we do our job
+
+[^2]: See <http://www.epigenesys.eu/images/stories/protocols/pdf/20150303161357_p67.pdf>
+
+<!-- From 03-R-Introduction.Rmd l.9 -->
+[^3]: The authors want to thank Martin Morgan for the original material
+    of the present chapter
+    
+<!-- From 10-Counting.Rmd l.25 -->
+[^4]: The alignment rate depends on the genome quality and completeness and can hence have a large range - the values presented here are from the Norway Spruce, a version 1 draft of the genome.
+
+[^5]: The values presented here report only uniquely aligning reads. In our example, the rate of non aligning reads is usually equal to the rate of multi-mapping reads, i.e. about 10% for both in the worst cases.
+
+<!-- From 11-R-Counts.Rmd l.14 -->
+[^6]: The author want to thank Ângela Gonçalves for parts of the present
+    chapter

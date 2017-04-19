@@ -1,0 +1,371 @@
+```{r inv-0401, echo=FALSE}
+    startQuest("Annotation packages")
+```
+
+```{r head-0401, echo=FALSE}
+    h1("Annotation of Genes and Genomes")
+```
+
+```{r message=FALSE,warning=FALSE,results='hide'}
+    options(digits=2)
+    library(RnaSeqTutorial)
+    library(org.Dm.eg.db)
+```
+
+Here, we will deviate a little from our and genomes, a recent and a not
+yet model genome for trees, respectively, and look into other
+functionalities than the `GenomicFeatures` package
+`makeTranscriptDbFromGFF` function to retrieve
+annotation for genes and genomes.
+
+```{r head-0402,echo=FALSE}
+h2("Annotation")
+```
+
+Bioconductor provides extensive annotation resources, summarized in
+the following figure. These can be *gene*-, or *genome*-centric.
+Annotations can be provided in packages curated by , or obtained from
+web-based resources.  
+Gene-centric `AnnotationDbi` packages include:
+
+-   Organism level: e.g. `org.Mm.eg.db`,
+    `Homo.sapiens`.
+
+-   Platform level: e.g. `hgu133plus2.db`,
+    `hgu133plus2.probes`,
+    `hgu133plus2.cdf`.
+
+-   Homology level: e.g. `hom.Dm.inp.db`.
+
+-   System biology level: `GO.db`,
+    `KEGG.db`, `Reactome.db`.
+
+Examples of genome-centric packages include:
+
+-   `GenomicFeatures`, to represent genomic features,
+    including constructing reproducible feature or transcript data bases
+    from file or web resources.
+
+-   Pre-built transcriptome packages, e.g.
+    `TxDb.Hsapiens.UCSC.hg19.knownGene` based on the
+    UCSC hg19 knownGenes track.
+
+-   `BSgenome` for whole genome sequence representation
+    and manipulation.
+
+-   Pre-built genomes, e.g.,
+    `BSgenome.Hsapiens.UCSC.hg19` based on the UCSC hg19
+    build.
+
+Web-based resources include
+
+-   `biomaRt` to query
+    [biomart](http://www.biomart.org/) resource for genes, sequence,
+    SNPs, and etc.
+
+-   `rtracklayer` for interfacing with browser tracks,
+    especially the [UCSC](http:://genome.ucsc.edu) genome browser.
+
+-   genome projects often provide `gff3` (General
+    Feature Format) or `gtf` (Gene Transfer Format)
+    formatted files as annotation sources.
+
+![Annotation Packages: the big picture][dbtypes]
+
+```{r head-0403, echo=FALSE}
+h3("Gene-centric annotations with `AnnotationDbi`")
+```
+
+Organism-level (‘org’) packages contain mappings between a central
+identifier (e.g., Entrez gene ids) and other identifiers (e.g. GenBank
+or Uniprot accession number, RefSeq id, etc.). The name of an org
+package is always of the form *org.Sp.id.db* (e.g.
+`org.Sc.sgd.db`) where *Sp* is a 2-letter
+abbreviation of the organism (e.g. `Sc` for *Saccharomyces cerevisiae*)
+and *id* is an abbreviation (in lower-case) describing the type of
+central identifier (e.g. `sgd` for gene identifiers assigned by the
+*Saccharomyces* Genome Database, or `eg` for Entrez gene ids). The “How
+to use the ‘.db’ annotation packages” vignette in the
+`AnnotationDbi` package (org packages are only one type
+of “.db” annotation packages) is a key reference. The ‘.db’ and most
+other Bioconductor annotation packages are updated every 6 months.
+
+Annotation packages contain an object named after the package itself.
+These objects are collectively called `AnnotationDb`
+objects, with more specific classes named `OrgDb`,
+`ChipDb` or `TranscriptDb` objects.
+Methods that can be applied to these objects include
+`columns`, `keys`,
+`keytypes` and `select`.
+
+-   What is the name of the org package for *Drosophila*? Load it.
+
+-   Display the `OrgDb` object for the *Drosophila*
+    org package.
+
+-   Use the `cols` method to discover which sorts of
+    annotations can be extracted from it.
+
+-   Use the `keys` method to extract UNIPROT identifiers
+    and then pass those keys in to the `select` method
+    in such a way that you extract the SYMBOL (gene symbol) and KEGG
+    pathway information for each.
+
+-   Use `select` to retrieve the ENTREZ and SYMBOL
+    identifiers of all genes in the KEGG pathway `00310`.
+
+```{r inv-0402, echo=FALSE}
+    quest(list( "What is the name of the org package (Entrez gene ids) for Drosophila?" = 
+            list("org.Dmel.sp.db",
+                 "org.Dm.sp.db",
+                 "org.Dm.eg.db",
+                 "org.Dmel.eg.db")),3, 
+          comment="To reiterate: the syntax is <em>org.Sp.id.db</em> (e.g. <code> org.Sc.sgd.db 
+          </code>) where <em>Sp</em> is a 2-letter abbreviation of the organism (e.g. <code >Sc
+          </code> for <em>Saccharomyces cerevisiae</em>) and <em>id</em> is an abbreviation (in
+          lower-case) describing the type of central identifier (e.g. <code > sgd </code> for 
+          gene identifiers assigned by the <em>Saccharomyces</em> Genome Database, or <code > 
+          eg </code> for Entrez gene ids). In this case therefore <code > org.Dm.eg.db </code>")
+endQuest()
+startQuest("Database interactions")
+```
+
+The `OrgDb` object is named
+`org.Dm.eg.db`.
+
+```{r}
+    columns(org.Dm.eg.db)
+    keytypes(org.Dm.eg.db)
+    uniprotKeys <- head(keys(org.Dm.eg.db, keytype="UNIPROT"))
+    cols <- c("SYMBOL", "PATH")
+    select(org.Dm.eg.db, keys=uniprotKeys, columns=cols, keytype="UNIPROT")
+```
+
+Selecting UNIPROT and SYMBOL ids of KEGG pathway `00310` is very
+similar:
+
+```{r}
+    kegg <- select(org.Dm.eg.db, "00310", c("UNIPROT", "SYMBOL"), "PATH")
+    nrow(kegg)
+    head(kegg, 3)
+```
+
+For convenience, the `RnaSeqTutorial` package contains , an
+object representing the results of a RNA-seq gene-level differential
+expression analysis retrieved from the package. This package wraps data
+from the study `Brooks2010` of the *pasilla* gene,
+involved in alternative splicing. The following code loads part of this
+data and creates a ‘top table’ of the ten most differentially
+represented genes. This top table is then coerced to a
+`data.frame`.
+
+```{r}
+    library(edgeR)
+    library(org.Dm.eg.db)
+    data(lrTest)
+    tt <- as.data.frame(topTags(lrTest))
+```
+
+Extract the Flybase gene identifiers (`FLYBASE`) from
+the row names of this table and map them to their corresponding Entrez
+gene (`ENTREZID`) and symbol ids
+(`SYMBOL`) using `select`. Use
+`merge` to add the results of `select`
+to the top table.
+
+```{r}
+    fbids <- rownames(tt)
+    cols <- c("ENTREZID", "SYMBOL")
+    anno <- select(org.Dm.eg.db, fbids, cols, "FLYBASE")
+    ttanno <- merge(tt, anno, by.x=0, by.y="FLYBASE")
+    dim(ttanno)
+    head(ttanno, 3)
+```
+
+```{r inv-0403, echo=FALSE}
+    quest(list( "What would be the SYMBOL for the FLYBASE id FBgn0085359 (try to find out using R!)" = 
+                  list("CG1544",
+                       "Kal1",
+                       "CG34330",
+                       "Ama")),3,
+          comment="A minimal command to find out the answer would be: 
+          <code>select(org.Dm.eg.db, 'FBgn0085359', 'SYMBOL' , 'FLYBASE')</code>")
+    endQuest()
+    startQuest("GenomicFeatures")
+```
+
+```{r head-0404, echo=FALSE}
+h3("Genome-centric annotations with `GenomicFeatures`")
+```
+
+Genome-centric packages are very useful for annotations involving
+genomic coordinates. It is straight-forward, for instance, to discover
+the coordinates of coding sequences in regions of interest, and from
+these retrieve corresponding DNA or protein coding sequences. Other
+examples of the types of operations that are easy to perform with
+genome-centric annotations include defining regions of interest for
+counting aligned reads in RNA-seq experiments and retrieving DNA
+sequences underlying regions of interest in ChIP-seq analysis, e.g., for
+motif characterization.
+
+-   Load the ‘transcript.db’ package relevant to the dm3 build of
+    *D. melanogaster*.
+
+-   Use `select` and friends to select the Flybase gene
+    ids of the top table and the Flybase transcript names (TXNAME) and
+    Entrez gene identifiers (GENEID).
+
+-   Use `cdsBy` to extract all coding sequences, grouped
+    by transcript.
+
+-   Subset the coding sequences to contain just the transcripts relevant
+    to the top table.
+
+-   How many transcripts are there?
+
+-   What is the structure of the first transcript’s coding sequence?
+
+-   Load the ‘BSgenome’ package for the dm3 build of *D. melanogaster*.
+
+-   Use the coding sequences ranges of the previous part of this
+    exercise to extract the underlying DNA sequence, using the
+    `extractTranscriptSeqs` function.
+
+-   Use `Biostrings`’s `translate`
+    function to convert DNA to amino acid sequences.
+
+The following loads the relevant Transcript.db package, and creates a
+more convenient alias to the `TranscriptDb` instance
+defined in the package.
+
+```{r}
+    library(TxDb.Dmelanogaster.UCSC.dm3.ensGene)
+    txdb <- TxDb.Dmelanogaster.UCSC.dm3.ensGene
+```
+
+We can discover available keys (using `keys`) and
+columns (`columns`) in `txdb`, and then
+use `select` to retrieve the transcripts associated with
+each differentially expressed gene. The mapping between gene and
+transcript is not one-to-one – some genes have more than one
+transcripts, which is biologically relevant, and some may have none,
+which might be due to different database versions being used or database
+cross-references (xref) inconsistancy,
+
+```{r}
+    txnm <- select(txdb, fbids, "TXNAME", "GENEID")
+    nrow(txnm)
+    head(txnm, 3)
+```
+
+The `TranscriptDb` instances can be queried for data
+that is more structured than simple data frames, and in particular
+return `GRanges` or `GRangesList`
+instances to represent genomic coordinates. These queries are performed
+using `cdsBy` (coding sequence),
+`transcriptsBy` (transcripts), , where the function
+argument `by` specifies how coding sequences or
+transcripts are grouped. Here we extract the coding sequences grouped by
+transcript, returning the transcript names, and subset the resulting
+`GRangesList` to contain just the transcripts of
+interest to us. The first transcript is composed of 6 distinct coding
+sequence regions.
+
+```{r}
+    cds <- cdsBy(txdb, "tx", use.names=TRUE)[txnm$TXNAME[!is.na(txnm$TXNAME)]]
+    length(cds)
+    cds[1]
+```
+
+The following code loads the appropriate BSgenome package; the object
+refers to the whole genome sequence represented in this package. The
+remaining steps extract the DNA sequence of each transcript, and
+translates these to amino acid sequences. Issues of strand are handled
+correctly.
+
+```{r}
+    library(BSgenome.Dmelanogaster.UCSC.dm3)
+    txx <- extractTranscriptSeqs(Dmelanogaster, cds)
+    length(txx)
+    head(txx, 3)
+    head(translate(txx), 3)
+```
+```{r head-0405, echo=FALSE}
+h3("Using biomaRt")
+```
+
+The `biomaRt` package offers access to the online
+[biomart](http://www.biomart.org) resource. this consists of several
+data base resources, referred to as ‘marts’. Each mart allows access to
+multiple data sets; the `biomaRt` package provides
+methods for mart and data set discovery, and a standard method
+`getBM` to retrieve data.
+
+Load the `biomaRt` package and list the available marts.
+Choose the *ensembl* mart and list the datasets for that mart. Set up a
+mart to use the *ensembl* mart and the *hsapiens\_gene\_ensembl*
+dataset.
+
+A `biomaRt` dataset can be accessed via
+`getBM`. In addition to the mart to be accessed, this
+function takes filters and attributes as arguments. Use
+`filterOptions` and `listAttributes` to
+discover values for these arguments. Call `getBM` using
+filters and attributes of your choosing.
+
+```{r eval=FALSE, results='hide'}
+    library(biomaRt)
+    head(listMarts(), 3)                      ## list the marts
+    head(listDatasets(useMart("ensembl")), 3) ## mart datasets
+    ensembl <-                                ## fully specified mart
+       useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+    
+    head(listFilters(ensembl), 3)             ## filters
+    myFilter <- "chromosome_name"
+    head(filterOptions(myFilter, ensembl), 3) ## return values
+    myValues <- c("21", "22")
+    head(listAttributes(ensembl), 3)          ## attributes
+    myAttributes <- c("ensembl_gene_id","chromosome_name")
+    
+    ## assemble and query the mart
+    res <- getBM(attributes =  myAttributes, filters =  myFilter,
+                values =  myValues, mart = ensembl)
+```
+
+Use `head(res)` to see the results.
+
+```{r head-0406, echo=FALSE}
+h3("What’s next?")
+```
+
+
+In this chapter we have seen how to retrieve Annotation from different
+sources using Bioconductor packages. However, for novel or emerging
+organisms, such resources are seldom available whereas the annotation
+are often available as *General Feature Format (GFF)*
+(<http://www.sequenceontology.org/gff3.shtml>) or *Gene Transfer
+Format(GTF)* (http://www.ensembl.org/info/website/upload/gff.html)
+formatted files. These can easily be read in R using the
+`genomeIntervals` or `rtracklayer`
+packages. The `easyRNASeq` package provide helper
+function to convert these into `RangedData` or
+`GRangesList` objects. Finally, the
+`GenomicFeatures` package also has a
+`makeTranscriptDbFromGFF` function.
+
+In the previous chapter , we have seen how to manipulate raw reads and
+their information. In the present chapter, we learned how to get genomic
+and genic information. These are the “raw” data you will most likely
+have to start working with on a RNA-Seq or ChIP-Seq project. Before we
+can proceed and look at how we would manipulate the alignments of these
+reads onto their respective genome, it is essential that we take a look
+at the quality of these reads. This will be the topic of the next
+chapter.
+
+```{r echo=FALSE}
+    quest(list("How would you query your txDb object for exons by gene? (use the help search if you're unsure!)" = list("exonsBygene(txDb)",
+                      "exonsBy(txDb,by='gene')",
+                      "select(txdb, fbids, 'EXONRANK','GENEID')",
+                      "Ask Nico")),2)
+          
+```

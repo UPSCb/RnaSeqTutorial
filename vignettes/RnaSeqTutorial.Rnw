@@ -1,0 +1,66 @@
+%\VignetteIndexEntry{R / Bioconductor for High Throughput Sequence Analysis}
+
+\documentclass[a4paper]{article}
+
+%\SweaveOpts{pdf=FALSE, png=TRUE}
+
+%% bioc style
+<<style-Sweave, eval=TRUE, echo=FALSE, results=tex>>=
+BiocStyle::latex()
+@
+
+%% add verbatim possibilities
+% \usepackage{verbatim}
+
+%% table footnotes
+% \usepackage{tablefootnote}
+
+%% and per chapter biblio
+% \usepackage{bibunits}
+
+%% a check
+<<setup, echo=FALSE>>=
+stopifnot(BiocInstaller:::BIOC_VERSION == "3.4")
+## check for unix as some dependencies are unix dependent
+## or would be hard to get working on windows machines
+stopifnot(.Platform$OS.type=="unix")
+@
+
+%% additional commands
+%\newcommand{\Dmel}{\emph{D.\ melanogaster}}
+\newcommand{\Ptre}{\emph{P.\ tremula}}
+\newcommand{\Ptri}{\emph{P.\ trichocarpa}}
+\newcommand{\QC}{Quality Control}
+%\newcommand{\Hsap}{\emph{H.\ sapiens}}
+\newcommand{\eg}{\textit{e.g.} }
+\newcommand{\ie}{\textit{i.e.} }
+\newcommand{\vs}{\textit{vs.} }
+\newcommand{\cf}{\textit{c.f.} }
+\newcommand{\etc}{\textit{etc.} }
+\newcommand{\pref}[1]{\ref{#1} (page \pageref{#1})}
+\newcommand{\dataset}{\Ptre{} sexual dimorphism dataset\cite{Robinson:2014p6362}}
+
+%% title
+\title{Tutorial on Analysis of High-Throughput Sequencing Data}
+\author{
+  Nicolas Delhomme\footnote{\href{mailto:nicolas.delhomme@umu.se}{
+  nicolas.delhomme@umu.se}}\\
+  Bastian Schiffthaler\footnote{\href{mailto:bastian.schiffthaler@umu.se}{
+  bastian.schiffthaler@umu.se}}\\
+}
+
+\date{\today}
+
+%% doc
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+\maketitle
+
+\section{Where to find the real vignette}
+This vignette is just a place-holder, to access the tutorial do:
+
+<<open the URL, eval=FALSE>>=
+browseURL(system.file(package="RnaSeqTutorial","doc","RnaSeqTutorial.html"))
+@
+
+\end{document}

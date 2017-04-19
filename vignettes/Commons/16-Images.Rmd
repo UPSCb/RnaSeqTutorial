@@ -1,0 +1,13 @@
+<!-- From 02-Introduction.Rmd -->
+[pipeline]: Images/pipeline.png "Pipeline"
+
+<!-- From 04-R-Annotations.Rmd -->
+[dbtypes]: Images/databaseTypes.png "Database types"
+
+<!-- From 05-Preprocessing.Rmd -->
+[example]: Images/example.png "GC Content"
+[theory]: Images/theory.png "GC theory"
+
+<!-- From 12-R-Counts.Rmd -->
+[count-modes]: Images/count-modes.png "Count modes"
+[seqlogo]: Images/logo.png "Seq logo"

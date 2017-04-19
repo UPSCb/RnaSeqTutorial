@@ -1,0 +1,112 @@
+```{r inv-0701, echo=FALSE}
+    startQuest("Counting")
+```
+
+In this chapter, now that we are familiar with what __feature summarisation__
+means, we will run one of the _de-facto_ tools, namely "HTSeq".
+
+```{r head-0701, echo=FALSE}
+    h1("Count table creation")
+```
+
+The read alignment step performed previously concluded the data pre-processing
+common to the majority of RNA-Seq based experiments. The following table 
+details typical observed number of read sequences available following the data 
+filtering and alignment steps. There are subsequently a large number of choices
+for performing downstream analyses for mRNA-Seq data. Probably the most
+common are to identify differential expression between conditions or 
+to analyse sequence variants (Single Nucleotide
+Polymorphisms (SNP), INDELs (INsertion/DELetion), Copy Number Variants
+(CNVs)). However, some of these analyses, DE analysis for example - the topic of
+the remainder of this tutorial - require additional data-preparation.
+
+| Step | Input Data | Usable reads | % of total | % removed from previous step |
+|------|------------|--------------|------------|------------------------------|
+| Raw | raw reads | 1,000,000 | 100 | 0 |
+| SortMeRna | Raw reads | 970,000 - 990,000 | 97 - 99 | 1 - 3 |
+| Trimommatic | Filtered reads / raw read | 776,000 - 891,000 | 78 - 89 | 10 - 20 |
+| Aligner[^4] (STAR) | Trimmed / Filtered / raw reads | 620,800 - 801,900 | 62 - 81 | 10 - 20[^5] |
+| Analysis | Aligned reads | 620,800 - 801,900 | 62 - 81 | 0 |
+
+This data preparation varies depending on whether expression at the gene
+or the transcript level is required. In our case, we are interested in
+gene expression, as we would like to perform a differential gene
+expression study.
+
+```{r head-0702, echo=FALSE}
+    h2("Data preparation for a DE analyses at the gene level")
+```
+
+A typical DE analysis data preparation consists of three steps, the
+first being to generate a non-redundant annotation, followed by the
+quantification/summation of the pre-processed reads aligned to each such
+feature before ultimately a QC is performed that assess whether the
+observed effects may have biological causes.
+
+```{r head-0703, echo=FALSE}
+    h3("Creating a non redundant annotation")
+```
+
+One major caveat estimating gene expression using aligned RNA-Seq reads
+is that a single read, which originated from a single mRNA molecule, can
+be aligned to several features ( transcripts or genes) if those
+alignments are of equivalent quality. This happens as a result of gene
+duplication and the presence of repetitive or common domains, for
+example. To avoid this, it is best practice to adopt a conservative
+approach by collapsing all existing transcripts of a single gene locus
+into a "synthetic" transcript containing every exon of that gene. In the
+case of overlapping exons, the longest genomic interval is kept, _i.e._ an
+artificial exon is created. This process results in a flattened
+transcript-gene structure with a one to one relationship. As this
+procedure varies from organism to organism, there is, to the best of our
+knowledge, no tool available for performing this step. The documentation
+of the R/Bioconductor easyRNASeq package [@easyRNASeq] - see
+paragraph 7.1 of the package vignette details a way of doing this in R
+starting from a GTF/GFF3 annotation file. From the "genome.gff3" that
+was used during the alignment step, we obtain a
+synthetic-transcript.gff3 file.
+
+```{r head-0704, echo=FALSE}
+    h3("Counting reads per feature")
+```
+
+The second step is to perform the intersection between the aligned
+position of reads (contained in the alignment BAM file) and the gene
+coordinates obtained in the previous step, to count the number of reads
+overlapping a gene. There are two primary caveats here: First the
+annotation collapsing process detailed above works on a gene-by-gene
+basis and hence is oblivious to the existence of genes that may overlap
+another gene encoded on the opposite strand. Second, aligners may return
+multiple mapping positions for a single read. In the absence of more
+adequate solution - see the next section on "DE analysis at the
+transcript level" for a example of what may be done - it is best to
+ignore multi-mapping reads.
+
+A de-facto standard for counting is the htseq-count tool supplied as
+part of the HTSeq python library [@Anders:2014p6365]. This associated
+[webpage](http://www-huber.embl.de/users/anders/HTSeq/doc/count.html)
+illustrates in greater detail the issues discussed above. For non-strand
+specific reads we suggest running htseq-count as follows:
+  
+    htseq-count -f bam -r pos -m union -s no -t exon -i Parent \
+    sample-sortmerna-trimmomatic-STAR.bam synthetic-transcript.gff3 > \
+    sample-sortmerna-trimmomatic-STAR-HTSeq.txt
+
+whereas for stranded data we advise using the following:
+  
+    htseq-count -f bam -r pos -m intersection-nonempty -s reverse -t exon \
+    -i Parent sample-sortmerna-trimmomatic-STAR.bam synthetic-transcript.gff3 > \
+    sample-sortmerna-trimmomatic-STAR-HTSeq.txt
+
+Using your STAR aligned BAM file, and the gff3 file available there: 
+`~/share/Day1/data/reference/gff/Ptrichocarpa_v3.0_210_synthetic-gene-models-wo-introns.gff3`,
+use the HTSeq *htseq-count* utility to create the count table for your
+sample (our data is not strand specific).
+
+Before you proceed further, read about the count modes in HTSeq and think about 
+why we choose the [union mode](http://www-huber.embl.de/users/anders/HTSeq/doc/count.html).
+
+```{r inv-0702, echo=FALSE}
+    quest(13)
+    endQuest()
+```

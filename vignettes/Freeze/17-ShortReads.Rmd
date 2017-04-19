@@ -1,0 +1,602 @@
+Sequences and Short Reads
+================================
+
+```{r echo=FALSE, message=FALSE}
+    options(digits=2)
+    library(EBI2015)
+    plotRanges <- function(x, xlim = x, main = deparse(substitute(x)),
+                          col = "black", sep = 0.5, ...)
+    {
+       height <- 1
+       if (is(xlim, "Ranges"))
+           xlim <- c(min(start(xlim)), max(end(xlim)))
+       bins <- disjointBins(IRanges(start(x), end(x) + 1))
+       plot.new()
+       par(mai=c(0.6, 0.2, 0.6, 0.2))
+       plot.window(xlim, c(0, max(bins)*(height + sep)))
+       ybottom <- bins * (sep + height) - height
+       rect(start(x)-0.5, ybottom, end(x)+0.5, ybottom + height, col = col, ...)
+       title(main, cex.main=2.8, font.main=1)
+       axis(1)
+    }
+```
+
+Ranges and Strings
+------------------
+
+To ease accessing that data directory within the package, it also
+defines a function called `bigdata`. Calling
+`bigdata()` tells us where that directory lies on our
+computer:
+
+```{r}
+    bigdata()
+```
+To get you familiar with that function and the structure of the
+directory tree it connects to, list the returned directory content.
+
+Simply run `dir(bigdata())`.
+
+Now that we are set up, let us proceed!
+
+Many Bioconductor packages are available for analysis of high-throughput
+sequence data. This section introduces two essential ways in which
+sequence data are manipulated in R. First, we will look at sets of DNA
+strings that represent the reads themselves but that are also used to
+describe the nucleotide sequence of reference genomes. Then, we will
+dwell into Ranges that describes both aligned reads and features of
+interest on the genome - *i.e.*: using the
+`GenomicAlignments` and `GenomicRanges`,
+respectively -, which will eventually lead us to Genome and Gene
+annotation in chapter . Key packages are summarized in
+the following table.
+
+| Package | Description |
+|---------|-------------|
+|`IRanges` | Defines important classes (*e.g.*:`IRanges`, `Rle`) and methods (*e.g.*:`findOverlaps`, `countOverlaps`) for representing and manipulating ranges of consecutive values. Also introduces `DataFrame`, `SimpleList` and other classes tailored to representing very large data. |
+| `GenomicRanges` | Range-based classes tailored to sequence representation (*e.g.*: `GRanges`,`GRangesList`), with information about strand and sequence name.|
+| `GenomicAlignments` | Range-based classes tailored to sequence alignments (*e.g.*: `GRanges`,`GRangesList`), with information about read mate status (*i.e.*: single-end paired-end data), gaps in the alignments (*i.e.*: representing introns), structural variants (*i.e.*: SNPs and indels) |
+| `GenomicFeatures` | Foundation for manipulating data bases of genomic ranges, *e.g.*: representing coordinates and organization of exons and transcripts of known genes.|
+| `Biostrings` | Classes (*e.g.*:`DNAStringSet`) and methods (*e.g.*:`alphabetFrequency`,`pairwiseAlignment`) for representing and manipulating DNA and other biological sequences.|
+| `BSgenome` | Representation and manipulation of large (*e.g.*: whole-genome) sequences.|
+
+### Working with strings
+
+The `Biostrings` package provides tools for working with
+DNA sequences. The essential data structures are
+`DNAString` and `DNAStringSet`, for
+working with one or multiple DNA sequences. The
+`Biostrings` package contains additional classes for
+representing amino acid and general biological strings. The following
+exercise explores these packages.
+
+The objective of this exercise is to calculate the GC content of the
+exons of a single gene: Potri.019G047300. Proceed as follows:
+
+-   Load the genome fasta file using the `Biostrings`
+    functionalities.
+
+-   Load the `ex` data from the
+    `EBI2015`. The data structure - *i.e.*: a
+    `GRangeslist` - has been presented during the
+    previous lecture and will be detailled in section .
+
+-   Extract the chromosome name of the first gene of . Use this to
+    lookup the appropriate chromosome.
+
+-   Use `Views` to create views on to the chromosome
+    that span the start and end coordinates of all exons.
+
+-   The `EBI2015` package defines a helper function
+    `gcFunction` (developed in a later exercise) to
+    calculate GC content. Use this to calculate the GC content in each
+    of the exons.
+
+-   Look at the helper function, and describe what it does.
+
+Here we load the genome, select a single chromosome, and create
+`Views` that reflect the ranges of the
+`Potri.019G047300` gene.
+```{r}
+    seq <- readDNAStringSet(file.path(bigdata(),"fasta","Ptrichocarpa_v3.0_210.fa.gz"))
+    data(ex)
+    nm <- as.character(unique(seqnames(ex[[1]])))
+    chr <- seq[[nm]]
+    v <- Views(chr, start=start(ex[[1]]), end=end(ex[[1]]))
+```
+Here is the helper function, available in the `EBI2015`
+package, to calculate GC content:
+
+```{r}
+    gcFunction
+```
+
+The `gcFunction` is really straight-forward: it invokes
+the function `alphabetFrequency` from the
+`Biostrings` package. This returns a simple matrix of
+exon * nucleotide probabilities. The row sums of the `G` and
+`C` columns of this matrix are the GC contents of each exon.
+
+The subject GC content is
+```{r eval=FALSE}
+    subjectGC <- gcFunction(v)
+```
+### Reads and the `ShortRead` package [ss:RatSp]
+
+##### Short read formats
+
+The Illumina GAII and HiSeq technologies generate sequences by measuring
+incorporation of florescent nucleotides over successive PCR cycles.
+These sequencers produce output in a variety of formats, but *FASTQ* is
+ubiquitous. Each read is represented by a record of four components:
+```{r echo=FALSE, eval=FALSE}
+    fls <- dir(file.path(bigdata(), "fastq"), full=TRUE)
+    cat(noquote(readLines(fls[[1]], 4)), sep="\n")
+```
+The first and third lines (beginning with `@` and `+` respectively) are
+unique identifiers. The identifier produced by the sequencer typically
+includes a machine id followed by colon-separated information on the
+lane, tile, x, and y coordinate of the read. The example illustrated
+here also includes the SRA accession number, added when the data was
+submitted to the archive. The machine identifier could potentially be
+used to extract information about batch effects. The spatial coordinates
+(lane, tile, x, y) are often used to identify optical duplicates;
+spatial coordinates can also be used during quality assessment to
+identify artifacts of sequencing, *e.g.*: uneven amplification across
+the flow cell, though these spatial effects are rarely pursued.
+
+The second and fourth lines of the FASTQ record are the nucleotides and
+qualities of each cycle in the read. This information is given in 5’ to
+3’ orientation as seen by the sequencer. A letter `N` in the sequence is
+used to signify bases that the sequencer was not able to call. The
+fourth line of the FASTQ record encodes the quality (confidence) of the
+corresponding base call. The quality score is encoded following one of
+several conventions, with the general notion being that letters later in
+the visible ASCII alphabet
+```{r echo=FALSE}
+    cat(rawToChar(as.raw(32+1:47)),
+        rawToChar(as.raw(32+48:94)), sep="\n")
+```
+are of lower quality; this is developed further below. Both the sequence
+and quality scores may span multiple lines.
+
+Technologies other than Illumina use different formats to represent
+sequences. Roche 454 sequence data is generated by ‘flowing’ labeled
+nucleotides over samples, with greater intensity corresponding to longer
+runs of A, C, G, or T. This data is represented as a series of ‘flow
+grams’ (a kind of run-length encoding of the read) in Standard Flowgram
+Format (SFF). The Bioconductor package
+`R453Plus1Toolbox` has facilities for parsing SFF files,
+but after quality control steps the data are frequently represented
+(with some loss of information) as FASTQ. SOLiD technologies produce
+sequence data using a ‘color space’ model. This data is not easily read
+in to R, and much of the error-correcting benefit of the color space
+model is lost when converted to FASTQ; SOLiD sequences are not
+well-handled by Bioconductor packages.
+
+##### Short reads in R
+
+FASTQ files can be read in to R using the `readFastq`
+function from the `ShortRead` package. Use this function
+by providing the path to a FASTQ file. There are sample data files
+available in the `EBI2015` package, each consisting of
+about 1 million reads from the first round of sequencing of 3 samples of
+the Aspen data set. In the following we look at the first of these
+files.
+```{r}
+    fastqDir <- file.path(bigdata(), "fastq")
+    fastqFiles <- dir(fastqDir, full=TRUE)
+    fq <- readFastq(fastqFiles[1])
+    fq
+```
+The data are represented as an object of class
+`ShortReadQ`.
+```{r}
+    head(sread(fq), 3)
+    head(quality(fq), 3)
+    head(id(fq), 3)
+```
+The `ShortReadQ` class illustrates *class inheritance*.
+It extends the `ShortRead` class
+```{r}
+    getClass("ShortReadQ")
+```
+Methods defined on `ShortRead` are available for
+`ShortReadQ`.
+```{r eval=FALSE}
+    showMethods(class="ShortRead", where="package:ShortRead")
+```
+For instance, the `width` can be used to demonstrate
+that all reads consist of 76 nucleotides.
+```{r}
+    table(width(fq))
+```
+The `alphabetByCycle` function summarizes use of
+nucleotides at each cycle in a (equal width)
+`ShortReadQ` or `DNAStringSet` instance.
+```{r}
+    abc <- alphabetByCycle(sread(fq))
+    abc[1:4, 1:8]
+```
+FASTQ files are getting larger. A very common reason for looking at data
+at this early stage in the processing pipeline is to explore sequence
+quality. In these circumstances it is often not necessary to parse the
+entire FASTQ file. Instead create a representative sample. 1
+million reads is a decent number. As the file we are using only has
+about 1,100,000 reads, in the following example, we select only a
+100,000.
+```{r}
+    sampler <- FastqSampler(fastqFiles[1], 100000)
+    yield(sampler) # sample of 100000 reads
+```
+A second common scenario is to pre-process reads, *e.g.*: trimming
+low-quality tails, adapter sequences, or artifacts of sample
+preparation. The `FastqStreamer` class can be used to
+‘stream’ over the fastq files in chunks, processing each chunk
+independently.
+
+Use `quality` to extract the quality scores of the short
+reads. Interpret the encoding qualitatively.
+
+Convert the quality scores to a numeric matrix, using
+`as`. Inspect the numeric matrix (*e.g.*: using
+`dim`) and understand what it represents.
+
+Use `colMeans` to summarize the average quality score by
+cycle. Use `plot` to visualize this.
+```{r}
+    head(quality(fq))
+    qual <- as(quality(fq), "matrix")
+    dim(qual)
+    plot(colMeans(qual), type="b")
+```
+We now know how to manipulate DNA sequences and Fastq files within R
+using Bioconductor packages. This is good, but now we need to be able to
+represent complex structure on these DNA sequences, such as genes made
+of exons or reads aligning across exon-exon junctions. To do so, we need
+to be able to define regions, *a.k.a. ranges; *i.e.*: think in
+mathematical terms* on these sequences.
+
+### Genomic ranges [Gr]
+
+Next-generation sequencing data consists of a large number of short
+reads. These are, typically, aligned to a reference genome. Basic
+operations are performed on the alignment, asking *e.g.*: how many reads
+are aligned in a genomic range defined by nucleotide coordinates
+(*e.g.*: in the exons of a gene), or how many nucleotides from all the
+aligned reads cover a set of genomic coordinates. How is this type of
+data, the aligned reads and the reference genome, to be represented in R
+in a way that allows for effective computation?
+
+The `IRanges`, `GenomicRanges`,
+`GenomicAlignments`,and
+`GenomicFeatures` Bioconductor packages provide the
+essential infrastructure for these operations; we start with the
+`GRanges` class, defined in
+`GenomicRanges`.
+
+##### `GRanges`
+
+Instances of `GRanges` are used to specify genomic
+coordinates.
+
+Suppose we wish to represent two genes. The first is located on the
+positive strand of chromosome Chr14, from position 12,097,975 to
+12,102,458. The second is - for the purpose of this example considered
+to be - on the minus strand of the chromosome Chr19, with ‘left-most’
+base at 6,553,903, and right-most base at 6,561,936. The coordinates are
+*1-based* (*i.e.*: the first nucleotide on a chromosome is numbered 1,
+rather than 0), *left-most* (*i.e.*: reads on the minus strand are
+defined to ‘start’ at the left-most coordinate, rather than the 5’
+coordinate), and *closed* (the start and end coordinates are included in
+the range; a range with identical start and end coordinates has width 1;
+a 0-width range is represented by the special construct where the end
+coordinate is one less than the start coordinate).
+
+A complete definition of these genes as `GRanges` is:
+```{r}
+    genes <- GRanges(seqnames=c("Chr14", "Chr19"),
+                    ranges=IRanges(
+                        start=c(12097975, 6553903),
+                        end=c(12102458, 6561936)),
+                    strand=c("+", "-"),
+                    seqlengths=c(Chr14=18920894L, Chr19=15942145L))
+```
+The components of a `GRanges` object are defined as
+vectors, *e.g.*: of `seqnames`, much as one would define
+a `data.frame`. The start and end coordinates are
+grouped into an `IRanges` instance. The optional
+`seqlengths` argument specifies the maximum size of each
+sequence, in this case the lengths of chromosomes Chr14 and Chr19 in the
+genome. This data is displayed as
+```{r}
+    genes
+```
+The `GRanges` class has many useful methods defined on
+it. Consult the help page
+```{r eval=FALSE}
+    ?GRanges
+```
+and package vignettes (especially ‘An Introduction to
+`GenomicRanges`’)
+```{r eval=FALSE}
+    vignette(package="GenomicRanges")
+```
+for a comprehensive introduction. A `GRanges` instance
+can be subset, with accessors for getting and updating information.
+```{r}
+    genes[2]
+    strand(genes)
+    width(genes)
+    length(genes)
+    names(genes) <- c("Potri.014G155300", "Potri.019G047300")
+    genes  # now with names
+```
+Note that `strand` returns the strand information in a
+compact representation called a *run-length encoding*, this is
+introduced in greater detail below. The ‘names’ could have been
+specified when the instance was constructed; once named, the
+`GRanges` instance can be subset by name like a regular
+vector.
+
+As the `GRanges` function suggests, the
+`GRanges` class extends the `IRanges`
+class by adding information about `seqnames`,
+`strand`, and other information particularly relevant to
+representing ranges that are on genomes. The `IRanges`
+class and related data structures (*e.g.*: `RangedData`)
+are meant as a more general description of ranges defined in an
+arbitrary space. Many methods implemented on the
+`GRanges` class are ‘aware’ of the consequences of
+genomic location, for instance treating ranges on the minus strand
+differently (reflecting the 5’ orientation imposed by DNA) from ranges
+on the plus strand.
+
+##### Operations on ranges
+
+The `GRanges` class has many useful methods from the
+`IRanges` class; some of these methods are illustrated
+here. We use `IRanges` to illustrate these operations to
+avoid complexities associated with strand and seqnames, but the
+operations are comparable on `GRanges`. We begin with a
+simple set of ranges:
+```{r}
+    ir <- IRanges(start=c(7, 9, 12, 14, 22:24),
+                 end=c(15, 11, 12, 18, 26, 27, 28))
+```
+```{r results='hide', fig=FALSE, eval=FALSE}
+    #png("ranges-ir-plot.png", width=800, height=160)
+    plotRanges(ir, xlim=c(5, 35), main="Original")
+    #dev.off()
+    #png("ranges-shift-ir-plot.png", width=800, height=160)
+    plotRanges(shift(ir, 5), xlim=c(5, 35), main="Shift")
+    #dev.off()
+    #png("ranges-reduce-ir-plot.png", width=800, height=160)
+    plotRanges(reduce(ir), xlim=c(5, 35), main="Reduce")
+    #dev.off()
+```
+
+These and some common operations are illustrated in the upper panel of
+Figures [1][ir-plot],[2][shift-ir-plot], [3][reduce-ir-plot] and summarized in the table following the plots.
+
+![Ranges ranges-ir-plot] [ir-plot]
+![Ranges ranges-shift-ir-plot] [shift-ir-plot] 
+![Ranges ranges-reduce-ir-plot] [reduce-ir-plot]
+
+Methods on ranges can be grouped as follows:
+
+Intra-range
+
+:   methods act on each range independently. These include
+    `flank`, `narrow`,
+    `reflect`, `resize`,
+    `restrict`, and `shift`, among
+    others. An illustration is `shift`, which translates
+    each range by the amount specified by the `shift`
+    argument. Positive values shift to the right, negative to the left;
+    `shift` can be a vector, with each element of the
+    vector shifting the corresponding element of the
+    `IRanges` instance. Here we shift all ranges to the
+    right by 5, with the result illustrated in the middle panel of
+ 
+```{r results='hide', fig=FALSE, eval=FALSE}
+        shift(ir, 5)
+
+        #png("ranges-shift-ir-plot.png", width=800, height=160)
+        plotRanges(shift(ir, 5), xlim=c(5, 35), main="Shift")
+        #dev.off()
+```
+Inter-range
+
+:   methods act on the collection of ranges as a whole. These include
+    `disjoin`, `reduce`,
+    `gaps`, and `range`. An illustration
+    is `reduce`, which reduces overlapping ranges into a
+    single range, as illustrated in the lower panel of
+    Figure 
+```{r results='hide', fig=FALSE, eval=FALSE}
+        reduce(ir)
+
+        #png("ranges-reduce-ir-plot.png", width=800, height=160)
+        plotRanges(reduce(ir), xlim=c(5, 35), main="Reduce")
+        #dev.off()
+```
+    `coverage` is an inter-range operation that
+    calculates how many ranges overlap individual positions. Rather than
+    returning ranges, `coverage` returns a compressed
+    representation (run-length encoding)
+```{r}
+       coverage(ir)
+```
+    The run-length encoding can be interpreted as ‘a run of length 6 of
+    nucleotides covered by 0 ranges, followed by a run of length 2 of
+    nucleotides covered by 1 range…’.
+
+Between
+
+:   methods act on two (or sometimes more) `IRanges`
+    instances. These include `intersect`,
+    `setdiff`, `union`,
+    `pintersect`, `psetdiff`, and
+    `punion`.
+
+    The `countOverlaps` and
+    `findOverlaps` functions operate on two sets of
+    ranges. `countOverlaps` takes its first argument
+    (the `query`) and determines how many of the ranges
+    in the second argument (the `subject`) each
+    overlaps. The result is an integer vector with one element for each
+    member of `query`. `findOverlaps`
+    performs a similar operation but returns a more general matrix-like
+    structure that identifies each pair of query / subject overlaps.
+    Both arguments allow some flexibility in the definition of
+    ‘overlap’.
+
+Common operations on ranges are summarized in Table tab:range-ops.
+
+| Category | Function | Description |  
+|----------|----------|-------------|
+| Accessors | `start`, `end`, `width` | Get or set the starts, ends and widths |
+| | `names` | Get or set the names |
+| | `mcols`, `metadata` | Get or set metadata on elements or object |
+| | `length` | Number of ranges in the vector |
+| | `range` | Range formed from min start and max end |
+| Ordering | `<`, `<=`,`>`, `>=`, `==`, `!=` | Compare ranges, ordering by start then width |
+| | `sort`, `order`, `rank` | Sort by the ordering |
+| | `duplicated` | Find ranges with multiple instances |
+| | `unique` | Find unique instances, removing duplicates |
+| Arithmetic | `ra + x`, `ra - x`, `ra * x` | Shrink or expand ranges by number |
+| `shift` | Move the ranges by specified amount |  
+| `resize` | Change width, anchoring on start, end or mid |
+| | `distance` | Separation between ranges (closest endpoints) |
+| | `restrict` | Clamp ranges to within some start and end |
+| | `flank` | Generate adjacent regions on start or end |
+| Set operations | `reduce` | Merge overlapping and adjacent ranges |  
+| | `intersect`, `union`, `setdiff` | Set operations on reduced ranges |
+| | `pintersect`, `punion`, `psetdiff` | Parallel set operations, on each `x[i]`, `y[i]` |  
+| | `gaps`, `pgap` | Find regions not covered by reduced ranges |
+| | `disjoin` | Ranges formed from union of endpoints |
+| Overlaps | `findOverlaps` | Find all overlaps for each in |  
+| | `countOverlaps` | Count overlaps of each range in |
+| | `nearest` | Find nearest neighbors (closest endpoints) |
+| | `precede`, `follow` | Find nearest that precedes or follows |
+| | `x %in% y` | Find ranges in that overlap range in |
+| Coverage | `coverage` | Count ranges covering each position |
+| Extraction | `ra[i]` | Get or set by logical or numeric index |
+| | `ra[[i]]` | Get integer sequence from `start[i]` to `end[i]` |
+| | `subsetByOverlaps` | Subset for those that overlap in  
+| | `head`, `tail`, `rev`, `rep` | Conventional R semantics |
+| Split, combine | `split` | Split ranges by a factor into a `RangesList` |
+| | `c` | Concatenate two or more range objects  
+
+##### GRanges components: `mcols` and `metadata`
+
+The `GRanges` class (actually, most of the data
+structures defined or extending those in the `IRanges`
+package) has two additional very useful data components. The
+`mcols` function allows information on each range to be
+stored and manipulated (*e.g.*: subset) along with the
+`GRanges` instance. The element metadata is represented
+as a `DataFrame`, defined in `IRanges`
+and acting like a standard R `data.frame` but with the
+ability to hold more complicated data structures as columns (and with
+element metadata of its own, providing an enhanced alternative to the
+`Biobase` class `AnnotatedDataFrame`).
+```{r}
+    mcols(genes) <- DataFrame(EntrezId=c("42865", "2768869"),
+                             Symbol=c("kal-1", "CG34330"))
+```
+`metadata` allows addition of information to the entire
+object. The information is in the form of a list; any data can be
+provided.
+```{r}
+    metadata(genes) <-
+       list(CreatedBy="A. User", Date=date())
+```
+##### `GRangesList`
+
+The `GRanges` class is extremely useful for representing
+simple ranges. Some next-generation sequence data and genomic features
+are more hierarchically structured. A gene may be represented by several
+exons within it. An aligned read may be represented by discontinuous
+ranges of alignment to a reference. The `GRangesList`
+class represents this type of information. It is a list-like data
+structure, which each element of the list itself a
+`GRanges` instance. The gene Potri.019G047300 contains
+several exons, and can be represented as a list of length 1, where the
+element of the list contains a `GRanges` object with 7
+elements:
+```{r eval=FALSE}
+    txdb <- makeTxDbFromGFF(file.path(bigdata(),"gff3",
+                                   "Ptrichocarpa_210_gene_exons.gff3.gz"))
+    exons <- exonsBy(txdb, "gene")["Potri.019G047300"]
+    seqlevels(exons) <- "Chr19"
+    seqlengths(exons) <- 15942145L
+
+    exons
+```
+The `GRangesList` object has methods one would expect
+for lists (*e.g.*: `length`, sub-setting). Many of the
+methods introduced for working with `IRanges` are also
+available, with the method applied element-wise.
+
+##### The `GenomicAlignments` package
+
+That package and its functionalities will be described in more details
+in upcoming lectures and practicals.
+
+##### The `GenomicFeatures` package
+
+Many public resources provide annotations about genomic features. For
+instance, the UCSC genome browser maintains the ‘knownGene’ track of
+established exons, transcripts, and coding sequences of many model
+organisms. The `GenomicFeatures` package provides a way
+to retrieve, save, and query these resources. The underlying
+representation is as sqlite data bases, but the data are available in R
+as `GRangesList` objects. The following exercise
+explores the `GenomicFeatures` package and some of the
+functionality for the `IRanges` family introduced above.
+
+Load the annotation file in gff3 format present in the bigdata/gff3
+folder using the `GenomicFeatures`
+`makeTranscriptDbFromGFF` function. Save the resulting
+`TranscriptDb`object in a variable named .
+
+Extract all exon coordinates, organized by gene, using
+`exonsBy`. What is the class of this object? How many
+elements are in the object? What does each element correspond to? And
+the elements of each element? Use `elementLengths` and
+`table` to summarize the number of exons in each gene,
+for instance, how many single-exon genes are there?
+
+Select just those elements corresponding to the gene ids
+Potri.019G047300 and Potri.014G155300. Use `reduce` to
+simplify gene models, so that exons that overlap are considered ‘the
+same’.
+```{r eval=FALSE}
+     txdb <- makeTranscriptDbFromGFF(file.path(bigdata(),"gff3",
+                                   "Ptrichocarpa_210_gene_exons.gff3.gz"))
+     ex0 <- exonsBy(txdb, "gene")
+     head(table(elementLengths(ex0)))
+     ids <- c("Potri.019G047300","Potri.014G155300")
+     ex <- reduce(ex0[ids])
+```
+Save the `TranscriptDb` object you have created so that
+for future analysis you could re-use the same frozzen annotation.
+```{r eval=FALSE}
+    saveDb(txdb, "P.trichocarpa.v3.0_210.txdb.sqlite")
+    loadDb("P.trichocarpa.v3.0_210.txdb.sqlite")
+```
+We know now how to represent complex structures on DNA sequences. Let us
+leverage that to handle genomes and annotations.
+
+### Resources
+
+There are extensive vignettes for `Biostrings` and
+`GenomicRanges` packages. A useful on-line resource is
+from [Thomas Girke](http://manuals.bioinformatics.ucr.edu/home/ht-seq)’s
+group.
+
+[ir-plot]: Chapters/ranges-ir-plot.png "Ranges inter-range"
+[shift-ir-plot]: Chapters/ranges-shift-ir-plot.png "Ranges shift"
+[reduce-ir-plot]: Chapters/ranges-reduce-ir-plot.png "Ranges reduce"

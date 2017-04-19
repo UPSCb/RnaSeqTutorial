@@ -1,0 +1,72 @@
+---
+title: "Next Generation Genomics Workshop: RNA-Seq data analysis, Helsinki University, Helsinki, Finland"
+author: "Nicolas Delhomme, (Bastian Schiffthaler)"
+date: "`r Sys.Date()`"
+bibliography: Bibliography/References.bib
+output:
+  html_document:
+    fig_captions: yes
+    number_sections: yes
+    pandoc_args:
+    - +RTS
+    - -K500m
+    - -RTS
+    toc: yes
+---
+
+```{r message=FALSE,warning=FALSE,results='hide',echo=FALSE}
+options(digits=2)
+```
+
+```{r child = "Chapters/01-Convention.Rmd"}
+```
+
+```{r child = "Chapters/02-Introduction.Rmd"}
+```
+
+```{r child = "Chapters/03-R-Introduction.Rmd"}
+```
+
+```{r child = "Chapters/04-Preprocessing.Rmd"}
+```
+
+```{r child = "Chapters/05-Alignment.Rmd"}
+```
+
+```{r child = "Chapters/06-Prelude.Rmd"}
+```
+
+```{r child = "Chapters/07-R-Alignments.Rmd"}
+```
+
+```{r child = "Chapters/08-R-Annotations.Rmd"}
+```
+
+```{r child = "Chapters/09-R-Interlude.Rmd"}
+```
+
+```{r child = "Chapters/10-Counting.Rmd"}
+```
+
+```{r child = "Chapters/11-R-Counts.Rmd"}
+```
+
+```{r child = "Chapters/12-R-Biological-QA.Rmd"}
+```
+
+```{r child = "Chapters/13-R-Differential-Expression.Rmd"}
+```
+
+```{r child = "Commons/17-SessionInfo.Rmd" }
+```
+
+```{r child = "Commons/14-Acknowledgments.Rmd" }
+```
+
+```{r child = "Commons/15-Footnotes.Rmd" }
+```
+
+```{r child = "Commons/16-Images.Rmd" }
+```
+
+# References

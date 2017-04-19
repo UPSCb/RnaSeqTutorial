@@ -1,0 +1,221 @@
+```{r inv-0601, echo=FALSE}
+    startQuest("Aligning the reads")
+```
+
+```{r head-0601, echo=FALSE}
+h1("Short Read Alignment")
+```
+  
+Once the raw read quality has been assessed and determined to be
+sufficient, or the data has been filtered and trimmed to acceptable
+standards, the reads can be aligned to a reference. This process is an
+extremely active field of research and novel aligners are frequently
+published. There is, sadly, no "silver bullet" and the choice of
+aligners will be dependent on the reference to be used (genome or
+transcriptome), the data type (short vs. longer reads) and the available
+computational power, among other factors. Most recent aligners use
+either BWT [@BWT] (Burrows-Wheeler transformation) or
+MEM [@Khan:2009p6363] (Maximum Exact Matches) to perform alignment.
+Older generation alignment algorithms relied on a spliced-seed approach
+[@Li:2010p1227]. The numerous implementations of these different
+strategies all come with a myriad of options that may significantly
+affect the alignment outcome. Selecting the most accurate aligner and
+determining the optimal parameter set for a project can often represent
+a small project in itself. At the time of writing this guide there was
+no guideline available as to which aligner is most appropriate for a
+given situation (read length, type of reference, _etc._).
+Hence, in the following, we exemplify using aligners that we have
+incorporated in our processing pipeline based on internal benchmarking
+for our most common experimental setup: tree genome / transcriptome,
+Illumina HiSeq 2500, 101bp PE sequencing. The aligner of choice varies
+based on the type of reference available for the project: For genome
+based alignment of RNA-Seq data we use STAR, a MEM based aligner - it
+actually uses MMP (maximum mappable prefix, a variation of MEM); for
+alignment of RNA-Seq data to a reference transcriptome
+[@Dobin:2013p5293] we use either bowtie (version 1, BWT FM-index
+based, [@pmid19261174]) or the BWT FM-index or MEM implementations
+of BWA[@pmid20080505], [@pmid19451168].
+
+```{r head-0602, echo=FALSE}
+    h2("Alignment to the genome")
+```
+
+```{r head-0603, echo=FALSE}
+    h3("Indexing the genome")
+```
+
+__NOTE: The command line below is shown for exemplary purposes, NOT to be executed :-)__
+
+First, the genome needs to be indexed. This is performed using the
+following command:
+  
+    STAR --runMode genomeGenerate --genomeDir GENOME/Indices --genomeFastaFiles \
+    GENOME/FASTA/genome.fa --runThreadN 8 --sjdbOverhang 100 \
+    --sjdbGTFfile GENOME/GTF/genome.gtf
+
+where the `genomeDir` parameter specifies the output directory for the
+index, `genomeFastaFiles` specifies the genome FASTA file path and
+`sjdbGTFfile` the file path of the gene annotation file, which can
+typically be retrieved from EnsEMBL (in gtf format) or UCSC (in gff3
+format, to be converted in gtf format). We also provide an additional option 
+that would need to be edited depending on your sequencing read length 
+(`sjdbOverhang 100`); we selected 100 as our longuest reads are 101bp long - 
+see the STAR manual for the rationale behind this.
+
+```{r head-0604, echo=FALSE}
+    h3("Performing the alignment")
+```
+
+Once the genome index is built, we can align our sample reads to it.
+This is achieved as follows:
+    
+    mkdir star
+    STAR --genomeDir share/Day1/data/indices/STAR --readFilesIn read-sortmerna-trimmomatic_1.fq.gz \
+    read-sortmerna-trimmomatic_2.fq.gz --runThreadN 4 --alignIntronMax 11000 --outSAMstrandField intronMotif \
+    --sjdbGTFfile share/Day1/data/reference/gff/Ptrichocarpa_v3.0_210_synthetic-gene-models-wo-introns.gff3 \
+    --readFilesCommand zcat --outFileNamePrefix star/read-sortmerna-trimmomatic-STAR  --outSAMmapqUnique 254 \
+    --outQSconversionAdd -31 --outReadsUnmapped Fastx --outSAMtype BAM SortedByCoordinate \
+    --quantMode TranscriptomeSAM --outFilterMultimapNmax 100 --chimSegmentMin 1 --outWigType bedGraph \
+    --sjdbGTFtagExonParentTranscript Parent
+
+where there are a number of additional parameters: `--alignIntronMax` is
+important to specify so that STAR does not try to align split reads
+across a distance greater than `--alignIntronMax bp`, reads that span an
+exon-exon junction (EEJ) only need to span at most the longest intron in
+your genome. Note that the largest intron in _P. trichocarpa_ is about 11kb long.
+The parameter `--outFileNamePrefix` sets the path and prefix 
+to where the results will be written (note that 
+from now on, as the reads have been combined into a single result
+file, we refer to our exemplary data as "sample"). We provide a few
+additional parameters that may require adjustment based on your data:
+
+Our sample files are GZip compressed so we inform STAR how to read it
+(`readFilesCommand zcat`). As our files were generated using the Illumina
+v1.5 FASTQ format, we convert them into Sanger FASTQ
+(`outQSconversionAdd -31`) and finally we specify that STAR should output
+unmapped reads separately (`outReadsUnmapped Fastx`). The `outSAMtype
+BAM SortedByCoordinate` ensures that the final result is already
+converted to the "BAM" format and sorted by coordinate, saving a few
+additional steps doing this via samtools. As you can see, we provide many more
+arguments, which you can lookup in the STAR manual; STAR is highly configurable!
+
+```{r head-0605, echo=FALSE}
+    h3("Post-processing the alignment result files")
+```
+
+STAR returns a number of result files:
+  
+1.  a read-sortmerna-trimmomatic-STARAligned.sortedByCoord.out.bam SAM
+file that contains the alignment in SAM format (Li et al, 2009).
+
+2.  two FASTQ files containing the forward and reverse unmapped reads:
+  
+3.  a number of sample-sortmerna-trimmomatic-STARLog.\* log files
+
+4.  a number of sample-sortmerna-trimmomatic-SJ.\* files containing
+splice junction information.
+
+The BAM format is very efficient for computers to work with, but as a
+binary file format, it is unreadble to humans. If you would like to take
+a look at the alignments, you can do so using samtools:
+  
+    samtools view star/read-sortmerna-trimmomatic-STARAligned.sortedByCoord.out.bam | head
+
+The sorted BAM file is then indexed
+
+    samtools index star/read-sortmerna-trimmomatic-STARAligned.sortedByCoord.out.bam
+
+Furthermore, the FASTQ files containing unaligned reads are renamed to
+and and are compressed.
+
+The log files, which contain information relating to the processing and
+splice-junctions, are moved into a log directory.
+
+    mkdir star/sample-sortmerna-trimmomatic-STAR\_logs
+    mv star/sample-sortmerna-trimmomatic-STARLog.* \
+    star/sample-sortmerna-trimmomatic-STARSJ.* \
+    star/sample-sortmerna-trimmomatic-STAR\_logs
+
+Among the log files, `Log.final.out` and `SJ.out.tab`  are of particular interest. 
+The first details the alignment rate, percentage of uniquely/multiple aligning 
+reads, rate of mismatches, INDELs identified in the reads, _etc._ The
+second file describes, in a tabular format, all the EEJs identified by
+STAR and whether these exist in the provided gff3 file or if they are
+novel. This is an extremely useful resource that can be used to identify
+possible new transcript splice variants. One needs to keep in mind that
+transcription, as all biological processes, is a stochastic process and
+as such, there will be miss-spliced transcripts present at a low
+frequency in any RNA-Seq sample that has been sequenced to adequate
+depth. Hence novel identified junctions might represent low-frequency
+genuine transcription as well as noise.
+
+```{r inv-0602, echo=FALSE}
+    quest(1)
+    endQuest()
+```
+
+```{r inv-0603, echo=FALSE}
+    startQuest("Pseudo-alignment and read quantification with Kallisto")
+```
+```{r head-0607, echo=FALSE}
+h1("Pseudo-alignment and read quantification with Kallisto")
+```
+
+Kallisto is a fairly recent program that makes heavy use of _k_-mer hash
+tables and De-Bruijn graphs to "pseudo-align" reads [@Bray2016]. This means that Kallisto
+does not map a read to a given position in a genome/transcriptome, but rather 
+to an abstract representation of a transcript. Kallisto then performs a 
+likelihood estimation and expectation maximization algorithms to calculate a
+count and - at request - bootstraps a confidence value. 
+
+Step 1 is to create the Kallisto index from a transcriptome:
+
+    kallisto index -i Ptrichocarpa_v3.0_210_synthetic-gene-models.idx \
+    share/Day1/data/reference/fasta/Ptrichocarpa_v3.0_210_synthetic-gene-models.fa
+    
+We could modify the _k_-mer size using the `-k` option. This is - however - often
+a very sensitive parameter in _k_-mer/hash based applications. Lower values will
+provide higher sensitivity, but lower specificity and vice versa for higher
+values of _k_. The optimal choice for a _k_-mer would be the longest read length
+without a single mismatch due to natural polymorphisms or technical artefacts. In
+practise, this is very difficult to estimate unless you have access to a large
+pool of population genomics data.
+
+Next we can quantify the input data using this newly created index:
+
+    kallisto quant -i Ptrichocarpa_v3.0_210_synthetic-gene-models.idx -b 100 \
+    -o . --pseudobam read-sortmerna-trimmomatic_1.fq.gz read-sortmerna-trimmomatic_2.fq.gz \
+    > sample-sortmerna-trimmomatic_pseudo.sam
+    
+The option `-b 100` performs a bootstrap confidence estimation using 100 iterations.
+`--pseudobam` tells Kallisto to output a SAM file of pseudoalignments to `stdout`.
+
+Kallisto outputs several files:
+
+  * abundance.tsv: This file is the main file of interest as it contains transcript
+  counts, tpm, etc.
+  * abundance.h5: This file contains the bootstrap values so confidence intervals
+  can be estimated for the gene counts
+  * run_info.json: This is a file containing the parameters supplied to Kallisto
+  * sample-sortmerna-trimmomatic_pseudo.sam: A SAM file of pseudo-alignments
+
+The SAM file can be converted to a sorted BAM and indexed:
+
+    samtools view -bT \
+    share/Day1/data/reference/fasta/Ptrichocarpa_v3.0_210_synthetic-gene-models.fa \
+    sample-sortmerna-trimmomatic_pseudo.sam | \
+    samtools sort -o sample-sortmerna-trimmomatic_pseudo.bam \
+    && samtools index sample-sortmerna-trimmomatic_pseudo.bam
+
+```{r head-0606, echo=FALSE}
+    h1("Visualising the alignments")
+```
+
+Visualising alignments can prove useful to assess the data quality or the aligners
+performance. Let us take a look at the STAR results. We already copied them in a
+place that JBrowse (the online Genome Browser we will be using, which you can access
+from the course webpage, by clicking on your "Connect to Apache2" link) can access.
+
+```{r inv-0604, echo=FALSE}
+    endQuest()
+```

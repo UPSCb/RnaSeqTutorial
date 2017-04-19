@@ -1,0 +1,77 @@
+Visualizing BAM files
+====
+  
+## Introduction
+  
+The integrative genomics viewer (IGV) is a tool which enables its users
+to see a visual representation of a wide variety of data commonly used
+in bioinformatics pipelines [@Robinson2011]. In this short tutorial
+we are going to load two BAM (binary alignment map) files into IGV and
+inspect a region of interest.
+
+## Practical
+
+First, download the relevant files from the server, by opening a browser
+and navigating to
+
+    watson.plantphys.umu.se:82`$PORT`
+    
+where `$PORT` is your assigned port.
+
+You will need:
+  
+1.  the alignment file (BAM) and index (BAI)
+
+2.  the genome FASTA file
+
+You can now download IGV from
+<http://www.broadinstitute.org/igv/projects/current/igv_mm.jnlp>. After
+opening the application, we can start by loading a reference genome via
+the *Genomes* >  *Load Genome from File* menu items. In the “File
+Name” field, enter the Downloads directory of your computer and press
+return. In this directory, you see a FASTA (.fa) and a FASTA-index
+(.fai) file of the reference genome for our organism
+_P. trichocarpa_. Select the FASTA file and click “Open”.
+After the reference is loaded, we can proceed by loading the alignments
+files. Select *File* > *Load from File* from the menu and navigate
+to the aligned files by entering just that in the “File Name” field
+(confirm again with return). Select the .bam (not the .bai, these are
+the BAM-index files which we created earlier) file. Confirm with
+“Open”.
+In order for us to see the actual alignments, we need to zoom in to a
+region. Our region of interest is a gene that lies between nucleotides
+6553903 and 6561936 on chromosome 19, therefore we enter
+“Chr19:6553903-6561936” in the gene locus field (at the top of the menu
+with a “Go” button attached to it).
+
+Discuss what you see. Are there obvious differences between the samples?
+What do the colours within the reads represent?
+
+Reads are represented as grey boxes with a sharp tip indicating
+directionality. Small lines indicate that a read spans this area (e.g.:
+introns). Coloured lines in the reads represent a deviation from the
+reference, commonly SNPs. Hovering over the coloured line brings up a
+small dialog with additional information. More info can be found in the
+*View* > *Color Legends* menu.
+
+# A glimpse of the future
+
+Not too far distant, just a few pages away. Although this is not per se
+a data preparation step, we advise at this stage to conduct a number of
+analyses to assess the biological soundness of the data, such as
+examining how well biological replicates correlate, how the samples
+cluster in a principal component analysis (PCA) and whether the first
+dimensions of the PCA can likely be explained by the biological factors
+under consideration. To achieve this, it is important to have first
+normalized the data. When a sufficient number of replicates per
+condition are available (at least three) we recommend that the data be
+normalized using a Variance Stabilizing Transformation (VST) such as
+that implemented in the R/Bioconductor DESeq2 package
+[@Love:2014p6358], otherwise the data should be normalized using
+other approaches such as those implemented in the edgeR
+[@pmid19910308] or DESeq2 packages, approaches assuming a negative
+binomial distribution of the data.
+
+This concludes the preprocessing part of this tutorial. You now have
+data ready for the actual analysis.
+

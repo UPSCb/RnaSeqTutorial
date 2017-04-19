@@ -1,0 +1,18 @@
+citEntry(entry="article",
+         title = paste( "easyRNASeq: a Bioconductor package for processing RNA-Seq data" ),
+         author = personList( as.person("Nicolas Delhomme" ),
+                              as.person("Isma\"el Padioleau" ),
+                              as.person("Eileen E. Furlong" ),
+                              as.person("Lars M. Steinmetz" )),
+         year = 2012,
+         journal = "Bioinformatics",
+         volume = "in press",
+         pages = "in press",
+         doi = "10.1093/bioinformatics/bts477",
+         url = "http://dx.doi.org/10.1093/bioinformatics/bts477",
+         
+         textVersion = 
+         paste("easyRNASeq: a bioconductor package for processing RNA-Seq data", 
+               "Nicolas Delhomme; Ismael Padioleau; Eileen E. Furlong; Lars M. Steinmetz",
+               "Bioinformatics 2012; doi: 10.1093/bioinformatics/bts477",sep="\n"))
+

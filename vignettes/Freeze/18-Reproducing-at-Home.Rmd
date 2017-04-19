@@ -1,0 +1,32 @@
+```{r head-1800, echo=FALSE}
+  h1(Reproducing the course at home)
+```
+
+All of this lab is built using docker
+<https://www.docker.com/whatisdocker/>, specifically, the docker project
+located at <https://registry.hub.docker.com/u/bschiffthaler/ngs/>, which
+means that you can replicate the entirety of this lab at home if you
+install docker and pull this repository.
+
+The docker was configured to automatically start a web server which lets
+you view and/or download all the files which you will be using and
+creating. To look at it you require your port from before: open a web
+browser and navigate to http://watson.plantphys.umu.se:82`$PORT`,
+where `$PORT` is again your assigned port. You should see an index
+which lists your home folder, which you can click to navigate to
+sub-directories or files.
+
+Those of you who are familiar with Linux command line can skip ahead to
+the “Exercise” section, for those who are not, we have prepared a few
+exercises to familiarize yourself with the most important commands. As a
+quick reference, there are many “Linux cheat sheets” which provide short
+explanations of the commands, such as this one:
+<http://files.fosswire.com/2007/08/fwunixref.pdf>. Let’s try some
+commands! If you prefer, you can watch me explain the commands here:
+<https://asciinema.org/a/18004>. You can even copy/paste code from this
+video!
+
+If you don’t know how to list directories, move or copy files, delete
+files and directories or change the working directory, please complete
+this UNIX tutorial at least until (including) chapter two:
+<http://www.ee.surrey.ac.uk/Teaching/Unix/>

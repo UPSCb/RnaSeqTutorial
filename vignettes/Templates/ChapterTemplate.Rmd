@@ -1,0 +1,40 @@
+---
+title: "Next Generation Genomics Workshop: RNA-Seq data analysis, Helsinki University, Helsinki, Finland"
+author: "Nicolas Delhomme, (Bastian Schiffthaler)"
+date: "`r Sys.Date()`"
+bibliography: References.bib
+output:
+  html_document:
+    fig_captions: yes
+    number_sections: yes
+    pandoc_args:
+    - +RTS
+    - -K500m
+    - -RTS
+    includes:
+      in_header: header.html
+---
+
+```{r inv-00, echo=FALSE}
+source("questMaster.R")
+beginMainQuest()
+```
+
+```{r inv-05, message=FALSE,warning=FALSE,results='hide',echo=FALSE}
+options(digits=2)
+```
+
+```{r child = "TOKEN" }
+```
+
+```{r inv-06, echo=FALSE}
+endMainQuest()
+```
+
+```{r child = "Commons/15-Footnotes.Rmd" }
+```
+
+```{r child = "Commons/16-Images.Rmd" }
+```
+
+# References

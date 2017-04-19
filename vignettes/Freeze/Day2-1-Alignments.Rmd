@@ -1,0 +1,595 @@
+Day2 - Short Read Alignments
+============================
+```{r message=FALSE,warning=FALSE,results='hide',echo=FALSE}
+    options(digits=2)
+    library(RnaSeqTutorial)
+    bamfiles <- dir(file.path(extdata(),"bam"),
+                   pattern="*.bam\$",full.names=TRUE)
+```
+Most down-stream analysis of short read sequences is based on reads
+aligned to reference genomes. There are many aligners available,
+including [BWA](http://bio-bwa.sourceforge.net/)
+[@pmid20080505],[@pmid19451168],
+[Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/)
+[@pmid19261174],
+[GSNAP](http://research-pub.gene.com/gmap/)[@Wu:2005p5857],
+[STAR](https://code.google.com/p/rna-star/)[@Dobin:2013p5293];
+merits of these are discussed in the literature. There are also
+alignment algorithms implemented in Bioconductor (e.g.,
+`matchPDict` in the `Biostrings` package
+and the `gmapR`, `Rbowtie`,
+`Rsubread` packages); `matchPDict` is
+particularly useful for flexible alignment of moderately sized subsets
+of data.
+
+Alignments and Bioconductor packages 
+------------------------------------
+
+The following sections introduce core tools for working with
+high-throughput sequence data; key packages for representing reads and
+alignments are summarized in the following table.
+
+Moreover, earlier were introduced resources for annotating sequences,
+that will come handy in the next two chapters of this tutorial.
+
+| Package | Description |
+|---------|-------------|
+| `ShortRead` | In addition to the functionalities described yesterday to manipulate raw read files, *e.g.*: the `ShortReadQ` class and functions for manipulating `fastq` files; this package offers the possibility to load numerous HTS formats classes. These are mostly sequencer manufacturer specific *e.g.*: `sff` for 454 or pre-BAM aligner proprietary formats, *e.g.*: `MAQ` or `bowtie`. These functionalities rely heavily on `Biostrings` and somewhat on `Rsamtools`. |
+| `GenomicAlignments` | `GAlignments` and `GAlignmentPairs` store single- and paired-end aligned reads and extend on the `GenomicRanges` functionalities. |
+| `Rsamtools` | Provides access to BAM alignment and other large sequence-related files. |
+| `rtracklayer` | Input and output of `bed`, `wig` and similar files. |
+
+Read the man page of the `GAlignments` and
+`GAlignmentPairs` classes and pay attention to the very
+important comments on multi-reads and paired-end processing.
+
+Really just `?GAlignments`. However, KEEP these details
+in mind as they are essential and likely source of erroneous conclusion.
+Remember the example of this morning lecture about RNA editing.
+
+### Alignments and the REPLACESQShortReadREPLACESQ package [ss:RatSp]
+
+Yesterday, you looked at the REPLACESQShortReadREPLACESQ package to
+manipulate raw reads and to perform Quality Assessment (QA) on raw data
+files *e.g.*: fastq formatted files. These are not the only
+functionalities from the REPLACESQShortReadREPLACESQ package, which
+offers as well the possibility to read in alignments files in many
+different formats.
+
+Two files of the pasilla dataset have been aligned using
+REPLACESQbowtieREPLACESQ REPLACESQLangmead:2009p309REPLACESQ, locate
+them in the extdata folder of the REPLACESQRnaSeqTutorialREPLACESQ
+package.
+```{r}
+    bwtFiles <- dir(path=file.path(extdata(),"bowtie"),
+                   pattern="*.bwt\$",full.names=TRUE)
+```
+Have a pick at one of the file and try to decipher its format. Hint: it
+is a tab delimited format, so check the REPLACESQread.delimREPLACESQ
+function. As you may not want to read all the lines to get an idea,
+lookup an appropriate argument for that.
+
+You might want to check
+<http://bowtie-bio.sourceforge.net/manual.shtml#default-bowtie-output>
+for checking whether your guesses were correct. Here is how to read 10
+lines of the first file.
+```{r}
+    read.delim(file=file.path(extdata(),"bowtie","SRR074430.bwt"),
+              header=FALSE,nrows=10)
+```
+now, as was presented in the lecture use the
+REPLACESQreadAlignedREPLACESQ function to read in the bowtie alignment
+files.
+```{r}
+    alignedRead <- readAligned(dirPath=file.path(extdata(),"bowtie"),
+                       pattern="*.bwt\$",type="Bowtie")
+```
+What is peculiar about the returned object? Determine its class. Can you
+tell where the data from both input files are?
+
+We obtained a single object of the REPLACESQAlignedReadREPLACESQ class.
+By looking at the documentation, *i.e.*: REPLACESQ?readAlignedREPLACESQ
+in the *Value* section, we are told that all files are concatenated in a
+single object with NO guarantee of order in which files are read. This
+is convenient when we want to merge several sequencing runs of the same
+sample but we need to be cautions and process independent sample by
+individually calling the REPLACESQreadAlignedREPLACESQ function for
+every sample.
+
+Finally, taking another look at the lecture, select only the reads that
+align to chromosome 2L. Hint, use the appropriate
+REPLACESQSRFilterREPLACESQ filter.
+```{r}
+    #alignedRead2L <- readAligned(dirPath=file.path(extdata(),"bowtie"),
+    #                             pattern="*.bwt\$",type="Bowtie",
+    #                    filter=chromosomeFilter("2L"))
+```
+This concludes the overview of the REPLACESQShortReadREPLACESQ package.
+As the BAM format has become a de-facto standard, it is unlikely that
+you end up using that package to process reads in R over the
+REPLACESQRsamtoolsREPLACESQ package that you will be using next.
+
+### Alignments and the `Rsamtools` package
+
+##### Alignment formats
+
+Most main-stream aligners produce output in SAM (text-based) or BAM
+format. A SAM file is a text file, with one line per aligned read, and
+fields separated by tabs. Here is an example of a single SAM line, split
+into fields.
+```{r}
+    fl <- system.file("extdata", "ex1.sam", package="Rsamtools")
+    strsplit(readLines(fl, 1), "\t")[[1]]
+```
+Fields in a SAM file are summarized in the following table:
+
+| Field     | Name  | Value                                   |
+|-----------|-------|-----------------------------------------|
+| 1         | QNAME | Query (read) NAME                       |
+| 2         | FLAG  | Bitwise FLAG, e.g., strand of alignment |
+| 3         | RNAME | Reference sequence NAME                 |
+| 4         | POS   | 1-based leftmost POSition of sequence   |
+| 5         | MAPQ  | MAPping Quality (Phred-scaled)          |
+| 6         | CIGAR | Extended CIGAR string                   |
+| 7         | MRNM  | Mate Reference sequence NaMe            |
+| 8         | MPOS  | 1-based Mate POSition                   |
+| 9         | ISIZE | Inferred insert SIZE                    |
+| 10        | SEQ   | Query SEQuence on the reference strand  |
+| 11        | QUAL  | Query QUALity                           |
+| 12+       | OPT   | OPTional fields, format TAG:VTYPE:VALUE |
+
+We recognize from the FASTQ format introduced yesterday, the identifier
+string, read sequences and qualities. The alignment is to a chromosome
+‘seq1’ starting at position 1. The strand of alignment is encoded in the
+‘flag’ field. The alignment record also includes a measure of mapping
+quality, and a CIGAR string describing the nature of the alignment. In
+this case, the CIGAR is 36M, indicating that the alignment consisted of
+36 `M`atches or mismatches, with no indels or gaps; indels are
+represented by `I` and `D`; gaps (e.g., from alignments spanning
+introns) by `N`.
+
+BAM files encode the same information as SAM files, but in a format that
+is more efficiently parsed by software; BAM files are the primary way in
+which aligned reads are imported in to R.
+
+##### Aligned reads in R
+
+As introduced in the previous section, there are three
+different packages to read alignments in R:
+
+-   `ShortRead`
+
+-   `GenomicAlignments`
+
+-   `Rsamtools`
+
+The last two will be described in more details in the next paragraphs.
+
+###### GenomicAlignments
+
+The `readGAlignments` function from the
+`GenomicAlignments` package reads essential information
+from a BAM file into . The result is an instance of the
+`GAlignments` class. The `GAlignments`
+class has been designed to allow useful manipulation of many reads
+(e.g., 20 million) under moderate memory requirements (e.g., 4 GB).
+
+Use the `readGAlignments` to read in the “ex1.bam” that
+can be found in the “extdata” folder of the `Rsamtools`
+package.
+```{r}
+    alnFile <- system.file("extdata", "ex1.bam", package="Rsamtools")
+    aln <- readGAlignments(alnFile)
+```
+```{r eval=FALSE}
+    head(aln, 3)
+```
+The `readGAlignments` function takes an additional
+argument: `param` that allowing to streamline the
+information retrieved from a BAM files, *e.g.*: to retrieve alignments
+to known gene coordinates only.
+
+A `GAlignments` instance is like a data frame, but with
+accessors as suggested by the column names. It is easy to query, e.g.,
+the distribution of reads aligning to each strand, the width of reads,
+or the cigar strings
+
+Summarize the strand, width and CIGAR information from that file.
+```{r}
+    table(strand(aln))
+    table(width(aln))
+    head(sort(table(cigar(aln)), decreasing=TRUE))
+```
+###### Rsamtools
+
+The `Rsamtools` `readGAlignmentsFromBam`
+function - introduced earlier - as the
+`GenomicAlignments` `readGAlignments`
+function only parses some of the fields of a BAM file, and that may not
+be appropriate for all use. In these cases the `scanBam`
+function in `Rsamtools` provides greater flexibility.
+The idea is to view BAM files as a kind of data base. Particular regions
+of interest can be selected, and the information in the selection
+restricted to particular fields. These operations are determined by the
+values of a `ScanBamParam` object, passed as the named
+`param` argument to `scanBam`.
+
+Consult the help page for `ScanBamParam`, and construct
+an object that restricts the information returned by a
+`scanBam` query to the aligned read DNA sequence. Your
+solution will use the `what` parameter to the
+`ScanBamParam` function.
+
+Use the `ScanBamParam` object to query a BAM file, and
+calculate the GC content of all aligned reads. Summarize the GC content
+as a histogram:
+```{r}
+    param <- ScanBamParam(what="seq")
+    seqs <- scanBam(bamfiles[[1]], param=param)
+    readGC <- gcFunction(seqs[[1]][["seq"]])
+    hist(readGC)
+```
+
+
+##### Advanced `Rsamtools` usage
+
+The `Rsamtools` package has more advanced
+functionalities:
+
+1.  function to count, index, filter, sort BAM files
+
+2.  function to access the header only
+
+3.  the possibility to access SAM attributes (tags)
+
+4.  manipulate the CIGAR string
+
+5.  create BAM libraries to represent a study set (BamViews)
+
+6.  …
+
+Find out the function that permit to scan the BAM header and retrieve
+the header of the first BAM file in the bigdata() bam subfolder. What
+information does it contain?
+
+It contains the reference sequence length and names as well as the name,
+version and command line of the tool used for performing the alignments.
+```{r eval=FALSE}
+    scanBamHeader(bamfiles[1])
+```
+The SAM/BAM format contains a tag: “NH” that defines the total number of
+valid alignments reported for a read. How can you extract that
+information from the same first bam file and plot it as an histogram?
+```{r}
+    param <- ScanBamParam(tag="NH")
+    nhs <- scanBam(bamfiles[[1]], param=param)[[1]]$tag$NH
+```
+So it seems a majority of our reads have multiple alignments! Some
+processing might be required to deal with these; *i.e.*: if reads were
+aligned to the transcriptome there exist tools that can deconvoluate the
+transcript specific expression, for example MMSEQ
+`Turro:2011p4762`, BitSeq `BitSeq`, that
+last one existing as an R package too: `BitSeq`.
+Otherwise if reads were aligned to the genome, one should consider
+filtering these multiple alignments to avoid introducing artifactual
+noise in the subsequent analyses.
+
+The CIGAR string contains interesting information, in particular,
+whether or not a given match contain indels. Using the first bam file,
+can you get a matrix of all seven CIGAR operations? And find out the
+intron size distribution?
+```{r eval=FALSE}
+    param <- ScanBamParam(what="cigar")
+    cigars <- scanBam(bamfiles[[1]], param=param)[[1]]$cigar
+    cigar.matrix <- cigarOpTable(cigars)
+    intron.size <- cigar.matrix[,"N"]
+    intron.size[intron.size>0]
+    plot(density(intron.size[intron.size>0]))
+    hist(log10(intron.size[intron.size>0]),xlab="intron size (log10 bp)")
+```
+Look up the documentation for the `BamViews` and using
+the package, create a BamViews instance. Afterwards, use some of the
+accessors of that object to retrieve *e.g.* the file paths or the sample
+names
+```{r eval=FALSE}
+    library(leeBamViews)
+    bpaths = dir(system.file("bam", package="leeBamViews"), full=TRUE, patt="bam$")
+    gt<-do.call(rbind,strsplit(basename(bpaths),"_"))[,1]
+    geno<-substr(gt,1,nchar(gt)-1)
+    lane<-substr(gt,nchar(gt),nchar(gt))
+    pd = DataFrame(geno=geno, lane=lane, row.names=paste(geno,lane,sep="."))
+    bs1 = BamViews(bamPaths=bpaths, bamSamples=pd,
+                   bamExperiment=list(annotation="org.Sc.sgd.db"))
+    bamPaths(bs1)
+    bamSamples(bs1)
+```
+Finally, extract the coverage for the locus 861250:863000 on chromosome
+“Scchr13” for every sample in the object
+```{r eval=FALSE}
+    sel <- GRanges(seqnames = "Scchr13", IRanges(start = 861250, end = 863000),strand="+")
+    covex = RleList(lapply(bamPaths(bs1), function(x) coverage(readGAlignments(x))[[1]]))
+```
+This offer an interesting way to process multiple sample at the same
+time when you’re interested in a particular locus.
+
+### Alignments and other Bioconductor packages
+
+In the following, an excerpt of additional functionalities offered by
+Bioconductor packages are presented. It is far from being a complete
+overview, and as such only aims at giving a feel for what’s out there.
+
+These functionalities will take us through our favorite workflow, from
+retrieving published data, assessing their QA, demultiplexing samples
+and finally aligning the reads to the genome using only Bioconductor
+packages!
+
+##### Retrieving data using `SRAdb`
+
+Most journals require the raw data to be deposited in a public
+repository, such as [GEO](http://www.ncbi.nlm.nih.gov/geo),
+[SRA](http://www.ncbi.nlm.nih.gov/sra) or
+[ENA](http://www.ebi.ac.uk/ena). The `SRAdb` package
+offers the possibility to list the content of these archives, and to
+retrieve raw (fastq or sra) files.
+
+Using the `pasilla` package, retrieve the submission
+accession of that dataset (check out that package vignette)
+```{r eval=FALSE}
+    vignette(package="pasilla")
+    vignette("create_objects")
+    geo.acc <- "GEO: GSE18508"
+```
+Now that as we only have the GEO ID, we need to convert it to an SRA ID.
+You can either use the [GEO](http://www.ncbi.nlm.nih.gov/geo),
+[SRA](http://www.ncbi.nlm.nih.gov/sra) or
+[ENA](http://www.ebi.ac.uk/ena) website for this or if you are slightly
+familiar with SQL, just use the `SRAdb` package.
+
+Look into the `SRAdb` package vignette to figure out how
+to do this.
+
+Accessing the vignette and reading it tells us
+```{r eval=FALSE}
+    library(SRAdb)
+    vignette("SRAdb")
+```
+1.  we need to download the `SRAdb` sqlfile
+
+2.  we need to create a connection to the locally downloaded database
+
+3.  we need to query that database with our submission\_alias: “GEO:
+    GSE18508” to retrieve the SRA submission\_accession.
+
+
+```{r eval=FALSE}
+    sqlfile <- "~/EBI2015/Day2/Data/SRAmetadb.sqlite"
+    sra_con <- dbConnect(SQLite(),sqlfile)
+    sra.acc <- dbGetQuery(sra_con,paste("select submission_accession ",
+                                       "from submission ",
+                                       'where submission_alias = "',
+                                       geo.acc,'";',sep=""))
+```
+The retrieved is: “SRA010243”.
+
+Now that we have that accession, the vignette tells us how to get every
+experiment, sample, run, …associated with this submission accession.
+
+There are at least two possibilities to do so, one using an SQL query
+and the other one using a function of the packages. What would be that
+function?
+
+For those that like SQL:
+```{r eval=FALSE}
+    run.acc <- dbGetQuery(sra_con,paste("select run_accession ",
+                                   "from run ",
+                                   'where submission_accession = "',
+                                   sra.acc,'";',sep=""))$run_accession
+```
+For those that like functions:
+```{r eval=FALSE}
+    sraConvert(sra.acc,sra_con=sra_con)
+    run.acc <- sraConvert(sra.acc,"run",sra_con=sra_con)$run
+```
+Now that we’ve got the list of runs, it would be interesting to get more
+information about the corresponding fastq file.
+```{r eval=FALSE}
+    info <- getFASTQinfo(run.acc,srcType="ftp")
+```
+And the final step would be to download the fastq file(s) of interest.
+
+Retrieve the shortest fastq file from that particular submission.
+```{r eval=FALSE}
+    getSRAfile(in_acc=info[which.min(info[,"bytes"]),"run"],
+               sra_con, destDir = getwd(),
+               fileType = 'fastq', srcType = 'ftp' )
+```
+Well, that’s almost it. As we are tidy people, we clean after ourselves.
+```{r eval=FALSE}
+    dbDisconnect( sra_con )
+```
+##### Running the Quality Assessment using the `ShortRead` package
+
+You should be familiar with that step already. The reason it is there
+again is because one can never stress enough the importance of the QA in
+an analysis. Any step of the analysis workflow (*e.g.*: filtering,
+trimming) may introduce biases and the only way to assess and/or
+mitigate them is to monitor the data properties and their changes
+correctly for every step.
+
+Use this morning QA lecture to take a look at the retrieved file.
+```{r eval=FALSE}
+    library(ShortRead)
+    qa <- qa(dirPath=".",pattern="SRR074430.fastq.gz",type="fastq")
+    report(qa,dest="SRR074430-QA.html")
+```
+Use a browser to open the generated HTML file. What do you think about
+that file quality? Would you use it if it were yours?
+
+##### Demultiplexing using `easyRNASeq`
+
+Nowadays, NGS machines produces so many reads (e.g. 40M for Illumina
+GAIIx, 100M for ABI SOLiD4 and 160M for an Illumina HiSeq), that the
+coverage obtained per lane for the transcriptome of organisms with small
+genomes, is very high. Often it is more valuable to sequence more
+samples with lower coverage than sequencing only one to very high
+coverage, so techniques have been optimised for sequencing several
+samples in a single lane using 4-6bp barcodes to uniquely identify the
+sample within the library [@Lefrancois:2009p7029]. This is
+called multiplexing and one can on average sequence 12 yeast samples at
+30X coverage in a single lane of an Illumina GenomeAnalyzer GAIIx (100bp
+read, single end). This approach is very advantageous for researchers,
+especially in term of costs, but it adds an additional layer of
+pre-processing that is not as trivial as one would think. Extracting the
+barcodes would be fairly straightforward, but for the average 0.1-1
+percent sequencing error rate that introduces a lot of multiplicity in
+the actual barcodes present in the samples. A proper design of the
+barcodes, maximising the Hamming distance
+[@Hamming:1950p7702] is an essential step for proper
+de-multiplexing.  
+
+The data we loaded into R in the previous section was not mutiplexed, so
+we now load a different FASTQ file where the 4 different samples
+sequenced were identified by the barcodes “ATGGCT”, “TTGCGA”, “ACACTG”
+and “ACTAGC”.
+```{r eval=FALSE}
+    reads <- readFastq(file.path(bigdata(),"multiplex","multiplex.fq.gz"))
+    
+    # filter out reads with more than 2 Ns
+    filter <- nFilter(threshold=2)
+    reads <- reads[filter(reads)]
+    
+    # access the read sequences
+    seqs <- sread(reads) 
+    
+    # this is the length of your adapters
+    barcodeLength <- 6 
+    
+    # get the first 6 bases of each read
+    seqs <- narrow(seqs, end=barcodeLength)
+    seqs
+    length(table(as.character(seqs)))
+```
+So it seems we have 1953 barcodes instead of 6…
+
+Which barcode is most represented in this library? Plot the relative
+frequency of the top 20 barcodes. Try:
+
+-   using the function *table* to count how many times each barcode
+    occurs in the library, you can’t apply this function to
+    `seqs` directly you must convert it first to a character
+    vector with the *as.character* function
+
+-   sort the counts object you just created with the function *sort*,
+    use `decreasing=TRUE` as an argument for *sort* so that
+    the elements are sorted from high to low (use `sort( ...,
+    decreasing=TRUE )`)
+
+-   look at the first element of your sorted counts object to find out
+    with barcode is most represented
+
+-   find out what the relative frequency of each barcode is by dividing
+    your counts object by the total number of reads (the function *sum*
+    might be useful)
+
+-   plot the relative frequency of the top 20 barcodes by adapting these
+    function calls:
+
+```{r eval=FALSE}
+
+    # set up larger margins for the plot so we can read the barcode names
+    # par(mar=c(5, 5, 4, 2))
+    # barplot(..., horiz=T, las=1, col="orange" )
+
+    barcount = sort(table(as.character(seqs)), decreasing=TRUE)
+    barcount[1:10]   # TTGCGA
+    barcount = barcount/sum(barcount)
+    par( mar=c(5, 5, 4, 2))
+    barplot(barcount[1:20], horiz=TRUE, las=1, col="orange" )
+```
+The designed barcodes (“ATGGCT”, “TTGCGA”, “ACACTG” and “ACTAGC”) seem
+to be equally distributed, what is the percentage of reads that cannot
+be assigned to a barcode?  
+```{r eval=FALSE}
+    signif((1-sum(barcount[1:4]))*100,digits=2)   # ~6.4%
+```
+We will now iterate over the 4 barcodes, split the reads between them
+and save a new fastq file for each:
+```{r eval=FALSE}
+    barcodes = c("ATGGCT", "TTGCGA", "ACACTG", "ACTAGC")
+    # iterate through each of these top 10 adapters and write
+    # output to fastq files
+    for(barcode in barcodes) {
+       seqs <- sread(reads) # get sequence list
+       qual <- quality(reads) # get quality score list
+       qual <- quality(qual) # strip quality score type
+       mismatchVector <- 0 # allow no mismatches
+      
+       # trim sequences looking for a 5' pattern
+       # gets IRanges object with trimmed coordinates
+       trimCoords <- trimLRPatterns(Lpattern=barcode, 
+       subject=seqs, max.Lmismatch=mismatchVector, ranges=T)
+      
+       # generate trimmed ShortReadQ object 
+       seqs <- DNAStringSet(seqs, start=start(trimCoords), 
+                            end=end(trimCoords))
+       qual <- BStringSet(qual, start=start(trimCoords), 
+                          end=end(trimCoords))
+      
+       # use IRanges coordinates to trim sequences and quality scores
+       qual <- SFastqQuality(qual) # reapply quality score type
+       trimmed <- ShortReadQ(sread=seqs, quality=qual, id=id(reads))
+      
+       # rebuild reads object with trimmed sequences and quality scores
+       # keep only reads which trimmed the full barcode
+       trimmed <- trimmed[start(trimCoords) == barcodeLength + 1]
+      
+       # write reads to Fastq file 
+       outputFileName <- paste(barcode, ".fq", sep="")
+       writeFastq(trimmed, outputFileName, compress = FALSE)
+      
+       # export filtered and trimmed reads to fastq file
+       print(paste("wrote", length(trimmed), 
+                   "reads to file", outputFileName))
+       }
+```
+You should have four new FASTQ files: ACACTG.fq, ACTAGC.fq ATGGCT.fq and
+TTGCGA.fq with the reads (the barcodes have been trimmed) corresponding
+to each mutiplexed sampled. The next step would be to align these reads
+against your reference genome.
+
+##### Aligning reads using `Rsubread`
+
+Let’s now align these demultiplexed fastq files against *Dmel*
+chromosome 4 (just because it is the smallest in *Dmel*).
+```{r eval=FALSE}
+    library(Rsubread)
+    library(BSgenome.Dmelanogaster.UCSC.dm3)
+    chr4 <- DNAStringSet(unmasked(Dmelanogaster[["chr4"]]))
+    names(chr4) <- "chr4"
+    writeXStringSet(chr4,file="dm3-chr4.fa")
+    
+    ## create the indexes
+    dir.create("indexes")
+    buildindex(basename=file.path("indexes","dm3-chr4"),
+              reference="dm3-chr4.fa",memory=1000,)
+    
+    ## align the reads
+    sapply(dir(pattern="*\\.fq$"),function(fil){
+     ## align
+     align(index=file.path("indexes","dm3-chr4"),
+           readfile1=fil,
+           nsubreads=2,TH1=1,
+           output_file=sub("\\.fq$","\\.bam",fil)
+           )
+     ## index bam files
+     sortBam(sub("\\.fq$","\\.bam",fil),
+             sub("\\.fq$","\\_sorted",fil))
+     indexBam(sub("\\.fq$","\\_sorted.bam",fil))
+    })
+```
+And that’s it you have filtered, demultiplexed and aligned your reads!
+
+### Resources
+
+There are extensive vignettes for `Rsamtools` and
+`GenomicAlignments` packages.

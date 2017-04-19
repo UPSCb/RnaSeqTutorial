@@ -1,0 +1,260 @@
+Extra - Working with Called Variants
+====================================
+```{r message=FALSE,warning=FALSE,results='hide'}
+    options(digits=2)
+    library(EBI2015)
+    library(VariantAnnotation)
+    library(ggplot2)
+    library(SNPlocs.Hsapiens.dbSNP.20101109)
+    library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+    library(BSgenome.Hsapiens.UCSC.hg19)
+    library(SIFT.Hsapiens.dbSNP132)
+```
+Annotation of Variants
+----------------------
+
+A major product of DNASeq experiments are catalogs of called variants
+(e.g., SNPs, indels). We will use the
+`VariantAnnotation` package to explore this type of
+data. Sample data included in the package are a subset of chromosome 22
+from the [1000
+Genomes](ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/release/20110521/)
+project. Variant Call Format (VCF; [full
+description](http://www.1000genomes.org/wiki/Analysis/Variant%20Call%20Format/vcf-variant-call-format-version-41))
+text files contain meta-information lines, a header line with column
+names, data lines with information about a position in the genome, and
+optional genotype information on samples for each position.
+
+### Variant call format (VCF) files
+
+Data are read from a VCF file and variants identified according to
+region such as `coding`, `intron`,
+`intergenic`, `spliceSite` etc. Amino
+acid coding changes are computed for the non-synonymous variants. SIFT
+and PolyPhen databases provide predictions of how severely the coding
+changes affect protein function.
+
+##### Data exploration
+
+The objective of this exercise is to compare the quality of called SNPs
+that are located in dbSNP, versus those that are novel.
+
+Locate the sample data in the file system. Explore the metadata
+(information about the content of the file) using
+`scanVcfHeader`. Discover the ‘info’ fields
+`VT` (variant type), and `RSQ` (genotype
+imputation quality).
+
+Input the sample data using `readVcf`. You’ll need to
+specify the genome build (`genome=“hg19”`) on which the
+variants are annotated. Take a peak at the `rowData` to
+see the genomic locations of each variant.
+
+dbSNP uses abbreviations such as `ch22` to represent chromosome 22,
+whereas the VCF file uses `22`. Use `rowData` and
+`renameSeqlevels` to extract the row data of the
+variants, and rename the chromosomes.
+
+The `SNPlocs.Hsapiens.dbSNP.20101109` contains
+information about SNPs in a particular build of dbSNP. Load the package,
+use the `dbSNPFilter` function to create a filter, and
+query the row data of the VCF file for membership.
+
+Create a data frame containing the dbSNP membership status and
+imputation quality of each SNP. Create a density plot to illustrate the
+results.
+
+Explore the header:
+```{r}
+    library(VariantAnnotation)
+    fl <- system.file("extdata", "chr22.vcf.gz", package="VariantAnnotation")
+    (hdr <- scanVcfHeader(fl))
+    info(hdr)[c("VT", "RSQ"),]
+```
+Input the data and peak at their locations:
+```{r}
+    (vcf <- readVcf(fl, "hg19"))
+    head(rowRanges(vcf), 3)
+```
+
+Discover whether SNPs are located in dbSNP:
+```{r}
+    library(SNPlocs.Hsapiens.dbSNP.20101109)
+    rd <- rowRanges(vcf)
+    seqlevels(rd) <- "ch22"
+    ch22snps <- getSNPlocs("ch22")
+    inDbSNP <- sub("rs", "", names(rd)) %in% ch22snps$RefSNP_id
+    table(inDbSNP)
+```
+Create a data frame summarizing SNP quality and dbSNP membership:
+```{r}
+    metrics <- data.frame(inDbSNP=inDbSNP, RSQ=info(vcf)$RSQ)
+```
+Finally, visualize the data, e.g., using `ggplot2`.
+```{r}
+    library(ggplot2)
+    ggplot(metrics, aes(RSQ, fill=inDbSNP)) +
+       geom_density(alpha=0.5) +
+       scale_x_continuous(name="MaCH / Thunder Imputation Quality") +
+       scale_y_continuous(name="Density") +
+       theme(legend.position="top")
+```
+
+### Coding consequences
+
+##### Locating variants in and around genes
+
+Variant location with respect to genes can be identified with the
+`locateVariants` function. Regions are specified in the
+`region` argument and can be one of the following
+constructors: `CodingVariants()`,
+`IntronVariants()`, `FiveUTRVariants()`,
+`ThreeUTRVariants()`,
+`IntergenicVariants()`,
+`SpliceSiteVariants()`, or
+`AllVariants()`. Location definitions are shown in the table below.
+
+| Location                     | Details                                                      |
+|------------------------------|--------------------------------------------------------------|
+| `coding`     | Within a coding region                                       |
+| `fiveUTR`    | Within a 5’ untranslated region                              |
+| `threeUTR`   | Within a 3’ untranslated region                              |
+| `intron`     | Within an intron region                                      |
+| `intergenic` | Not within a transcript associated with a gene               |
+| `spliceSite` | Overlaps any of the first or last 2 nucleotides of an intron |
+
+Load the `TxDb.Hsapiens.UCSC.hg19.knownGene` annotation
+package, and read in the `chr22.vcf.gz` example file from the
+`VariantAnnotation` package.
+
+Remembering to re-name sequence levels, use the
+`locateVariants` function to identify coding variants.
+
+Summarize aspects of your data, e.g., did any coding variants match more
+than one gene? How many coding variants are there per gene ID?
+
+Here we open the known genes data base, and read in the VCF file.
+```{r}
+    library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+    txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene 
+    
+    fl <- system.file("extdata", "chr22.vcf.gz", package="VariantAnnotation")
+    vcf <- readVcf(fl, "hg19")
+    vcf <- renameSeqlevels(vcf, c("22"="chr22"))
+```
+The next lines locate coding variants.
+```{r}
+    rd <- rowData(vcf)
+    loc <- locateVariants(rd, txdb, CodingVariants())
+    head(loc, 3)
+```
+To answer gene-centric questions data can be summarized by gene
+regardless of transcript.
+```{r}
+    ## Did any coding variants match more than one gene?
+    splt <- split(loc$GENEID, loc$QUERYID)
+    table(sapply(splt, function(x) length(unique(x)) > 1))
+    
+    ## Summarize the number of coding variants by gene ID
+    splt <- split(loc$QUERYID, loc$GENEID)
+    head(sapply(splt, function(x) length(unique(x))), 3)
+```
+##### Amino acid coding changes
+
+`predictCoding` computes amino acid coding changes for
+non-synonymous variants. Only ranges in `query` that
+overlap with a coding region in `subject` are
+considered. Reference sequences are retrieved from either a or fasta
+file specified in `seqSource`. Variant sequences are
+constructed by substituting, inserting or deleting values in the column
+into the reference sequence. Amino acid codes are computed for the
+variant codon sequence when the length is a multiple of 3.
+
+The `query` argument to `predictCoding`
+can be a or . When a is supplied the `varAllele`
+argument must be specified. In the case of a object, the alternate
+alleles are taken from `alt(<VCF>)` and the
+`varAllele` argument is not specified.
+
+The result is a modified `query` containing only
+variants that fall within coding regions. Each row represents a
+variant-transcript match so more than one row per original variant is
+possible.
+```{r}
+    library(BSgenome.Hsapiens.UCSC.hg19)
+    coding <- predictCoding(vcf, txdb, seqSource=Hsapiens)
+    coding[5:9]
+```
+Using variant rs114264124 as an example, we see
+`varAllele` `A` has been substituted
+into the `refCodon` `CGG` to produce
+`varCodon` `CAG`. The
+`refCodon` is the sequence of codons necessary to make
+the variant allele substitution and therefore often includes more
+nucleotides than indicated in the range (i.e. the range is 50302962,
+50302962, width of 1). Notice it is the second position in the
+`refCodon` that has been substituted. This position in
+the codon, the position of substitution, corresponds to genomic position
+50302962. This genomic position maps to position 698 in coding
+region-based coordinates and to triplet 233 in the protein. This is a
+non-synonymous coding variant where the amino acid has changed from
+`R` (Arg) to `Q` (Gln).
+
+When the resulting `varCodon` is not a multiple of 3 it
+cannot be translated. The consequence is considered a
+`frameshift` and will be missing.
+```{r}
+    coding[coding$CONSEQUENCE == "frameshift"]
+```
+##### SIFT and PolyPhen databases
+
+From `predictCoding` we identified the amino acid coding
+changes for the non-synonymous variants. For this subset we can retrieve
+predictions of how damaging these coding changes may be. SIFT (Sorting
+Intolerant From Tolerant) and PolyPhen (Polymorphism Phenotyping) are
+methods that predict the impact of amino acid substitution on a human
+protein. The SIFT method uses sequence homology and the physical
+properties of amino acids to make predictions about protein function.
+PolyPhen uses sequence-based features and structural information
+characterizing the substitution to make predictions about the structure
+and function of the protein.
+
+Collated predictions for specific dbSNP builds are available as
+downloads from the SIFT and PolyPhen web sites. These results have been
+packaged into `SIFT.Hsapiens.dbSNP132.db` and
+`PolyPhen.Hapiens.dbSNP131.db` and are designed to be
+searched by rsid. Variants that are in dbSNP can be searched with these
+database packages. When working with novel variants, SIFT and PolyPhen
+must be called directly. See references for home pages.
+
+Identify the non-synonymous variants and obtain the rsids.
+```{r}
+    nms <- names(coding)
+    idx <- coding$CONSEQUENCE == "nonsynonymous"
+    nonsyn <- coding[idx]
+    names(nonsyn) <- nms[idx]
+    rsids <- unique(names(nonsyn)[grep("rs", names(nonsyn), fixed=TRUE)])
+```
+Detailed descriptions of the database columns can be found with
+`?SIFTDbColumns` and
+`?PolyPhenDbColumns`. Variants in these databases often
+contain more than one row per variant. The variant may have been
+reported by multiple sources and therefore the source will differ as
+well as some of the other variables.
+```{r}
+    library(SIFT.Hsapiens.dbSNP132)
+    
+    ## rsids in the package 
+    head(keys(SIFT.Hsapiens.dbSNP132), 3)
+    ## list available columns
+    columns(SIFT.Hsapiens.dbSNP132)
+    ## select a subset of columns
+    ## a warning is thrown when a key is not found in the database
+    subst <- c("RSID", "PREDICTION", "SCORE", "AACHANGE", "PROTEINID")
+    sift <- select(SIFT.Hsapiens.dbSNP132, keys=rsids, cols=subst)
+    head(sift, 3)
+```
+PolyPhen provides predictions using two different training datasets and
+has considerable information about 3D protein structure. See
+`?PolyPhenDbColumns` or the PolyPhen web site listed in
+the references for more details.

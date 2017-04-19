@@ -1,0 +1,7 @@
+# Session Info
+This conclude this differential expression analysis. The following details
+the R version that was used to perform the analyses.
+
+```{r session info, echo=FALSE}
+sessionInfo()
+```

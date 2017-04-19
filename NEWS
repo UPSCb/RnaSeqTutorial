@@ -1,0 +1,46 @@
+CHANGES IN VERSION 0.99.1
+-------------------------
+  
+  o Modification for the EBI Advanced RNA-Seq and ChIP-Seq Data Analysis
+  held at the EBI, Cambridge, UK, May 2015
+
+  o Migrated the vignette from Rnw to Rmd
+
+CHANGES IN VERSION 0.99.0
+-------------------------
+
+  o Modification for the EMBO High-Througput Sequencing Data Analysis
+  held at the EBI, Cambridge, UK, October 2014
+
+CHANGES IN VERSION 0.7.1
+------------------------
+
+  o Fixed an issued due to a ShortRead API change
+
+CHANGES IN VERSION 0.5.3
+------------------------
+
+  o Fixed a number of issues due to API changes
+  o Some vignette discrepancies have been corrected. 
+
+CHANGES IN VERSION 0.0.16
+-------------------------
+
+	o The BAM files have now a correct header
+
+	o A Flybase v5.52 gff3 file, filtered for
+	mRNA and exon types has been added
+
+	o The annot.gff file it replaces has been
+	deprecated
+
+CHANGES IN VERSION 0.0.10
+-------------------------
+
+    o Introduced the NEWS file.
+
+    o Some vignette discrepancies have been corrected. 
+    Thanks to Richard Friedman for spotting them.
+
+    o Added the easyRNASeq CITATION file and a reference
+    in the vignette.

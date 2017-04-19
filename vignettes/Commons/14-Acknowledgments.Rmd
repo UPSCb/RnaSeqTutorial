@@ -1,0 +1,19 @@
+# Acknowledgments 
+
+1.  Thanks to the Workshop organizer (Ari Löytinoja.
+
+2.  Thanks to Martin Morgan ( R and Bioconductor guru among other
+    things, not to say head of the Bioconductor core at FHCRC - he never
+    ceases to amaze us) for part of the original of most the material in
+    your hands that we used during the EMBO October 2012 workshop. Time
+    flies.
+
+3.  Thanks to Ângela Gonçalves for the original material of the section
+    on estimating expression.
+
+4.  Thanks to the all lecturers, it is always fun around you.
+
+5.  Finally, thanks to you the reader - whatever the support you’re
+    reading this on - for having made it that far.
+
+

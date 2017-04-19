@@ -1,0 +1,150 @@
+```{r head-0201, echo=FALSE}
+h1("Introduction")
+```
+```{r head-0202, echo=FALSE}
+h2("About the tutorial")
+```
+
+This tutorial adresses several aspect of an RNA-Seq data analysis. First, 
+it deals with data pre-processing (a process rather agnostic to the type 
+of NGS analysis, _i.e._ it would also be valid for ChIP-Seq or DNA-Seq).
+That part of the tutorial introduces the use of the command line
+(specifically the bourne-again shell: bash) and several software tools
+to prepare sequencing data for downstrem analysis. Specifically, we will
+be covering quality control, rRNA sorting, quality trimming, genome
+mapping and feature summarization. If these terms don’t mean much yet,
+hopefully they will by the end of today. Next, it deals with the 
+manipulation of alignment files (in BAM format) and the obtention and 
+manipulation of genomic (and genic) annotations to subsequently combine
+them to obtain a _raw count table_[^1]. This count table is the necessary 
+minimal input for a Differential Expression analysis, which is the ultimate
+step in this tutorial.
+
+The goals of the tutorial are:
+
+* First part
+    + become familiar with the Linux command line
+    + be able to carry out quality control and necessary pre-processing steps of sequencing data
+* Second part
+    + become familiar with the R environment
+    + develop familiarity with R/Bioconductor packages for high-throughput analysis
+* Third part
+    + become familiar with the Differential Expression type of analysis
+
+```{r head-0203, echo=FALSE}
+  h2("Main softwares of interest")
+```
+1.  `FastQC` - Sequence data quality control
+
+2.  `SortMeRNA` - rRNA filtering
+
+3.  `Trimmomatic` - Low quality read and adapter trimming
+
+4.  `STAR` - Read mapping
+
+5.  `HTSeq` and `Kallisto` - Feature summarization
+
+```{r head-0204, echo=FALSE}
+h2("Main R/Bioconductor packages of interest")
+```
+
+Bioconductor is a collection of R packages for the analysis and
+comprehension of high-throughput genomic data. Among these, we will
+focus on a few of them principally: `GenomicAlignments`,
+`GenomicFeatures` and `GenomicRanges`. We will look at these packages (i) as an
+example to understand what the process of __feature summarization__ is (_i.e._
+taking a look under the hood) and (ii) as an introduction to computational optimisation in R. 
+
+We will, in addition, use two packages for Differential Expression data 
+analysis: `tximport ` and `DESeq2`.
+
+```{r head-0205, echo=FALSE}
+h3("A word on High-throughput sequence analysis")
+```
+  
+Recent technological developments introduced high-throughput sequencing
+approaches. A variety of experimental protocols and analysis workflows
+address gene expression, regulation, and encoding of genetic variants.
+Experimental protocols produce a large number (tens to hundreds of millions per
+sample) of short (_e.g._: 35-250, single or paired-end) nucleotide sequences.
+These are aligned to a reference or other genome or transcriptome.
+Analysis workflows use the alignments to infer levels of gene expression
+(RNA-seq), binding of regulatory elements to genomic locations
+(ChIP-seq), or prevalence of structural variants (_e.g._: SNPs, short indels,
+large-scale genomic rearrangements). Sample sizes range from minimal
+replication (_e.g._: 2 samples per treatment group) to thousands of
+individuals.
+
+```{r head-0206, echo=FALSE}
+    h3("A word on RNA-Seq")
+```
+RNA-Seq (RNA-Sequencing) has become the preferred method for measuring
+gene expression, providing an accurate proxy for absolute quantitation
+of messenger RNA (mRNA) levels within a sample
+[@Mortazavi:2008p740]. RNA-Seq has reached rapid maturity in data
+handling, QC (Quality Control) and downstream statistical analysis
+methods, taking substantial benefit from the extensive body of
+literature developed on the analysis of microarray technologies and
+their application to measuring gene expression. Although analysis of
+RNA-Seq remains more challenging than for microarray data, the field has
+now advanced to the point where it is possible to define mature
+pipelines and guidelines for such analyses. However, with the exception
+of commercial software options such as the CLCbio CLC Genomics
+Workbench, for example, we are not aware of any fully integrated
+open-source pipelines for performing these pre-processing steps. Both
+the technology behind RNA-Seq and the associated analysis methods
+continue to evolve at a rapid pace, and not all the properties of the
+data are yet fully understood. Hence, the steps and available software
+tools that could be used in such a pipeline have changed rapidly in
+recent years and it is only recently that it has become possible to
+propose a de-facto standard pipeline. Although proposing such a skeleton
+pipeline is now feasible there remain a number of caveats to be kept in
+mind in order to produce biologically and statistically sound results.
+
+A pipeline, which we have developed for non-model plant organisms but is 
+generally applicable can be seen in the figure below and a detailed 
+description of it has been published[^2].
+
+![The pre-processing pipeline used during the course][pipeline]
+
+```{r head-0207, echo=FALSE}
+    h2("A word on the dataset that is used in this tutorial")
+```
+
+As a running example, we use a dataset derived from a study performed in
+_P. tremula_ [@Robinson:2014p6362]. The authors test
+the evolutionary theory suggesting that males and females may evolve
+sexually dimorphic phenotypic and biochemical traits concordant with
+each sex having different optimal strategies of resource investment to
+maximise reproductive success and fitness. Such sexual dimorphism should
+result in sex biased gene expression patterns in non-floral organs for
+autosomal genes associated with the control and development of such
+phenotypic traits. Hence, the authors, among other approaches have
+looked for gene expression differences between sex. This was achieved by
+an RNA-Seq differential expression analysis between samples grouped by
+sex. The samples have been sequenced on an Illumina HiSeq 2000, using
+TruSeq adapters, through a 101 cycles paired-end protocol, which yielded
+between 11 million and 34 million reads per sample.
+
+In the following sections, we look at a subset of the data,
+corresponding to reads obtained from individuals of the RNA-seq
+experiment, and aligned to the _P. trichocarpa_ reference
+genome. The reason why the reads were aligned to the
+_P. trichocarpa_ genome is that we are currently establishing the 
+_P. tremula_ genome. _P. trichocarpa_ is a closely related species 
+(the latter present in north-western america
+while the former grows in northern and central europe).
+
+As a side note, reads were retrieved from the European Nucleotide
+Archive (ENA, accession ID ERP002471), and were aligned to the
+_P. trichocarpa_ reference genome using the STAR
+[@Dobin:2013p5293] aligner.
+
+```{r head-0208, echo=FALSE}
+    h2("A word on Integrated Development Environment (IDE)")
+```
+
+There are numerous tools to support developing programs and softwares in _R_. 
+For this course, we have selected one of them: the
+[RStudio](http://rstudio.org) environment, which provides a
+feature-full, user-friendly, cross-platform environment for working with _R_.

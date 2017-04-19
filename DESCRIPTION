@@ -1,0 +1,56 @@
+Package: RnaSeqTutorial
+Title: RNA-Seq Tutorial
+Version: 0.99.5
+Date: 2016-10-31
+Author: Nicolas Delhomme, Bastian Schiffthaler, Ismael Padioleau
+Description: A tutorial package that describes the pre-processing of RNA-Seq
+    data - from the raw (FASTQ) data to the alignment (mapping) to a reference
+    genome - and its subsequent differential expression analysis at the gene
+    level.
+Maintainer: Nicolas Delhomme <nicolas.delhomme@umu.se>
+License: Artistic-2.0
+Depends:
+    R (>= 3.3.1),
+    methods,
+    BiocGenerics,
+    easyRNASeq,
+    genomeIntervals,
+    GenomicAlignments,
+    GenomicFeatures,
+    leeBamViews,
+    Rsamtools,
+    seqLogo,
+    ShortRead,
+    TxDb.Dmelanogaster.UCSC.dm3.ensGene,
+    BSgenome.Dmelanogaster.UCSC.dm3,
+    DESeq,
+    DESeq2,
+    gplots,
+    LSD,
+    RColorBrewer,
+    scatterplot3d,
+    vsn,
+    VennDiagram
+Imports:
+    BiocGenerics,
+    BSgenome,
+    DESeq,
+    easyRNASeq,
+    GenomicRanges,
+    graphics,
+    grDevices,
+    IRanges,
+    methods,
+    S4Vectors,
+    ShortRead,
+    utils
+Suggests:
+    knitr,
+    rmarkdown,
+    shiny,
+    BiocStyle
+biocViews: ExperimentData, RNASeqData, Drosophila_melanogaster_Data,
+    ExpressionData
+Packaged: 2015-10-17 16:37:01 UTC; bastian
+NeedsCompilation: yes
+RoxygenNote: 5.0.1

@@ -1,0 +1,391 @@
+```{r inv-1001,echo=FALSE}
+    startQuest("Alignment and ShortRead")
+```
+
+```{r head-1001,echo=FALSE}
+    h1("Short Read Alignments")
+```
+
+In the former chapter, we have had an initial look at computer optimisation. In
+the present chapter, we will look into how read alignments are commonly 
+manipulated and what are the principles followed (and caveats faced) by standard
+tools.
+
+```{r message=FALSE,warning=FALSE,results='hide',echo=FALSE}
+    options(digits=2)
+    library(RnaSeqTutorial)
+    bamfiles <- dir(file.path(extdata(),"BAM"),
+                   pattern="*.bam$",full.names=TRUE)
+```
+
+Most down-stream analysis of short read sequences is based on reads
+aligned to reference genomes. There are many aligners available,
+including [BWA](http://bio-bwa.sourceforge.net/)
+[@pmid20080505],[@pmid19451168],
+[Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/)
+[@pmid19261174],
+[GSNAP](http://research-pub.gene.com/gmap/)
+[@Wu:2005p5857],
+[STAR](https://code.google.com/p/rna-star/)
+[@Dobin:2013p5293];
+merits of which are discussed in the literature. There are also
+alignment algorithms implemented in Bioconductor (e.g.,
+`matchPDict` in the `Biostrings` package
+and the `gmapR`, `Rbowtie`,
+`Rsubread` packages); `matchPDict` is
+particularly useful for flexible alignment of moderately sized subsets
+of data.
+
+```{r head-1002,echo=FALSE}
+    h2("Alignments and Bioconductor packages")
+```
+
+The following sections introduce core tools for working with
+high-throughput sequence data; key packages for representing reads and
+alignments are summarized in the following table.
+
+| Package | Description |
+|---------|-------------|
+| `ShortRead` | In addition to functionalities to manipulate raw read files, *e.g.*: the `ShortReadQ` class and functions for manipulating `fastq` files; this package offers the possibility to load numerous HTS formats classes. These are mostly sequencer manufacturer specific *e.g.*: `sff` for 454 or pre-BAM aligner proprietary formats, *e.g.*: `MAQ` or `bowtie`. These functionalities rely heavily on `Biostrings` and somewhat on `Rsamtools`. |
+| `GenomicAlignments` | `GAlignments` and `GAlignmentPairs` store single- and paired-end aligned reads and extend on the `GenomicRanges` functionalities. |
+| `Rsamtools` | Provides access to BAM alignment and other large sequence-related files. |
+| `rtracklayer` | Input and output of `bed`, `wig` and similar files. |
+
+Read the man page of the `GAlignments` and
+`GAlignmentPairs` classes and pay attention to the very
+important comments on multi-reads and paired-end processing.
+
+Really just `?GAlignments`. However, KEEP these details
+in mind as they are essential and likely source of erroneous conclusions.
+Remember the example of this morning lecture about RNA editing.
+
+```{r head-1003,echo=FALSE}
+    h3("Alignments and the `ShortRead` package")
+```
+
+Earlier, you looked at the `ShortRead` package to
+manipulate raw reads and to perform Quality Assessment (QA) on raw data
+files *e.g.*: fastq formatted files. These are not the only
+functionalities from the `ShortRead` package, which
+offers as well the possibility to read in alignments files in many
+different formats.
+
+Two files of the pasilla dataset have been aligned using
+`bowtie` [@Langmead:2009p309], locate
+them in the extdata folder of the `RnaSeqTutorial`
+package.
+
+```{r}
+    bwtFiles <- dir(path=file.path(extdata(),"bowtie"),
+                   pattern="*.bwt$",full.names=TRUE)
+```
+
+Have a pick at one of the file and try to decipher its format. Hint: it
+is a tab delimited format, so check the `read.delim`
+function. As you may not want to read all the lines to get an idea,
+lookup an appropriate argument for that.
+
+You might want to check
+the [bowtie manual](http://bowtie-bio.sourceforge.net/manual.shtml#default-bowtie-output)
+for checking whether your guesses were correct. Here is how to read 10
+lines of the first file.
+
+```{r eval=FALSE}
+    read.delim(file=file.path(extdata(),"bowtie","SRR074430.bwt"),
+              header=FALSE,nrows=10)
+```
+
+now, as was presented in the lecture use the
+`readAligned` function to read in the bowtie alignment
+files.
+
+```{r eval=FALSE}
+    alignedRead <- readAligned(dirPath=file.path(extdata(),"bowtie"),
+                       pattern="*.bwt$",type="Bowtie")
+```
+
+What is peculiar about the returned object? Determine its class. Can you
+tell where the data from both input files are?
+
+We obtained a single object of the `AlignedRead` class.
+By looking at the documentation, *i.e.*: `?readAligned`
+in the *Value* section, we are told that all files are concatenated in a
+single object with NO guarantee of order in which files are read. This
+is convenient when we want to merge several sequencing runs of the same
+sample but we need to be cautious and process independent sample by
+individually calling the `readAligned` function for
+every sample.
+
+Finally, taking another look at the lecture, select only the reads that
+align to chromosome 2L. Hint, use the appropriate
+`SRFilter` filter.
+
+```{r eval=FALSE}
+    alignedRead2L <- readAligned(dirPath=file.path(extdata(),"bowtie"),
+                                pattern="*.bwt$",type="Bowtie",
+                       filter=chromosomeFilter("2L"))
+```
+
+This concludes the overview of the `ShortRead` package.
+As the BAM format has become a _de-facto_ standard, it is unlikely that
+you end up using that package to process reads in R, but rather the
+`Rsamtools` package presented next.
+
+```{r inv-1002,echo=FALSE}
+    quest(3)
+    endQuest()
+    startQuest("GenomicAlignments and Rsamtools")
+```
+
+```{r head-1004,echo=FALSE}
+    h3("Alignments and the `Rsamtools` package")
+```
+
+```{r head-1005,echo=FALSE}
+    h4("Alignment formats")
+```
+
+Most main-stream aligners produce output in SAM (text-based) or BAM
+format. A SAM file is a text file, with one line per aligned read, and
+fields separated by tabs. Here is an example of a single SAM line, split
+into fields.
+
+```{r}
+    fl <- system.file("extdata", "ex1.sam", package="Rsamtools")
+    strsplit(readLines(fl, 1), "\t")[[1]]
+```
+
+Fields in a SAM file are summarized in the following table:
+
+| Field     | Name  | Value                                   |
+|-----------|-------|-----------------------------------------|
+| 1         | QNAME | Query (read) NAME                       |
+| 2         | FLAG  | Bitwise FLAG, e.g., strand of alignment |
+| 3         | RNAME | Reference sequence NAME                 |
+| 4         | POS   | 1-based leftmost POSition of sequence   |
+| 5         | MAPQ  | MAPping Quality (Phred-scaled)          |
+| 6         | CIGAR | Extended CIGAR string                   |
+| 7         | MRNM  | Mate Reference sequence NaMe            |
+| 8         | MPOS  | 1-based Mate POSition                   |
+| 9         | ISIZE | Inferred insert SIZE                    |
+| 10        | SEQ   | Query SEQuence on the reference strand  |
+| 11        | QUAL  | Query QUALity                           |
+| 12+       | OPT   | OPTional fields, format TAG:VTYPE:VALUE |
+
+We recognize from the FASTQ format introduced earlier, the identifier
+string, read sequences and qualities. The alignment is to a chromosome
+‘seq1’ starting at position 1. The strand of alignment is encoded in the
+‘flag’ field. The alignment record also includes a measure of mapping
+quality, and a CIGAR string describing the nature of the alignment. In
+this case, the CIGAR is 36M, indicating that the alignment consisted of
+36 `M`atches or mismatches, with no indels or gaps; indels are
+represented by `I` and `D`; gaps (e.g., from alignments spanning
+introns) by `N`.
+
+BAM files encode the same information as SAM files, but in a format that
+is more efficiently parsed by software; BAM files are the primary way in
+which aligned reads are imported in to R.
+
+```{r head-1006,echo=FALSE}
+    h4("Aligned reads in R")
+```
+
+As introduced in the previous section, there are three
+different packages to read alignments in R:
+
+-   `ShortRead`
+
+-   `GenomicAlignments`
+
+-   `Rsamtools`
+
+The last two will be described in more details in the next paragraphs.
+
+```{r head-1007,echo=FALSE}
+    h5("GenomicAlignments")
+```
+
+The `readGAlignments` function from the
+`GenomicAlignments` package reads essential information
+from a BAM file into an instance of the
+`GAlignments` class. The `GAlignments`
+class has been designed to allow useful manipulation of many reads
+(e.g., 20 million) under moderate memory requirements (e.g., 4 GB).
+
+Use the `readGAlignments` to read in the “ex1.bam” that
+can be found in the “extdata” folder of the `Rsamtools`
+package.
+
+```{r}
+    alnFile <- system.file("extdata", "ex1.bam", package="Rsamtools")
+    aln <- readGAlignments(alnFile)
+```
+
+```{r eval=FALSE}
+    head(aln, 3)
+```
+
+The `readGAlignments` function takes an additional
+argument: `param` that allows to streamline the
+information retrieved from a BAM files, *e.g.*: to retrieve alignments
+to known gene coordinates only.
+
+A `GAlignments` instance is like a data frame, but with
+accessors as suggested by the column names. It is easy to query, e.g.,
+the distribution of reads aligning to each strand, the length of reads (a.k.a. 
+_width_), or the alignment cigar strings
+
+Summarize the strand, width and CIGAR information from the `aln` object.
+
+```{r}
+    table(strand(aln))
+    table(width(aln))
+    head(sort(table(cigar(aln)), decreasing=TRUE))
+```
+
+```{r head-1008,echo=FALSE}
+    h5("Rsamtools")
+```
+
+The `GenomicAlignments` package `readGAlignments`
+function only parses some of the fields of a BAM file, and that may not
+be appropriate for every usage. In such cases the `scanBam`
+function in `Rsamtools` provides greater flexibility.
+The idea is to view BAM files as a kind of data base. Particular regions
+of interest can be selected, and the information in the selection
+restricted to particular fields. These operations are determined by the
+values of a `ScanBamParam` object, passed as the named
+`param` argument to `scanBam`.
+
+Consult the help page for `ScanBamParam`, and construct
+an object that restricts the information returned by a
+`scanBam` query to the aligned read DNA sequence. Your
+solution will use the `what` parameter of the
+`ScanBamParam` function.
+
+Use the `ScanBamParam` object to query a BAM file, and
+calculate the GC content - using the `gcFunction` function - of all aligned 
+reads. Summarize the GC content as a histogram:
+
+```{r, eval=FALSE}
+    param <- ScanBamParam(what="seq")
+    seqs <- scanBam(bamfiles[[1]], param=param)
+    readGC <- gcFunction(seqs[[1]][["seq"]])
+    hist(readGC)
+```
+
+```{r head-1009,echo=FALSE}
+    h5("Advanced Rsamtools usage")
+```
+
+The `Rsamtools` package has more advanced
+functionalities:
+
+1.  functions to count, index, filter, sort BAM files
+
+2.  functions to access the header only
+
+3.  the possibility to access SAM attributes (tags)
+
+4.  functions to manipulate the CIGAR string
+
+5.  the possibility to combine BAM libraries into a study set (BamViews)
+
+6.  …
+
+Find out the function that permit to scan the BAM header and retrieve
+the header of the first BAM file in the bigdata() bam subfolder.
+
+```{r inv-1003,echo=FALSE}
+    quest(4)
+    endQuest()
+    startQuest("Advanced Rsamtools usage")
+```
+
+It contains the reference sequence length and names as well as the name,
+version and command line of the tool used for performing the alignments.
+
+```{r eval=FALSE}
+    scanBamHeader(bamfiles[1])
+```
+
+The SAM/BAM format contains a tag: “NH” that defines the total number of
+valid alignments reported for a read. How can you extract that
+information from the same first bam file and plot it as an histogram?
+
+```{r, eval=FALSE}
+    param <- ScanBamParam(tag="NH")
+    nhs <- scanBam(bamfiles[[1]], param=param)[[1]]$tag$NH
+```
+
+So it seems a majority of our reads have multiple alignments! Some
+processing might be required to deal with these; *i.e.*: if reads were
+aligned to the transcriptome there exist tools that can deconvoluate the
+transcript specific expression, for example MMSEQ [@Turro:2011p4762], 
+BitSeq [@bitseq], that last one existing as an R package too: `BitSeq`.
+Otherwise if reads were aligned to the genome, one should consider
+filtering these multiple alignments to avoid introducing artifactual
+noise in the subsequent analyses.
+
+The CIGAR string contains interesting information, in particular,
+whether or not a given match contain indels. Using the first bam file,
+can you get a matrix of all seven CIGAR operations? And find out the
+intron size distribution?
+
+```{r eval=FALSE}
+    param <- ScanBamParam(what="cigar")
+    cigars <- scanBam(bamfiles[[1]], param=param)[[1]]$cigar
+    cigar.matrix <- cigarOpTable(cigars)
+    intron.size <- cigar.matrix[,"N"]
+    intron.size[intron.size>0]
+    plot(density(intron.size[intron.size>0]))
+    hist(log10(intron.size[intron.size>0]),xlab="intron size (log10 bp)")
+```
+
+Look up the documentation for the `BamViews` and using the `leeBamViews`
+package, create a BamViews instance. Afterwards, use some of the
+accessors of that object to retrieve *e.g.* the file paths or the sample
+names
+
+```{r eval=FALSE}
+    library(leeBamViews)
+    bpaths = dir(system.file("bam", package="leeBamViews"), full=TRUE, patt="bam$")
+    gt<-do.call(rbind,strsplit(basename(bpaths),"_"))[,1]
+    geno<-substr(gt,1,nchar(gt)-1)
+    lane<-substr(gt,nchar(gt),nchar(gt))
+    pd = DataFrame(geno=geno, lane=lane, row.names=paste(geno,lane,sep="."))
+    bs1 = BamViews(bamPaths=bpaths, bamSamples=pd,
+                   bamExperiment=list(annotation="org.Sc.sgd.db"))
+    bamPaths(bs1)
+    bamSamples(bs1)
+```
+
+Finally, extract the coverage for the locus 861250:863000 on chromosome
+“Scchr13” for every sample in the object
+
+```{r eval=FALSE}
+    sel <- GRanges(seqnames = "Scchr13", 
+                   IRanges(start = 861250, end = 863000),
+                   strand="+")
+    covex = RleList(lapply(bamPaths(bs1),
+                           function(x){
+                             coverage(readGAlignments(x))[sel][["Scchr13"]]}))
+```
+
+This offer an interesting way to process multiple sample at the same
+time when you’re interested in a particular locus.
+
+```{r inv-1004, echo=FALSE}
+    quest(5)
+```
+
+```{r head-1010,echo=FALSE}
+    h3("Resources")
+```
+
+There are extensive vignettes for `Rsamtools` and
+`GenomicAlignments` packages.
+
+```{r inv-1005, echo=FALSE}
+    endQuest()
+```
