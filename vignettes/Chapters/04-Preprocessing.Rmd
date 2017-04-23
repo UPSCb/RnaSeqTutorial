@@ -24,45 +24,51 @@ If you have provided data, you have been instructed where to find these. Simply 
 If you had no data, or were not at liberty to share it, we have an exemplary dataset, described below.
 
 The _P. tremula_ sexual dimorphism
-dataset [@Robinson:2014p6362] contains 17
-samples in total. As we are working with PE (Paired-End) data, to process one sample, select at least a pair of files from the table below. To identify which files you will be pre-processing, use the prefix of the files in the first column. In this file name, "\_1" indicate that the sequences are from the first mate of the PE, whereas "\_2" represent the second mate sequences.
+dataset [@Robinson:2014p6362] contains 17 samples in total. You will be working
+with all of the available files. This RNA-Seq dataset is paired-end. You can 
+identify read pairs by looking at their file names. Note how half end with 
+`1.fq.gz` while the others end with `2.fq.gz`. Some steps in the analysis
+pipeline will require processing of files individually (e.g. FastQC), 
+while others work on pairs (e.g. Trimmomatic, STAR). 
+<!-- As we are working with PE (Paired-End) data, to process one -->
+<!-- sample, select at least a pair of files from the table below. To identify which files you will be pre-processing, use the prefix of the files in the first column. In this file name, "\_1" indicate that the sequences are from the first mate of the PE, whereas "\_2" represent the second mate sequences. -->
 
-| File | Sample |
-|--------|------|
-|202\_subset\_1.fq.gz | 01 | 
-|202\_subset\_2.fq.gz | 01 |
-| 207\_subset\_1.fq.gz | 02 |
-| 207\_subset\_2.fq.gz | 02 | 
-| 213.1\_subset\_1.fq.gz | 03 | 
-| 213.1\_subset\_2.fq.gz | 03 | 
-| 221\_subset\_1.fq.gz | 04 |
-| 221\_subset\_2.fq.gz | 04 | 
-| 226.1\_subset\_1.fq.gz | 05 | 
-| 226.1\_subset\_2.fq.gz | 05 | 
-| 229\_subset\_1.fq.gz | 06 |
-| 229\_subset\_2.fq.gz | 06 |
-| 229.1\_subset\_1.fq.gz | 07 | 
-| 229.1\_subset\_2.fq.gz | 07 | 
-| 235\_subset\_1.fq.gz | 08 | 
-| 235\_subset\_2.fq.gz | 08 | 
-| 236\_subset\_1.fq.gz | 09 | 
-| 236\_subset\_2.fq.gz | 09 | 
-| 239\_subset\_1.fq.gz | 10 |
-| 239\_subset\_2.fq.gz | 10 |
-| 244\_subset\_1.fq.gz | 11 | 
-| 244\_subset\_2.fq.gz | 11 | 
-| 303\_subset\_1.fq.gz | 12 | 
-| 303\_subset\_2.fq.gz | 12 |
-| 305.3\_subset\_1.fq.gz | 13 |
-| 305.3\_subset\_2.fq.gz | 13 |
-| 309.1\_subset\_1.fq.gz | 14 |
-| 309.1\_subset\_2.fq.gz | 14 | 
-| 310.3\_subset\_1.fq.gz | 15 |
-| 310.3\_subset\_2.fq.gz | 15 | 
-| 337.1\_subset\_1.fq.gz | 16 |
-| 337.1\_subset\_2.fq.gz | 16 | 
-| 349.2\_subset\_1.fq.gz | 17 | 
-| 349.2\_subset\_2.fq.gz | 17 | 
+<!-- | File | Sample | -->
+<!-- |--------|------| -->
+<!-- |202\_subset\_1.fq.gz | 01 |  -->
+<!-- |202\_subset\_2.fq.gz | 01 | -->
+<!-- | 207\_subset\_1.fq.gz | 02 | -->
+<!-- | 207\_subset\_2.fq.gz | 02 |  -->
+<!-- | 213.1\_subset\_1.fq.gz | 03 |  -->
+<!-- | 213.1\_subset\_2.fq.gz | 03 |  -->
+<!-- | 221\_subset\_1.fq.gz | 04 | -->
+<!-- | 221\_subset\_2.fq.gz | 04 |  -->
+<!-- | 226.1\_subset\_1.fq.gz | 05 |  -->
+<!-- | 226.1\_subset\_2.fq.gz | 05 |  -->
+<!-- | 229\_subset\_1.fq.gz | 06 | -->
+<!-- | 229\_subset\_2.fq.gz | 06 | -->
+<!-- | 229.1\_subset\_1.fq.gz | 07 |  -->
+<!-- | 229.1\_subset\_2.fq.gz | 07 |  -->
+<!-- | 235\_subset\_1.fq.gz | 08 |  -->
+<!-- | 235\_subset\_2.fq.gz | 08 |  -->
+<!-- | 236\_subset\_1.fq.gz | 09 |  -->
+<!-- | 236\_subset\_2.fq.gz | 09 |  -->
+<!-- | 239\_subset\_1.fq.gz | 10 | -->
+<!-- | 239\_subset\_2.fq.gz | 10 | -->
+<!-- | 244\_subset\_1.fq.gz | 11 |  -->
+<!-- | 244\_subset\_2.fq.gz | 11 |  -->
+<!-- | 303\_subset\_1.fq.gz | 12 |  -->
+<!-- | 303\_subset\_2.fq.gz | 12 | -->
+<!-- | 305.3\_subset\_1.fq.gz | 13 | -->
+<!-- | 305.3\_subset\_2.fq.gz | 13 | -->
+<!-- | 309.1\_subset\_1.fq.gz | 14 | -->
+<!-- | 309.1\_subset\_2.fq.gz | 14 |  -->
+<!-- | 310.3\_subset\_1.fq.gz | 15 | -->
+<!-- | 310.3\_subset\_2.fq.gz | 15 |  -->
+<!-- | 337.1\_subset\_1.fq.gz | 16 | -->
+<!-- | 337.1\_subset\_2.fq.gz | 16 |  -->
+<!-- | 349.2\_subset\_1.fq.gz | 17 |  -->
+<!-- | 349.2\_subset\_2.fq.gz | 17 |  -->
 
 | Step | Requires both files|
 |------|--------------------|
@@ -76,7 +82,7 @@ samples in total. As we are working with PE (Paired-End) data, to process one sa
 | Read count summarization using HTSeq htseq-count | NO |
 
 ```{r inv-0502, echo=FALSE}
-    quest(9)
+    quest(1)
     endQuest()
     startQuest("Raw data quality control")
 ```
@@ -100,24 +106,33 @@ across the reads) and the presence / absence of overrepresented
 sequences. FastQC has become a de-facto standard for performing this
 task <http://www.bioinformatics.babraham.ac.uk/projects/fastqc/>. A
 FastQC command line example is as follows:
-
-    # First, make an output directory called "qa" and a sub-directory of
-    # that called "raw"
-    mkdir -p qa/raw
-
-    # Then make copies of your sample files into your home folder. Always try to
-    # work on copies of the raw source data.
-    cp share/Day1/data/fastq/read_1.fq.gz .
-    cp share/Day1/data/fastq/read_2.fq.gz .
-
-    # Then you can run fastqc on the file(s) you have selected
-    fastqc -o qa/raw read_1.fq.gz
+```{bash fqc}
+  # First, make an output directory called "qa" and a sub-directory of
+  # that called "raw"
+  mkdir -p qa/raw
+  
+  # We can also make a directory to hold the raw data
+  mkdir raw
+  
+  # Then make copies of your sample files into your home folder. Always try to
+  # work on copies of the raw source data.
+  cp share/Day1/data/fastq/*.fq.gz raw
+  
+  # Then you can run fastqc on the file(s) you have selected. FastQC can run
+  # a number of files in parallel (see the -t option)
+  fastqc -o qa/raw -t 16 raw/*.fq.gz
+  
+  # Finally, also run multiqc to summarize all data in one plot
+  cd qa/raw
+  multiqc .
+```
 
 The output of FastQC is a zip archive and an HTML document, which is
 sub-divided into sections describing the specific metrics that were
 analyzed. These sections are detailed below. In order to view the html
 page that was created, go to the course webpage and click on "Connect to Apache2"
-, then click on home > qa > raw and finally on the html file.
+, then click on home > qa > raw and finally on the html file. View any _single_
+report and go through the following categories.
 
 ```{r head-0504,echo=FALSE}
     h3("Basic Statistics")
@@ -149,7 +164,7 @@ the quality and <http://en.wikipedia.org/wiki/FASTQ_format#Encoding> for
 information on the corresponding encoding.
 
 ```{r inv-0503, echo=FALSE}
-    quest(10)
+  quest(2)
   endQuest()
   startQuest("Overview of FastQC output")
 ```
@@ -277,9 +292,12 @@ Commonly, the early bases show the aforementioned Illumina sequencing
 bias (see section d), whereas the last bases may show enrichment for
 sequencing adapters.
 
-Run FastQC for your assigned read file. Compare the results with that of
-your teammate. Does the QC looks fine to you or are there issues you
+Run FastQC for your assigned read file. Compare the results of different files
+and of read pairs. Does the QC looks fine to you or are there issues you
 would address?
+
+Also, after looking through FastQC itself, look at the MultiQC report, which will
+give you a nice summary of all files.
 
 Take a comparative look at samples 202, 207 and 213.
 Do these 3 samples have identical qualities? If not, what differentiates
@@ -294,7 +312,7 @@ cycles progresses. Both these issues can be remediated and this is what
 will be addressed in the following.
 
 ```{r inv-0504, echo=FALSE}
-    quest(11)
+    quest(3)
     endQuest()
     startQuest("rRNA filtering")
 ```
@@ -323,8 +341,9 @@ SortMeRna, a tool originally developed to identify rRNA in metagenomics
 analyses [@Kopylova:2012p5297]. The tool accepts FASTQ files (SE or
 PE) as input and includes a set of reference libraries containing the
 most common rRNAs (5,5.8,16, 18, 23 and 26-28S). Example command lines
-for a PE sample are:
+for a _single_ PE sample are (you shouldn't run samples one by one):
 
+```{bash}
     # First uncompress your forward and reverse reads:
     gunzip read_1.fq.gz read_2.fq.gz
 
@@ -334,7 +353,7 @@ for a PE sample are:
 
     # Run sortmerna
     sortmerna --ref $SORTMERNA_DB --reads read-interleaved.fq --aligned \
-    read-rRNA-hits --other read-sortmerna --log -a 4 -v --paired_in --fastx
+    read-rRNA-hits --other read-sortmerna --log -a 16 -v --paired_in --fastx
 
     # Split the file again in two separate files, one for forward, one for reverse
     # orientation
@@ -343,11 +362,69 @@ for a PE sample are:
     # Delete the interleaved files and compress the result files to save space
     rm read-interleaved.fq read-sortmerna.fq
     gzip read-sortmerna_1.fq read-sortmerna_2.fq
+```
+
+It can be very tedious to process files one by one, especially in large projects.
+Let's create a script that runs all these steps for us. Open a text editor 
+(e.g. `nano` on the command line) and copy the following lines:
+```{bash}
+    #!/bin/bash
+    
+    READ_FW="$1"
+    READ_RV="$2"
+    
+    FILEBASE=$(basename "${READ_FW/_1.fq.gz/}")
+    
+    echo "Uncompressing FASTQ data of $FILEBASE"
+    gunzip "$READ_FW" "$READ_RV"
+    
+    READ_FW="${READ_FW%.gz}"
+    READ_RV="${READ_RV%.gz}"
+    
+    echo "Merging pairs of $FILEBASE"
+    merge-paired-reads.sh "$READ_FW" "$READ_RV" "${FILEBASE}_interleaved.fq"
+    
+    echo "Running SortMeRNA for $FILEBASE"
+    sortmerna --ref $SORTMERNA_DB --reads "${FILEBASE}_interleaved.fq" --aligned \
+    "${FILEBASE}-rRNA-hits" --other  "${FILEBASE}-sortmerna" --log -a 16 \
+    -v --paired_in --fastx
+    
+    echo "Unmerging SortMeRNA filtered pairs for $FILEBASE"
+    unmerge-paired-reads.sh "${FILEBASE}-sortmerna.fq" \
+    "${FILEBASE}-sortmerna_1.fq" "${FILEBASE}-sortmerna_2.fq"
+    
+    echo "Doing cleanup for $FILEBASE"
+    gzip "$READ_FW" "$READ_RV" "${FILEBASE}-sortmerna_1.fq" \
+    "${FILEBASE}-sortmerna_2.fq" "${FILEBASE}-rRNA-hits.fq"
+    rm "${FILEBASE}_interleaved.fq" "${FILEBASE}-sortmerna.fq"
+```
+
+Press `Ctrl+O` in `nano` and write the filename `~/runSortMeRNA.sh`. Then press
+`return` and exit `nano` with `Ctrl+X`.
+
+Now we can use a loop to execute this script for two samples (doing more would
+be very time consuming):
+
+```{bash}
+    mkdir ~/sortmerna
+    cd ~/sortmerna
+    find ../raw -name "*.fq.gz"  | sort | head -n 4 | while read READ_FW
+    do 
+      read READ_RV
+      bash ../runSortMeRNA.sh $READ_FW $READ_RV
+    done  
+```
+
+Now we can get the rest of the files from the pre-calculated example data:
+
+```{bash}
+   cp ~/share/Day1/data/sortmerna/* .
+```
 
 The format conversion step is not required for SE samples, nor is the
 “–paired\_in” argument. The SORTMERNA\_DB environment variable needs to
 be set at installation and the “-a” argument details the number of
-CPUs/threads to be used. The tool manual provides a comprehensive
+CPUs/threads to be used. The manual provides a comprehensive
 description of all functionalities. SortMeRna does not currently support
 compressed input, hence the first and last step to (de)compress the
 data.
@@ -355,8 +432,16 @@ data.
 Run SortMeRna on your sample (both read\_1 and read\_2). This may take a
 while (about 10 mins). Once done, look at the produced log file.
 
+MultiQC understands SortMeRNA log files, so you can nicely summarize the data
+with:
+
+```{bash}
+    cd ~/sortmerna
+    multiqc .
+```
+
 ```{r inv-0505, echo=FALSE}
-    quest(12)
+    quest(4)
     endQuest()
     startQuest("Quality trimming")
 ```
@@ -371,6 +456,11 @@ The filtered data is again subjected to a QC assessment by FastQC to
 ensure the validity of the filtering steps.
 
 Redo the FastQC on the SortMeRna files you have generated.
+
+```{bash}
+    mkdir ~/qa/sortmerna
+    fastqc -o ~/qa/sortmerna -t 16 ~/sortmerna/*sortmerna*.fq.gz
+```
 
 The GC content plot should show the biggest change, now fitting more
 closely to the theoretical distribution, as shown in Figure [2A][example]
@@ -414,16 +504,32 @@ the aligned read proportion.
 There are numerous tools available to perform either or both of these
 tasks (quality trimming and adapter removal). Here, we exemplify using
 Trimmomatic [@Bolger:2014p6305], a tool that does both. The command line
-for our PE sample example is as follows:
+to run the first two samples is as follows:
 
-     trimmomatic PE -threads 4 -phred64 read-sortmerna_1.fq.gz \
-     read-sortmerna_2.fq.gz read-sortmerna-trimmomatic_1.fq.gz \
-     read-sortmerna-unpaired_1.fq.gz read-sortmerna-trimmomatic_2.fq.gz \
-     read-sortmerna-unpaired_2.fq.gz \
-     ILLUMINACLIP:"/usr/share/Trimmomatic-0.36/adapters/TruSeq3-PE-2.fa":2:30:10 \
-     SLIDINGWINDOW:5:20 MINLEN:50
+```{bash}
+    mkdir ~/trimmomatic
+    cd ~/trimmomatic
+    find ../sortmerna -name "*sortmerna_[12].fq.gz" | sort | head -n 4 | while read FW_READ
+    do
+      read RV_READ
+      FILEBASE=$(basename "${FW_READ%_1.fq.gz}")
+      trimmomatic PE -threads 16 -phred64 "$FW_READ" "$RV_READ" \
+      "$FILEBASE-trimmomatic_1.fq.gz" "$FILEBASE-trimmomatic-unpaired_1.fq.gz" \
+      "$FILEBASE-trimmomatic_2.fq.gz" "$FILEBASE-trimmomatic-unpaired_2.fq.gz"  \
+      ILLUMINACLIP:"/usr/share/Trimmomatic-0.36/adapters/TruSeq3-PE-2.fa":2:30:10 \
+      SLIDINGWINDOW:5:20 MINLEN:50 2> "$FILEBASE-timmomatic.log"
+    done  
+```
 
-Run Trimmomatic on your filtered FASTQ data. 
+Run Trimmomatic on your filtered FASTQ data.
+
+Now we can copy the rest of the files and run MultiQC.
+
+```{bash}
+    cd ~/trimmomatic
+    cp ~/share/Day1/data/trimmomatic/* .
+    multiqc .
+```
 
 Once again what would you do after having quality-trimmed and removed
 the sequencing adapter from your reads?
@@ -441,6 +547,11 @@ newly apparent technical biases.
 
 Redo the FastQC on the Trimmomatic files you have generated.
 
+```{bash}
+    mkdir ~/qa/trimmomatic
+    fastqc -o ~/qa/trimmomatic -t 16 ~/trimmomatic/*trimmomatic_[12].fq.gz
+```
+
 Several changes should be observed in comparison with the previous QC
 report: first, the per-base quality scores should be noticeably
 different. As shown in Figure [2C,D][example] the per-sequence quality
@@ -450,7 +561,19 @@ and sequencing adapters are no longer identified as over-represented
 indicates that an additional kind of contamination may be present and
 should be investigated.
 
+Finally, let's create a full, final directory with all logs to have a complete
+MultiQC report:
+
+```{bash}
+    mkdir ~/qc_report
+    ln -s ~/qa/raw/*zip ~/qc_report
+    ln -s ~/qa/sortmerna/*zip ~/qc_report
+    ln -s ~/qa/trimmomatic/*zip ~/qc_report
+    ln -s ~/sortmerna/*.log ~/qc_report
+    ln -s ~/trimmomatic/*.log ~/qc_report
+```
+
 ```{r inv-0506, echo=FALSE}
-    quest(13)
+    quest(5)
     endQuest()
 ```
