@@ -3,14 +3,29 @@
 ```
 
 ```{r head-0401, echo=FALSE}
-    h1("Annotation of Genes and Genomes")
+    h1("Genes and Genomes")
 ```
 
 In the previous chapter, we have seen how aligned reads can be manipulated
-and what are the crucial caveats to be aware of; _i.e._ stranded _vs._ 
-non-stranded data and multi-mapping reads discard. In the present chapter, we
+and what are some of the crucial caveats to be aware of; _e.g._ stranded _vs._ 
+non-stranded data, multi-mapping reads, _etc._. In the present chapter, we
 will look at how genic annotation are retrieved and processed. Here again we 
 will introduce how this is commonly done and what caveats this implies.
+
+```{r head-0402, echo=FALSE}
+    h2("Retrieving annotations")
+```
+
+Commonly, gene annotation are made available through flat-files encoded in the 
+ggf3 (or its derivatives) format. `gff3` stands for `Generic Feature Format version 3`. 
+This is probably the most commonly used format, in particular when it comes to
+recently sequenced genomes. Another common format is the `gtf` (`Gene Transfer Format`), an alternative to the `gff2` format. This format is arguably popular from its exclusive use by
+the `EnsEMBL` consortium.
+
+```{r head-0403, echo=FALSE}
+    h2("Manipulating annotations")
+```
+
 
 ```{r message=FALSE,warning=FALSE,results='hide',echo=FALSE}
     options(digits=2)

@@ -30,5 +30,6 @@ answer at your own pace, however, you can answer a question only once. Once you
 have submitted your answer, you can press "Close" in the present tutorial; the
 current section of the tutorial will collapse (you can always re-open it, _e.g._
 if you need clarifications about the question) and the next section will open. 
-If anything were unclear at any time, do not hesitate to contact us on slack.
+If anything were unclear at any time, do not hesitate to ask us (also contact us 
+on slack).
 
