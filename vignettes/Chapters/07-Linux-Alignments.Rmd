@@ -1,4 +1,4 @@
-```{r inv-07b01, echo=FALSE}
+```{r inv-0701, echo=FALSE}
 startQuest("Formats")
 ```
 
@@ -286,7 +286,7 @@ this purpose, visualization tools like IGV exist (samtools also has a viewer,
 see `samtools tview`). We have prepared a web-based alignment viewer called 
 JBrowse at http://watson.plantphys.umu.se:20000
 
-```{r inv-07b03, echo=FALSE}
+```{r inv-0703, echo=FALSE}
 quest(3)
 endQuest()
 ```

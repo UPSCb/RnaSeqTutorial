@@ -5,3 +5,6 @@ genome - and its subsequent differential expression analysis at the gene
 and transcript level.
 
 # Installation
+
+# Caveats
+inv block only numbers inv-XXXX

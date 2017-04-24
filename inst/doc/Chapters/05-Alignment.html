@@ -206,19 +206,25 @@ form {
 <p><strong>NOTE: The command line below is shown for exemplary purposes, NOT to be executed :-)</strong></p>
 <p>First, the genome needs to be indexed. This is performed using the following command:</p>
 <pre><code>STAR --runMode genomeGenerate --genomeDir GENOME/Indices --genomeFastaFiles \
-GENOME/FASTA/genome.fa --runThreadN 8 --sjdbOverhang 100 \
+GENOME/FASTA/genome.fa --runThreadN 16 --sjdbOverhang 100 \
 --sjdbGTFfile GENOME/GTF/genome.gtf</code></pre>
 <p>where the <code>genomeDir</code> parameter specifies the output directory for the index, <code>genomeFastaFiles</code> specifies the genome FASTA file path and <code>sjdbGTFfile</code> the file path of the gene annotation file, which can typically be retrieved from EnsEMBL (in gtf format) or UCSC (in gff3 format, to be converted in gtf format). We also provide an additional option that would need to be edited depending on your sequencing read length (<code>sjdbOverhang 100</code>); we selected 100 as our longuest reads are 101bp long - see the STAR manual for the rationale behind this.</p>
 <h3>Performing the alignment</h3>
 <p>Once the genome index is built, we can align our sample reads to it. This is achieved as follows:</p>
-<pre><code>mkdir star
-STAR --genomeDir share/Day1/data/indices/STAR --readFilesIn read-sortmerna-trimmomatic_1.fq.gz \
-read-sortmerna-trimmomatic_2.fq.gz --runThreadN 4 --alignIntronMax 11000 --outSAMstrandField intronMotif \
---sjdbGTFfile share/Day1/data/reference/gff/Ptrichocarpa_v3.0_210_synthetic-gene-models-wo-introns.gff3 \
---readFilesCommand zcat --outFileNamePrefix star/read-sortmerna-trimmomatic-STAR  --outSAMmapqUnique 254 \
---outQSconversionAdd -31 --outReadsUnmapped Fastx --outSAMtype BAM SortedByCoordinate \
---quantMode TranscriptomeSAM --outFilterMultimapNmax 100 --chimSegmentMin 1 --outWigType bedGraph \
---sjdbGTFtagExonParentTranscript Parent</code></pre>
+<pre class="bash"><code>    mkdir ~/star
+    cd ~/star
+    find ../trimmomatic -name &quot;*trimmomatic_[12].fq.gz&quot; | sort | head -n 4 | while read FW_READ
+    do
+      read RV_READ
+      FILEBASE=$(basename &quot;${FW_READ%_1.fq.gz}&quot;)
+      STAR --genomeDir ~/share/Day1/data/indices/STAR --readFilesIn &quot;$FW_READ&quot; &quot;$RV_READ&quot; \
+        --runThreadN 16 --alignIntronMax 11000 --outSAMstrandField intronMotif \
+        --sjdbGTFfile ~/share/Day1/data/reference/gff/Ptrichocarpa_v3.0_210_synthetic-gene-models-wo-introns.gff3 \
+        --readFilesCommand zcat --outFileNamePrefix &quot;$FILEBASE-STAR&quot;  --outSAMmapqUnique 254 \
+        --outQSconversionAdd -31 --outReadsUnmapped Fastx --outSAMtype BAM SortedByCoordinate \
+        --quantMode TranscriptomeSAM --outFilterMultimapNmax 100 --chimSegmentMin 1 --outWigType bedGraph \
+        --sjdbGTFtagExonParentTranscript Parent
+    done</code></pre>
 <p>where there are a number of additional parameters: <code>--alignIntronMax</code> is important to specify so that STAR does not try to align split reads across a distance greater than <code>--alignIntronMax bp</code>, reads that span an exon-exon junction (EEJ) only need to span at most the longest intron in your genome. Note that the largest intron in <em>P. trichocarpa</em> is about 11kb long. The parameter <code>--outFileNamePrefix</code> sets the path and prefix to where the results will be written (note that from now on, as the reads have been combined into a single result file, we refer to our exemplary data as “sample”). We provide a few additional parameters that may require adjustment based on your data:</p>
 <p>Our sample files are GZip compressed so we inform STAR how to read it (<code>readFilesCommand zcat</code>). As our files were generated using the Illumina v1.5 FASTQ format, we convert them into Sanger FASTQ (<code>outQSconversionAdd -31</code>) and finally we specify that STAR should output unmapped reads separately (<code>outReadsUnmapped Fastx</code>). The <code>outSAMtype BAM SortedByCoordinate</code> ensures that the final result is already converted to the “BAM” format and sorted by coordinate, saving a few additional steps doing this via samtools. As you can see, we provide many more arguments, which you can lookup in the STAR manual; STAR is highly configurable!</p>
 <h3>Post-processing the alignment result files</h3>
@@ -230,44 +236,46 @@ read-sortmerna-trimmomatic_2.fq.gz --runThreadN 4 --alignIntronMax 11000 --outSA
 <li><p>a number of sample-sortmerna-trimmomatic-SJ.* files containing splice junction information.</p></li>
 </ol>
 <p>The BAM format is very efficient for computers to work with, but as a binary file format, it is unreadble to humans. If you would like to take a look at the alignments, you can do so using samtools:</p>
-<pre><code>samtools view star/read-sortmerna-trimmomatic-STARAligned.sortedByCoord.out.bam | head</code></pre>
+<pre class="bash"><code>    samtools view ~/star/202_subset-sortmerna-trimmomatic-STARAligned.sortedByCoord.out.bam | head</code></pre>
 <p>The sorted BAM file is then indexed</p>
-<pre><code>samtools index star/read-sortmerna-trimmomatic-STARAligned.sortedByCoord.out.bam</code></pre>
+<pre class="bash"><code>    samtools index ~/star/202_subset-sortmerna-trimmomatic-STARAligned.sortedByCoord.out.bam</code></pre>
 <p>Furthermore, the FASTQ files containing unaligned reads are renamed to and and are compressed.</p>
-<p>The log files, which contain information relating to the processing and splice-junctions, are moved into a log directory.</p>
-<pre><code>mkdir star/sample-sortmerna-trimmomatic-STAR\_logs
-mv star/sample-sortmerna-trimmomatic-STARLog.* \
-star/sample-sortmerna-trimmomatic-STARSJ.* \
-star/sample-sortmerna-trimmomatic-STAR\_logs</code></pre>
 <p>Among the log files, <code>Log.final.out</code> and <code>SJ.out.tab</code> are of particular interest. The first details the alignment rate, percentage of uniquely/multiple aligning reads, rate of mismatches, INDELs identified in the reads, <em>etc.</em> The second file describes, in a tabular format, all the EEJs identified by STAR and whether these exist in the provided gff3 file or if they are novel. This is an extremely useful resource that can be used to identify possible new transcript splice variants. One needs to keep in mind that transcription, as all biological processes, is a stochastic process and as such, there will be miss-spliced transcripts present at a low frequency in any RNA-Seq sample that has been sequenced to adequate depth. Hence novel identified junctions might represent low-frequency genuine transcription as well as noise.</p>
+<p>MultiQC understands STAR log files and can be used to plot the data nicely.</p>
+<pre class="bash"><code>    mkdir ~/star_logs
+    cp ~/star/*Log.final.out ~/star_logs
+    cd ~/star_logs
+    multiqc .</code></pre>
 <p><form> <hr/><br/><h3>Time for Socrative question number 1</h3><br/><hr/> <button class="s-btn">Click to proceed once you answered the question</button> </form></div></p>
 <p><div class=checkpoint data-cp=' +      Pseudo-alignment and read quantification with Kallisto '> <h1>Pseudo-alignment and read quantification with Kallisto</h1></p>
 <p>Kallisto is a fairly recent program that makes heavy use of <em>k</em>-mer hash tables and De-Bruijn graphs to “pseudo-align” reads <span class="citation">(Bray et al. 2016)</span>. This means that Kallisto does not map a read to a given position in a genome/transcriptome, but rather to an abstract representation of a transcript. Kallisto then performs a likelihood estimation and expectation maximization algorithms to calculate a count and - at request - bootstraps a confidence value.</p>
 <p>Step 1 is to create the Kallisto index from a transcriptome:</p>
-<pre><code>kallisto index -i Ptrichocarpa_v3.0_210_synthetic-gene-models.idx \
-share/Day1/data/reference/fasta/Ptrichocarpa_v3.0_210_synthetic-gene-models.fa</code></pre>
+<pre class="bash"><code>    cd
+    kallisto index -i Potri03-synthetic-transcripts.idx \
+    ~/share/Day1/data/reference/fasta/Potri03-synthetic-transcripts.fa</code></pre>
 <p>We could modify the <em>k</em>-mer size using the <code>-k</code> option. This is - however - often a very sensitive parameter in <em>k</em>-mer/hash based applications. Lower values will provide higher sensitivity, but lower specificity and vice versa for higher values of <em>k</em>. The optimal choice for a <em>k</em>-mer would be the longest read length without a single mismatch due to natural polymorphisms or technical artefacts. In practise, this is very difficult to estimate unless you have access to a large pool of population genomics data.</p>
 <p>Next we can quantify the input data using this newly created index:</p>
-<pre><code>kallisto quant -i Ptrichocarpa_v3.0_210_synthetic-gene-models.idx -b 100 \
--o . --pseudobam read-sortmerna-trimmomatic_1.fq.gz read-sortmerna-trimmomatic_2.fq.gz \
-&gt; sample-sortmerna-trimmomatic_pseudo.sam</code></pre>
-<p>The option <code>-b 100</code> performs a bootstrap confidence estimation using 100 iterations. <code>--pseudobam</code> tells Kallisto to output a SAM file of pseudoalignments to <code>stdout</code>.</p>
+<pre class="bash"><code>    mkdir ~/kallisto
+    cd ~/kallisto
+    find ../trimmomatic -name &quot;*trimmomatic_[12].fq.gz&quot; | sort | head -n 4 | while read FW_READ
+    do
+      read RV_READ
+      FILEBASE=$(basename &quot;${FW_READ%_1.fq.gz}&quot;)
+      kallisto quant -i ../Potri03-synthetic-transcripts.idx -b 100 \
+      -o . -t 16 &quot;$FW_READ&quot; &quot;$RV_READ&quot;
+      # Kallisto doesn't let us specify an output filename so we rename all 
+      # output files
+      mv &quot;abundance.tsv&quot; $FILEBASE-&quot;abundance.tsv&quot;
+      mv &quot;abundance.h5&quot; $FILEBASE-&quot;abundance.h5&quot;
+      mv &quot;run_info.json&quot; $FILEBASE-&quot;run_info.json&quot;
+    done</code></pre>
+<p>The option <code>-b 100</code> performs a bootstrap confidence estimation using 100 iterations.</p>
 <p>Kallisto outputs several files:</p>
 <ul>
 <li>abundance.tsv: This file is the main file of interest as it contains transcript counts, tpm, etc.</li>
 <li>abundance.h5: This file contains the bootstrap values so confidence intervals can be estimated for the gene counts</li>
 <li>run_info.json: This is a file containing the parameters supplied to Kallisto</li>
-<li>sample-sortmerna-trimmomatic_pseudo.sam: A SAM file of pseudo-alignments</li>
 </ul>
-<p>The SAM file can be converted to a sorted BAM and indexed:</p>
-<pre><code>samtools view -bT \
-share/Day1/data/reference/fasta/Ptrichocarpa_v3.0_210_synthetic-gene-models.fa \
-sample-sortmerna-trimmomatic_pseudo.sam | \
-samtools sort -o sample-sortmerna-trimmomatic_pseudo.bam \
-&amp;&amp; samtools index sample-sortmerna-trimmomatic_pseudo.bam</code></pre>
-<h1>Visualising the alignments</h1>
-<p>Visualising alignments can prove useful to assess the data quality or the aligners performance. Let us take a look at the STAR results. We already copied them in a place that JBrowse (the online Genome Browser we will be using, which you can access from the course webpage, by clicking on your “Connect to Apache2” link) can access.</p>
-</div>
 <script>/*
 	We start by creating a hash out of some random things which will be the
 	anonymous identifier for each participant. Most of the functions depend
