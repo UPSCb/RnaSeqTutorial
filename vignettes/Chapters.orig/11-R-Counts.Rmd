@@ -1,3 +1,6 @@
+```{r inv-1201, echo=FALSE}
+    startQuest("Counting ")
+```
 
 This last chapter builds on what we have done in the five previous chapters and
 extend on the use of the R/Bioconductor packages. These give an extended
@@ -7,7 +10,9 @@ under very active development. The aim of this chapter is to give you some
 extra insight, _i.e._ pointers; in case you would in your research be 
 affected by one of the mentioned (or not) caveats.
 
-# Estimating Expression over Genes and Exons
+```{r head-1201, echo=FALSE}
+    h1("Estimating Expression over Genes and Exons")
+```
 
 ```{r message=FALSE,warning=FALSE,results='hide'}
     library(RnaSeqTutorial)
@@ -19,7 +24,9 @@ This chapter[^6] describes part of an RNA-Seq analysis use-case. RNA-Seq
 perform Gene Expression Analysis, using the advantages of the high
 throughput of *Next-Generation Sequencing* (NGS) machines.
 
-## Counting reads over known genes and exons
+```{r head-1202, echo=FALSE}
+    h2("Counting reads over known genes and exons")
+```
 
 The goal of this use-case is to generate a count table for the selected
 genic features of interest, *i.e.* exons, transcripts, gene models,
@@ -47,7 +54,9 @@ for the following set of packages:
 
 3.  `GenomicAlignments`
 
-### The alignments
+```{r head-1203, echo=FALSE}
+    h3("The alignments")
+```
 
 In this section we
 will import the data using the `GenomicAlignments` package
@@ -133,6 +142,11 @@ So it appears that we have 3,176 cases where the counts
  differ; 8% of the total!!), and that the
 synthetic transcript "Potri.001G244700.0" shows the largest difference.
 
+```{r inv-1202, echo=FALSE}
+    quest(14)
+endQuest()
+startQuest("Continued feature summarisation")
+```
 
 For a detailed analysis, it would be important to adequatly choose one
 of the intersection modes above, however for the remainder of this
@@ -147,7 +161,9 @@ This concludes that section on counting reads per known features. In the
 next section, we will look at how novel transcribed regions could be
 identified.
 
-## Discovering novel transcribed regions
+```{r head-1204, echo=FALSE}
+    h2("Discovering novel transcribed regions")
+```
 
 __Note: This section is not essential to the workshop__
 
@@ -179,7 +195,9 @@ one of the sample alignments using the `GenomicAlignments` package
      BamFile(file.path(extdata(),"BAM","207_subset_sortmerna_trimmomatic_sorted.bam")))
 ```
 
-### Defining transcribed regions
+```{r head-1205, echo=FALSE}
+    h3("Defining transcribed regions")
+```
 
 The process begins with calculating the coverage, using the method from
 the `GenomicAlignments` package:
@@ -334,7 +352,9 @@ annotation requires some coding. To facilitate this a number of
 a brief introduction of `easyRNASeq` (obviously, a
 biased selection ")
 
-## Using easyRNASeq
+```{r head-1206, echo=FALSE}
+    h2("Using easyRNASeq")
+```
 
 Let us redo what was done in the previous section using the
 `easyRNASeq` package.
@@ -436,7 +456,9 @@ argument to check it"s parameter detection ability.
        )
 ```
 
-### Details
+```{r head-1207, echo=FALSE}
+    h3("Details")
+```
 
 The `simpleRNASeq` function currently accepts the
 following `type` of `datasource` -
@@ -502,7 +524,9 @@ For more details and a complete overview of the
     vignette("easyRNASeq")
 ```
 
-### Caveats
+```{r head-1208, echo=FALSE}
+    h3("Caveats")
+```
 
 `easyRNASeq` is still under active development and as
 such the current version may still behave unexpectedly.
@@ -527,7 +551,9 @@ such the current version may still behave unexpectedly.
     analysis to be conducted based on the report by Soneson and
     Delorenzi[@Soneson:2013p5778].
 
-## Where to from here
+```{r head-1209, echo=FALSE}
+    h2("Where to from here")
+```
 
 After obtaining the count table, numerous downstream analyses are
 available. Most often, such count tables are generated in a differential
@@ -545,3 +571,7 @@ count table and it does not need be an RNA-Seq experiment; look at the
 `DiffBind` package for an example of using ChIP-Seq data
 for differential binding analyses.
 
+```{r inv-1203, echo=FALSE}
+    quest(15)
+endQuest()
+```

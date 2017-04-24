@@ -1,5 +1,10 @@
+```{r inv-0601, echo=FALSE}
+    startQuest("Aligning the reads")
+```
 
-# Short Read Alignment
+```{r head-0601, echo=FALSE}
+h1("Short Read Alignment")
+```
   
 Once the raw read quality has been assessed and determined to be
 sufficient, or the data has been filtered and trimmed to acceptable
@@ -31,9 +36,13 @@ alignment of RNA-Seq data to a reference transcriptome
 based, [@pmid19261174]) or the BWT FM-index or MEM implementations
 of BWA[@pmid20080505], [@pmid19451168].
 
-## Alignment to the genome
+```{r head-0602, echo=FALSE}
+    h2("Alignment to the genome")
+```
 
-### Indexing the genome
+```{r head-0603, echo=FALSE}
+    h3("Indexing the genome")
+```
 
 __NOTE: The command line below is shown for exemplary purposes, NOT to be executed :-)__
 
@@ -53,7 +62,9 @@ that would need to be edited depending on your sequencing read length
 (`sjdbOverhang 100`); we selected 100 as our longuest reads are 101bp long - 
 see the STAR manual for the rationale behind this.
 
-### Performing the alignment
+```{r head-0604, echo=FALSE}
+    h3("Performing the alignment")
+```
 
 Once the genome index is built, we can align our sample reads to it.
 This is achieved as follows:
@@ -88,7 +99,9 @@ converted to the "BAM" format and sorted by coordinate, saving a few
 additional steps doing this via samtools. As you can see, we provide many more
 arguments, which you can lookup in the STAR manual; STAR is highly configurable!
 
-### Post-processing the alignment result files
+```{r head-0605, echo=FALSE}
+    h3("Post-processing the alignment result files")
+```
 
 STAR returns a number of result files:
   
@@ -136,8 +149,17 @@ frequency in any RNA-Seq sample that has been sequenced to adequate
 depth. Hence novel identified junctions might represent low-frequency
 genuine transcription as well as noise.
 
+```{r inv-0602, echo=FALSE}
+    quest(1)
+    endQuest()
+```
 
-# Pseudo-alignment and read quantification with Kallisto
+```{r inv-0603, echo=FALSE}
+    startQuest("Pseudo-alignment and read quantification with Kallisto")
+```
+```{r head-0607, echo=FALSE}
+h1("Pseudo-alignment and read quantification with Kallisto")
+```
 
 Kallisto is a fairly recent program that makes heavy use of _k_-mer hash
 tables and De-Bruijn graphs to "pseudo-align" reads [@Bray2016]. This means that Kallisto
@@ -185,10 +207,15 @@ The SAM file can be converted to a sorted BAM and indexed:
     samtools sort -o sample-sortmerna-trimmomatic_pseudo.bam \
     && samtools index sample-sortmerna-trimmomatic_pseudo.bam
 
-# Visualising the alignments
+```{r head-0606, echo=FALSE}
+    h1("Visualising the alignments")
+```
 
 Visualising alignments can prove useful to assess the data quality or the aligners
 performance. Let us take a look at the STAR results. We already copied them in a
 place that JBrowse (the online Genome Browser we will be using, which you can access
 from the course webpage, by clicking on your "Connect to Apache2" link) can access.
 
+```{r inv-0604, echo=FALSE}
+    endQuest()
+```

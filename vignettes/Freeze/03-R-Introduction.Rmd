@@ -1,12 +1,19 @@
+```{r inv-0301, echo=FALSE}
+startQuest("Bioconductor website")
+```
 
-# Introduction to R / Bioconductor
+```{r head-0301, echo=FALSE}
+    h1("Introduction to R / Bioconductor")
+```
 
 This chapter[^3] introduces R and Bioconductor in details. During the
 course, we will only scheme through it as you are supposed to be
 familiar with most of the concepts presented here. If that were not the
 case - and even if it were - consider it as homework.
 
-## Bioconductor
+```{r head-0302, echo=FALSE}
+  h2("Bioconductor")
+```
 
 Bioconductor is a collection of R packages for the analysis and
 comprehension of high-throughput genomic data. Bioconductor started more
@@ -49,9 +56,18 @@ Features include:
 -   [Package developer](http://bioconductor.org/developers/) resources,
     including guidelines for creating and submitting new packages.
 
+```{r inv-0302, echo=FALSE}
+quest(1)
+endQuest()
+```
 
+```{r inv-0303, echo=FALSE}
+startQuest("Bioconductor rationale")
+```
 
-## Statistical programming
+```{r head-0303, echo=FALSE}
+    h2("Statistical programming")
+```
 
 _You would have realized that all the links above are useful ones (and one is a shameless self-citation)_
 
@@ -59,7 +75,9 @@ Many academic and commercial software products are available; why would
 one use R and ? One answer is to ask about the demands high-throughput
 genomic data places on effective computational biology software.
 
-### Effective computational biology software
+```{r head-0304, echo=FALSE}
+    h3("Effective computational biology software")
+```
 
 1.  High-throughput questions make use of large data sets. This applies
     both to the primary data (microarray expression values, sequenced
@@ -118,7 +136,9 @@ genomic data places on effective computational biology software.
     software is actually usable. This is achieved through adequate
     documentation, support forums, and training opportunities.
 
-### Bioconductor as effective computational biology software
+```{r head-0305, echo=FALSE}
+  h3("Bioconductor as effective computational biology software")
+```
 
 What features of R and Bioconductor contribute to its effectiveness as a
 software tool?
@@ -206,9 +226,18 @@ software tool?
     immediate support, and regular training and conference activities
     for professional development.
 
+```{r inv-0304, echo=FALSE}
+quest(2)
+endQuest()
+```
 
+```{r inv-0305, echo=FALSE}
+startQuest("Bioconductor for NGS")
+```
 
-## Bioconductor for high-throughput sequence analysis
+```{r head-0306, echo=FALSE}
+    h2("Bioconductor for high-throughput sequence analysis")
+```
 
 The table below enumerates many of the packages available
 for sequence analysis. The table includes packages for representing
@@ -237,9 +266,18 @@ ChIP-seq (e.g,. `ChIPpeakAnno`,
 | Workflows | `ArrayExpressHTS`,`Genominator`,`easyRNASeq`,`oneChannelGUI`,`QuasR`,`rnaSeqMap`[@Lesniewska:2011p4758]|
 | Database | `SRAdb` |
 
+```{r inv-0306, echo=FALSE}
+quest(3)
+endQuest()
+```
 
+```{r inv-0307, echo=FALSE}
+startQuest("R basics")
+```
 
-## R
+```{r head-0307, echo=FALSE}
+  h2("R")
+```
 
 R is an open-source statistical programming language. It is used to
 manipulate data, to perform statistical analysis, and to present
@@ -268,7 +306,9 @@ R grew up in the academic community, so authors have not shied away from
 trying new approaches. Common statistical analysis functions are very
 well-developed.
 
-### R data types
+```{r head-0308, echo=FALSE}
+  h3("R data types")
+```
 
 Opening an R session results in a prompt. The user types instructions at
 the prompt. Here is an example:
@@ -322,7 +362,9 @@ suspect operations, or errors if evaluation cannot proceed; try
     log(x)
 ```
 
-#### Essential data types
+```{r head-0309, echo=FALSE}
+    h4("Essential data types")
+```
 
 R has a number of standard data types, to represent
 `integer`, `numeric` (floating point),
@@ -350,7 +392,9 @@ including `factor` to represent categories and
     sex
 ```
 
-#### Lists, data frames, and matrices
+```{r head-0310, echo=FALSE}
+    h4("Lists, data frames, and matrices")
+```
 
 All of the vectors mentioned so far are homogeneous, consisting of a
 single type of element. A `list` can contain a
@@ -408,7 +452,9 @@ column `data.frame` or single row or column
 An `array` is a data structure for representing
 homogeneous, rectangular data in higher dimensions.
 
-#### S3 and S4 classes
+```{r head-0311, echo=FALSE}
+    h4("S3 and S4 classes")
+```
 
 More complicated data structures are represented using the ‘S3’ or ‘S4’
 object system. Objects are often created by functions (for example,
@@ -441,7 +487,9 @@ complicated data structures, and allow for methods specialized to
 different data types; accessors are used to extract information from the
 objects.
 
-#### Functions
+```{r head-0312, echo=FALSE}
+    h4("Functions")
+```
 
 R functions accept arguments, and return values. Arguments can be
 required or optional. Some functions may take variable numbers of
@@ -485,9 +533,18 @@ namespace (*i.e.*: the package self-environment) and is not exported to
 the user environment. See subsection for more information about
 libraries.
 
+```{r inv-307, echo=FALSE}
+quest(4)
+endQuest()
+```
 
+```{r inv-308, echo=FALSE}
+startQuest("R functions")
+```
 
-### Useful functions
+```{r head-0313, echo=FALSE}
+    h3("Useful functions")
+```
 
 R has a very large number of functions. The following is a brief list of
 those that might be commonly used and particularly useful.
@@ -573,7 +630,9 @@ those that might be commonly used and particularly useful.
 :   See the help pages (*e.g.*: `?lm`) and examples
     (`example(match)`) for each of these functions
 
-#### Exemplary use case
+```{r head-0314, echo=FALSE}
+  h4("Exemplary use case")
+```
 
 This example uses data describing 128 microarray samples as a basis for
 exploring R functions. Covariates such as age, sex, type, stage of the
@@ -595,9 +654,18 @@ list the columns' name. Use `summary` to
 summarize each column of the data. What are the data types of each
 column in the data frame?
 
+```{r inv-0310, echo=FALSE}
+quest(5)
+endQuest()
+```
 
+```{r inv-0311, echo=FALSE}
+startQuest("R functions part 2")
+```
 
-#### Exemplary use case (c'ed)
+```{r head-0315, echo=FALSE}
+    h4("Exemplary use case (c'ed)")
+```
 
 ```{r}
     pdata <- read.table(pdataFile)  
@@ -730,9 +798,18 @@ arguments of the `boxplot` function.
             main="Age distribution by genotype",xlab="genotype")
 ```
 
+```{r inv-0312, echo=FALSE}
+quest(6)
+endQuest()
+```
 
+```{r inv-0313, echo=FALSE}
+startQuest("Essential R")
+```
 
-## Packages
+```{r head-0316, echo=FALSE}
+    h2("Packages")
+```
 
 Packages provide functionality beyond that available in base . There are
 almost 5,500 packages in CRAN (comprehensive R archive network) and more
@@ -804,7 +881,9 @@ other packages were loaded along with `RnaSeqTutorial`?
     sessionInfo()
 ```
 
-### Help
+```{r head-0317, echo=FALSE}
+    h3("Help")
+```
 
 Find help using the R help system. Start a web browser with:
 
@@ -814,7 +893,9 @@ Find help using the R help system. Start a web browser with:
 
 The ‘Search Engine and Keywords’ link is helpful in day-to-day use.
 
-#### Manual pages
+```{r head-0318, echo=FALSE}
+    h4("Manual pages")
+```
 
 Use manual pages to find detailed descriptions of the arguments and
 return values of functions, and the structure and methods of classes.
@@ -888,7 +969,9 @@ space after the comma. The definition of a method can be retrieved as
     selectMethod(complement, "DNAStringSet")
 ```
 
-#### Vignettes
+```{r head-0319, echo=FALSE}
+    h4("Vignettes")
+```
 
 Vignettes, especially in Bioconductor packages, provide an extensive
 narrative describing overall package functionality. Use
@@ -934,7 +1017,9 @@ Possible solutions are found with the following R commands
     vignette(package="GenomicRanges")
 ```
 
-### Efficient scripts
+```{r head-0320, echo=FALSE}
+    h3("Efficient scripts")
+```
 
 There are often many ways to accomplish a result in *R* , but these
 different ways often have very different speed or memory requirements.
@@ -944,7 +1029,9 @@ genome-wide association studies, GWAS) or complicated calculations
 (*e.g.*: bootstrapping) performance can be important. There are several
 approaches to achieving efficient R programming.
 
-#### Easy solutions
+```{r head-0321, echo=FALSE}
+    h4("Easy solutions")
+```
 
 Several common performance bottlenecks often have easy solutions; these
 are outlined here.
@@ -1014,7 +1101,9 @@ Names can be very useful for avoiding book-keeping errors, but are
 inefficient for repeated look-ups; use vectorized access or numeric
 indexing.
 
-#### Moderate solutions
+```{r head-0322, echo=FALSE}
+    h4("Moderate solutions")
+```
 
 Several solutions to inefficient code require greater knowledge to
 implement.
@@ -1059,7 +1148,9 @@ This places a significant burden on the person implementing the
 solution, requiring knowledge of two or more computer languages and of
 the interface between them.
 
-#### Measuring performance
+```{r head-0323, echo=FALSE}
+    h4("Measuring performance")
+```
 
 When trying to improve performance, one wants to ensure (a) that the new
 code is actually faster than the previous code, and (b) both solutions
@@ -1109,7 +1200,9 @@ objects, can frequently contribute to poor performance. The
 R manages memory; insights from this kind of analysis can sometimes be
 useful in restructuring code into a more efficient sequence.
 
-### Warnings, errors, and debugging
+```{r head-0324, echo=FALSE}
+ h3("Warnings, errors, and debugging")
+```
 
 R signals unexpected results through warnings and errors. Warnings occur
 when the calculation produces an unusual result that nonetheless does
@@ -1170,7 +1263,9 @@ and hence can be debugged using `traceback`,
 Additional useful debugging functions include `browser`,
 `trace`, and `setBreakpoint`.
 
-### Asking for help
+```{r head-0325, echo=FALSE}
+    h3("Asking for help")
+```
 
 As already mentioned, help can be sought from mailing lists. For
 question with regards to R, adress them to the:  
@@ -1182,9 +1277,13 @@ http://bioconductor.org/help/mailing-list/](http://bioconductor.org/help/mailing
 . Providing this information will fasten the help and the issue
 resolution if there’s one.
 
-### Resources
+```{r head-0326, echo=FALSE}
+    h3("Resources")
+```
 
-#### Publications and Books
+```{r head-0327, echo=FALSE}
+    h4("Publications and Books")
+```
 
 -   Dalgaard [@R:Dalgaard:2008] provides an introduction
     to statistical analysis with .
@@ -1204,12 +1303,16 @@ resolution if there’s one.
 -   The [R web site](http://r-project.org) enumerates additional
     publications from the user community.
     
-#### Integrated Development Environment (IDE)
+```{r head-0328, echo=FALSE}
+    h4("Integrated Development Environment (IDE)")
+```
 
 The [RStudio](http://rstudio.org) environment provides a nice,
 cross-platform environment for working in .
 
-#### Other resources
+```{r head-0329, echo=FALSE}
+    h4("Other resources")
+```
 
 -   Bioconductor <http://bioconductor.org>
 
@@ -1218,3 +1321,7 @@ cross-platform environment for working in .
 -   R web site <http://r-project.org>
 
 
+```{r inv-0314, echo=FALSE}
+quest(7)
+endQuest()
+```

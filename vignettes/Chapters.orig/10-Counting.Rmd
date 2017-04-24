@@ -1,8 +1,13 @@
+```{r inv-0701, echo=FALSE}
+    startQuest("Counting")
+```
 
 In this chapter, now that we are familiar with what __feature summarisation__
 means, we will run one of the _de-facto_ tools, namely "HTSeq".
 
-# Count table creation
+```{r head-0701, echo=FALSE}
+    h1("Count table creation")
+```
 
 The read alignment step performed previously concluded the data pre-processing
 common to the majority of RNA-Seq based experiments. The following table 
@@ -28,7 +33,9 @@ or the transcript level is required. In our case, we are interested in
 gene expression, as we would like to perform a differential gene
 expression study.
 
-## Data preparation for a DE analyses at the gene level
+```{r head-0702, echo=FALSE}
+    h2("Data preparation for a DE analyses at the gene level")
+```
 
 A typical DE analysis data preparation consists of three steps, the
 first being to generate a non-redundant annotation, followed by the
@@ -36,7 +43,9 @@ quantification/summation of the pre-processed reads aligned to each such
 feature before ultimately a QC is performed that assess whether the
 observed effects may have biological causes.
 
-### Creating a non redundant annotation
+```{r head-0703, echo=FALSE}
+    h3("Creating a non redundant annotation")
+```
 
 One major caveat estimating gene expression using aligned RNA-Seq reads
 is that a single read, which originated from a single mRNA molecule, can
@@ -57,7 +66,9 @@ starting from a GTF/GFF3 annotation file. From the "genome.gff3" that
 was used during the alignment step, we obtain a
 synthetic-transcript.gff3 file.
 
-### Counting reads per feature
+```{r head-0704, echo=FALSE}
+    h3("Counting reads per feature")
+```
 
 The second step is to perform the intersection between the aligned
 position of reads (contained in the alignment BAM file) and the gene
@@ -95,3 +106,7 @@ sample (our data is not strand specific).
 Before you proceed further, read about the count modes in HTSeq and think about 
 why we choose the [union mode](http://www-huber.embl.de/users/anders/HTSeq/doc/count.html).
 
+```{r inv-0702, echo=FALSE}
+    quest(13)
+    endQuest()
+```

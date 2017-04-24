@@ -1,6 +1,6 @@
 ---
-title: "Next Generation Genomics Workshop: RNA-Seq data analysis, Helsinki University, Helsinki, Finland"
-author: "Nicolas Delhomme, (Bastian Schiffthaler)"
+title: "Advanced RNA-Seq and ChiP-Seq Data Analysis, 2017, European Bioinformatics Institute, Cambridge, UK"
+author: "Federico Agostini, Nicolas Delhomme, Bori Mifsud, Gabriella Rustici, Bastian Schiffthaler, Charlotte Soneson"
 date: "`r Sys.Date()`"
 bibliography: References.bib
 output:

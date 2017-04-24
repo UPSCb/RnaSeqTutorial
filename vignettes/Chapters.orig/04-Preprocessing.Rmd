@@ -1,7 +1,14 @@
+```{r inv-0501, echo=FALSE}
+    startQuest("First things first")
+```
 
-# Raw Data Pre-processing
+```{r head-0501,echo=FALSE}
+    h1("Raw Data Pre-processing")
+```
 
-## Getting your share of the data
+```{r head-0502,echo=FALSE}
+    h2("Getting your share of the data")
+```
 
 If you have provided data, you have been instructed where to find these. Simply adapt the instruction in this chapter to pre-process your data instead. However, before you go ahead, downsize your data to an amount manageable in the limited time we have. To do so adapt the following instructions:
 
@@ -74,8 +81,15 @@ while others work on pairs (e.g. Trimmomatic, STAR).
 | BAM format manipulation using samtools | NO |
 | Read count summarization using HTSeq htseq-count | NO |
 
+```{r inv-0502, echo=FALSE}
+    quest(1)
+    endQuest()
+    startQuest("Raw data quality control")
+```
 
-## Raw data FastQC
+```{r head-0503,echo=FALSE}
+    h2("Raw data FastQC")
+```
 
 __Note that in the following we will refer to any of the 17 samples as "read", so
 if you selected sample 01, "read" means "202\_subset" for you.__
@@ -120,7 +134,9 @@ page that was created, go to the course webpage and click on "Connect to Apache2
 , then click on home > qa > raw and finally on the html file. View any _single_
 report and go through the following categories.
 
-### Basic Statistics
+```{r head-0504,echo=FALSE}
+    h3("Basic Statistics")
+```
 
 Most metrics within this section are self-explanatory. For PE reads, the
 total number of sequences should match between the forward and reverse
@@ -129,7 +145,9 @@ encoding, as some downstream tools require the user to specify whether
 Phred64 or Phred33 encoding should be used. Finally, the %GC should lie
 within the expected values for the sample species.
 
-### Per base sequence quality
+```{r head-0505,echo=FALSE}
+    h3("Per base sequence quality")
+```
 
 The Phred scale quality represents the probability p that the
 corresponding base call is incorrect. A Phred score Q is an integer
@@ -145,6 +163,11 @@ Illumina version 1.8+ encoding). See
 the quality and <http://en.wikipedia.org/wiki/FASTQ_format#Encoding> for
 information on the corresponding encoding.
 
+```{r inv-0503, echo=FALSE}
+  quest(2)
+  endQuest()
+  startQuest("Overview of FastQC output")
+```
 
 The second FastQC section details the Phred scaled quality as a function
 of the position in the read. It is very common to observe a quality
@@ -156,13 +179,17 @@ likelihood that a read cluster becomes out of sync, for example.
 
 ![Example of Quality Control reports at different stage of the pipeline. **A.** The “Per sequence GC content” of the raw data. **B.** The same data shown in A but after rRNA filtering. **C.** “Per base sequence content” of the raw data. **D.** The same data after quality-based trimming has been performed.][example]
 
-### Per sequence quality scores
+```{r head-0506,echo=FALSE}
+    h3("Per sequence quality scores")
+```
 
 This section details the quality distribution at the read level, in
 contrast to the quality per base position of the previous section. If
 the data is of good quality, the histogram will be skewed to the right.
 
-### Per base sequence content
+```{r head-0507,echo=FALSE}
+    h3("Per base sequence content")
+```
 
 In this section, the average proportion of individual bases (A, C, G and
 T) is plotted as a line across the length of the reads. The 12 first
@@ -177,7 +204,9 @@ these may introduce a positional bias of the reads; artifacts from end
 repair; and possibly a tenuous sequence specificity of the polymerase
 may each play a role either singularly in, most likely, in combination.
 
-### Per base GC content
+```{r head-0508,echo=FALSE}
+    h3("Per base GC content")
+```
 
 Similar to the previous section, the GC content is shown as a function
 of the position in the read. As previously observed, a bias for the
@@ -189,7 +218,9 @@ match the expected GC content of the sample. For strand-specific data,
 if the RNA was selected using poly-dT beads, enrichment for T over A may
 be observed.
 
-### Per sequence GC content
+```{r head-0509,echo=FALSE}
+    h3("Per sequence GC content")
+```
 
 The plot in this section (see Figure [2][example] for an example)
 represents the distribution of GC content per read, where the data (red
@@ -206,19 +237,25 @@ steps would have to be taken to filter contaminants.
 
 ![A comparison of the “theoretical” and “observed” GC distribution, the blue and read lines of FastQC “Per sequence GC content”. **A.** Examples of “observed” GC distribution with a poly-A enrichment (green), rRNA enrichment (red) or no (black) bias. **B.** The corresponding “theoretical” curve that FastQC would devise from such read GC content distribution.][theory]
 
-### Per base N content
+```{r head-0510,echo=FALSE}
+    h3("Per base N content")
+```
 
 This plot shows the fraction of indistinguishable bases as a function of
 the base position in the reads. In high quality sequence data this is
 expected to be close to zero. Deviations from the expected values
 indicate problems during the sequencing.
 
-### Sequence length distribution
+```{r head-0511,echo=FALSE}
+    h3("Sequence length distribution")
+```
 
 This section shows the distribution of read lengths. Prior to trimming,
 there should be exactly one peak located at the sequenced read length.
 
-### Sequence duplication level
+```{r head-0512,echo=FALSE}
+    h3("Sequence duplication level")
+```
 
 This plot represents the level of duplicate sequences in the library.
 FastQC assumes that the library is diverse, with even representation of
@@ -233,7 +270,9 @@ that before version 0.11 of FastQC, all duplication levels
 this has been made more comprehensive in order to provide a more
 accurate representation of the data.
 
-### Overrepresented sequences
+```{r head-0513,echo=FALSE}
+    h3("Overrepresented sequences")
+```
 
 This table shows sequences that are present at unusually large frequency
 in the reads. These are most commonly sequencing adapters and will be
@@ -242,7 +281,9 @@ originate from rRNA or other contaminants, in which case contaminant
 filtering should be considered. Often a BLAST search of the unidentified
 sequence using the *NCBI nt* database will be informative.
 
-### Kmer content
+```{r head-0514,echo=FALSE}
+    h3("Kmer content")
+```
 
 The final plot of the FastQC report details the occurrence of kmers -
 nucleotide sequences of fixed k length - that were present at a higher
@@ -270,8 +311,15 @@ adapter contamination and the usual average quality drop as sequencing
 cycles progresses. Both these issues can be remediated and this is what
 will be addressed in the following.
 
+```{r inv-0504, echo=FALSE}
+    quest(3)
+    endQuest()
+    startQuest("rRNA filtering")
+```
 
-## Filtering rRNA
+```{r head-0515,echo=FALSE}
+    h2("Filtering rRNA")
+```
 
 Typically, wet-lab protocols to extract mRNA include a step to deplete
 the sample of rRNA or to enrich it for poly-adenylated transcripts (rRNA
@@ -392,10 +440,17 @@ with:
     multiqc .
 ```
 
+```{r inv-0505, echo=FALSE}
+    quest(4)
+    endQuest()
+    startQuest("Quality trimming")
+```
 
 Next, we perform the QC on the filtered data.
 
-## Filtered data FastQC
+```{r head-0516,echo=FALSE}
+    h2("Filtered data FastQC")
+```
 
 The filtered data is again subjected to a QC assessment by FastQC to
 ensure the validity of the filtering steps.
@@ -417,7 +472,9 @@ corresponding table of over-represented sequences. Finally, the
 theoretical GC curve should be centered closer to the expected GC value
 of the sample organism.
 
-## Quality trimming and adapter removal
+```{r head-0517,echo=FALSE}
+    h2("Quality trimming and adapter removal")
+```
 
 It is a fact that on Illumina sequencers, the quality of a base pair is
 linked to its position in the read, bases in the later cycles of the
@@ -479,7 +536,9 @@ the sequencing adapter from your reads?
 
 Yes! Quality Control! As in the next section.
 
-## Trimmed data FastQC
+```{r head-0518,echo=FALSE}
+    h2("Trimmed data FastQC")
+```
 
 A final FastQC run is performed to ensure that the previous quality
 trimming and/or adapter removal steps successfully conserved high
@@ -514,3 +573,7 @@ MultiQC report:
     ln -s ~/trimmomatic/*.log ~/qc_report
 ```
 
+```{r inv-0506, echo=FALSE}
+    quest(5)
+    endQuest()
+```

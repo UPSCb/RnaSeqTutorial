@@ -1,5 +1,10 @@
+```{r inv-1001,echo=FALSE}
+    startQuest("Alignment and ShortRead")
+```
 
-# Short Read Alignments
+```{r head-1001,echo=FALSE}
+    h1("Short Read Alignments")
+```
 
 In the former chapter, we have had an initial look at computer optimisation. In
 the present chapter, we will look into how read alignments are commonly 
@@ -31,7 +36,9 @@ and the `gmapR`, `Rbowtie`,
 particularly useful for flexible alignment of moderately sized subsets
 of data.
 
-## Alignments and Bioconductor packages
+```{r head-1002,echo=FALSE}
+    h2("Alignments and Bioconductor packages")
+```
 
 The following sections introduce core tools for working with
 high-throughput sequence data; key packages for representing reads and
@@ -52,7 +59,9 @@ Really just `?GAlignments`. However, KEEP these details
 in mind as they are essential and likely source of erroneous conclusions.
 Remember the example of this morning lecture about RNA editing.
 
-### Alignments and the `ShortRead` package
+```{r head-1003,echo=FALSE}
+    h3("Alignments and the `ShortRead` package")
+```
 
 Earlier, you looked at the `ShortRead` package to
 manipulate raw reads and to perform Quality Assessment (QA) on raw data
@@ -122,10 +131,19 @@ As the BAM format has become a _de-facto_ standard, it is unlikely that
 you end up using that package to process reads in R, but rather the
 `Rsamtools` package presented next.
 
+```{r inv-1002,echo=FALSE}
+    quest(3)
+    endQuest()
+    startQuest("GenomicAlignments and Rsamtools")
+```
 
-### Alignments and the `Rsamtools` package
+```{r head-1004,echo=FALSE}
+    h3("Alignments and the `Rsamtools` package")
+```
 
-#### Alignment formats
+```{r head-1005,echo=FALSE}
+    h4("Alignment formats")
+```
 
 Most main-stream aligners produce output in SAM (text-based) or BAM
 format. A SAM file is a text file, with one line per aligned read, and
@@ -168,7 +186,9 @@ BAM files encode the same information as SAM files, but in a format that
 is more efficiently parsed by software; BAM files are the primary way in
 which aligned reads are imported in to R.
 
-#### Aligned reads in R
+```{r head-1006,echo=FALSE}
+    h4("Aligned reads in R")
+```
 
 As introduced in the previous section, there are three
 different packages to read alignments in R:
@@ -181,7 +201,9 @@ different packages to read alignments in R:
 
 The last two will be described in more details in the next paragraphs.
 
-##### GenomicAlignments
+```{r head-1007,echo=FALSE}
+    h5("GenomicAlignments")
+```
 
 The `readGAlignments` function from the
 `GenomicAlignments` package reads essential information
@@ -221,7 +243,9 @@ Summarize the strand, width and CIGAR information from the `aln` object.
     head(sort(table(cigar(aln)), decreasing=TRUE))
 ```
 
-##### Rsamtools
+```{r head-1008,echo=FALSE}
+    h5("Rsamtools")
+```
 
 The `GenomicAlignments` package `readGAlignments`
 function only parses some of the fields of a BAM file, and that may not
@@ -250,7 +274,9 @@ reads. Summarize the GC content as a histogram:
     hist(readGC)
 ```
 
-##### Advanced Rsamtools usage
+```{r head-1009,echo=FALSE}
+    h5("Advanced Rsamtools usage")
+```
 
 The `Rsamtools` package has more advanced
 functionalities:
@@ -270,6 +296,11 @@ functionalities:
 Find out the function that permit to scan the BAM header and retrieve
 the header of the first BAM file in the bigdata() bam subfolder.
 
+```{r inv-1003,echo=FALSE}
+    quest(4)
+    endQuest()
+    startQuest("Advanced Rsamtools usage")
+```
 
 It contains the reference sequence length and names as well as the name,
 version and command line of the tool used for performing the alignments.
@@ -344,9 +375,17 @@ Finally, extract the coverage for the locus 861250:863000 on chromosome
 This offer an interesting way to process multiple sample at the same
 time when you’re interested in a particular locus.
 
+```{r inv-1004, echo=FALSE}
+    quest(5)
+```
 
-### Resources
+```{r head-1010,echo=FALSE}
+    h3("Resources")
+```
 
 There are extensive vignettes for `Rsamtools` and
 `GenomicAlignments` packages.
 
+```{r inv-1005, echo=FALSE}
+    endQuest()
+```

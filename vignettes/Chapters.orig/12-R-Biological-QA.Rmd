@@ -2,14 +2,21 @@
     # TODO keep in mind a comparison of HTSeq with 11-R-Counts
 ```
 
+```{r inv-1301, echo=FALSE}
+    startQuest("Biological QA - Variance Stabilising Transformation")
+```
 
-# Sexual dimorphism study Biological QA
+```{r head-1301, echo=FALSE}
+    h1("Sexual dimorphism study Biological QA")
+```
 
 ```{r message=FALSE,warning=FALSE,results='hide'}
     library(RnaSeqTutorial)
 ```
 
-## (Re)Introduction
+```{r head-1302, echo=FALSE}
+    h2("(Re)Introduction")
+```
 As a running example, we use a dataset derived from a study performed
 in Populus tremula (Robinson, Delhomme et al., BMC Plant Biology, 2014}. 
 The authors test the evolutionary theory suggesting
@@ -24,9 +31,13 @@ analysis between samples grouped by sex. The samples have been sequenced on an
 Illumina HiSeq 2000, using TruSeq adapters, through a 101 cycles paired-end protocol,
 which yielded between 11 million and 34 million reads per sample. 
 
-## Processing the data
+```{r head-1303, echo=FALSE}
+    h2("Processing the data")
+```
 
-### Reading in the data
+```{r head-1304, echo =FALSE}
+    h3("Reading in the data")
+```
 
 First we read the HTSeq files in a matrix. The DESeq2 package now
 actually has a function to ease that process: DESeqDataSetFromHTSeqCount. 
@@ -62,7 +73,9 @@ colnames(count.table) <- names(res)
 rownames(count.table) <- res[[1]][,1][-sel]
 ```
 
-### The HTSeq stat lines
+```{r head-1305, echo =FALSE}
+     h3("The HTSeq stat lines")
+```
 
 Here we aggreagte the information about how many
 reads aligned, how many were ambiguous, etc
@@ -89,7 +102,9 @@ finally 7% align to no features. This is not at all unexpected
 given the fact that the alignments were done against the 
 the draft of the P. tremula genome.
 
-### Visualizing the HTSeq stats
+```{r head-1306, echo =FALSE}
+     h3("Visualizing the HTSeq stats")
+```
 
 ```{r }
 pal=brewer.pal(6,"Dark2")[1:nrow(count.stats)]
@@ -106,7 +121,9 @@ have been sequenced deeper as these are the parents of a large scale F1 populati
 established for another study. Appart from these, the amount of reads per library
 seems fairly equally distributed.
 
-### Deriving more information
+```{r head-1307, echo =FALSE}
+     h3("Deriving more information")
+```
 
 We can estimate how much of the genes are not expressed
 
@@ -118,12 +135,16 @@ sprintf("of %s genes are not expressed",nrow(count.table))
 
 So 13.1% of the genes are not expressed out of a total of 35309 genes
 
-## Biological QA
+```{r head-1309, echo =FALSE}
+     h2("Biological QA")
+```
 
 To assess the validity of the replicates, we can look at
 different metrics. 
 
-### Raw count distribution
+```{r head-1310, echo =FALSE}
+     h3("Raw count distribution")
+```
 
 We start by looking at the
 per-gene mean expression, i.e. the mean raw count of every 
@@ -149,7 +170,9 @@ As one can see, most samples show the similar trends, a few samples are
 shifted to the right - those that were sequenced deeper, but this does not
 affect the global shape of the curve.
 
-## Variance stabilisation for better visualisation
+```{r head-1311, echo =FALSE}
+     h2("Variance stabilisation for better visualisation")
+```
 
 For visualization, the data is submitted to a variance 
 stabilization transformation using DESeq2. The 
@@ -230,8 +253,15 @@ or for the count adjusted for the library size factor
 meanSdPlot(log2(counts(dds,normalized=TRUE)[rowSums(count.table)>0,]))
 ```
 
+```{r inv-1302, echo=FALSE}
+    quest(16)
+    endQuest()
+    startQuest("Biological QA - PCA and heatmap")
+```
 
-### PCA analysis
+```{r head-1312, echo =FALSE}
+     h3("PCA analysis")
+```
 
 We perform a Principal Component Analysis (PCA) of the data
 to do a quick quality assessment, i.e. replicate should 
@@ -346,7 +376,9 @@ legend("topright",pch=c(NA,21,24),col=c(NA,1,1),
        legend=c("Symbol:",levels(factor(dat))),cex=0.85)
 ```
 
-### Heatmap
+```{r head-1313, echo =FALSE}
+     h3("Heatmap")
+```
 
 Another way to look at the data is to create a heatmap. As heatmaps are computationally demanding
 and hard to read if there is too much data, we look only at the 1000 most variable genes
@@ -373,3 +405,7 @@ And the date
 heatmap.2(vst[sel,],labRow = NA, labCol = date,trace = "none",cexCol = 0.6 )
 ```
 
+```{r inv-1303, echo=FALSE}
+    quest(17)
+    endQuest()
+```

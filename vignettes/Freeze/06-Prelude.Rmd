@@ -1,7 +1,14 @@
+```{r inv-0901,echo=FALSE}
+   startQuest("Parallel processing")
+```
 
-# Prelude
+```{r head-0901, echo=FALSE}
+    h1("Prelude")
+```
 
-## Aim
+```{r head-0902, echo=FALSE}
+    h2("Aim")
+```
 
 The following six chapters aim at "taking a look under the hood" of how 
 feature summarisation _i.e._ creating a count table by overlapping the 
@@ -21,7 +28,9 @@ experiment will NOT consist of a single sample (of about a million reads only!) 
 discussing the pros and cons of the implemented method.
 
 
-## Creating GAlignment objects from BAM files
+```{r head-0903, echo=FALSE}
+    h2("Creating GAlignment objects from BAM files")
+```
 
 First of all, locate the BAM files and implement a function to read them
 sequentially. Have a look at the `lapply` function man
@@ -37,7 +46,9 @@ page for doing so.
 Nothing complicated so far, right? We proceed both files sequentially and get a list of `GAlignments` objects stored in the `gAlns` object. Apart from the coding enhancement - with one line, we can process all our samples - there is no other gains.
 
 
-## Processing the files in parallel
+```{r head-0904, echo=FALSE}
+    h2("Processing the files in parallel")
+```
 
 Modern laptop possess commonly 2 multi-core CPUs that can perform tasks
 independently. Computational servers usually have many CPUs (commonly 8) each 
@@ -54,10 +65,19 @@ parallel manner.
     gAlns <- mclapply(bamfiles,readGAlignments)
 ```
 
+```{r inv-0902,echo=FALSE}
+    quest(1)
+    endQuest()
+```
+
+```{r inv-0903,echo=FALSE}
+    startQuest("Memory management")
+```
 
 
-
-## Dealing with memory problems
+```{r head-0905, echo=FALSE}
+    h2("Dealing with memory problems")
+```
 
 It is NOT because there were 2 files to proceed.
 The `mclapply` has a number of default parameters - see
@@ -84,7 +104,9 @@ memory doubling time. So, let us just move to the next section to have a
 go at adressing the issue.
 
 
-## Processing the files one chunk at a time
+```{r head-0906, echo=FALSE}
+    h2("Processing the files one chunk at a time")
+```
 
 To limit the memory required at any moment, one approach would be to
 proceed the file not as a whole, but chunk-wise. As we can assume that
@@ -146,7 +168,9 @@ BAM files in parallel and chunk-wise.
 ```
 
 
-## Pros and cons of the current solution
+```{r head-0907, echo=FALSE}
+    h2("Pros and cons of the current solution")
+```
 
 Before reading my comments below, take the time to jot down what you
 think are the advantages and drawbacks of the method implemented above.
@@ -154,7 +178,9 @@ My own comments below are certainly not extensive and I would be curious
 to hear yours that are not matched with mine.
 
 
-### Pros
+```{r head-0908, echo=FALSE}
+    h3("Pros")
+```
 
 1.  We have written a streamlined piece of code, using up to date
     functionalities from other packages. Hence, it is both easily
@@ -168,7 +194,9 @@ to hear yours that are not matched with mine.
 3.  We have implemented the processing of the BAM files by chunk
 
 
-### Cons
+```{r head-0909, echo=FALSE}
+    h3("Cons")
+```
 
 1.  There's only one big con really: we have NOT addressed the memory
     requirement issue satisfyingly. We do proceed the BAM files by
@@ -180,3 +208,7 @@ to hear yours that are not matched with mine.
     the Bioconductor packages for loading and manipulating sequencing read
     information in R, which is next chapter's topic.
 
+```{r inv-0904,echo=FALSE}
+    quest(2)
+    endQuest()
+```

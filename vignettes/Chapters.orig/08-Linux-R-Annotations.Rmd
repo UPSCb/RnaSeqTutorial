@@ -1,5 +1,10 @@
+```{r inv-0401, echo=FALSE}
+    startQuest("Annotation packages")
+```
 
-# Genes and Genomes
+```{r head-0401, echo=FALSE}
+    h1("Genes and Genomes")
+```
 
 In the previous chapter, we have seen how aligned reads can be manipulated
 and what are some of the crucial caveats to be aware of; _e.g._ stranded _vs._ 
@@ -7,7 +12,9 @@ non-stranded data, multi-mapping reads, _etc._. In the present chapter, we
 will look at how genic annotation are retrieved and processed. Here again we 
 will introduce how this is commonly done and what caveats this implies.
 
-## Manipulating annotations
+```{r head-0402, echo=FALSE}
+    h2("Manipulating annotations")
+```
 
 Commonly, gene annotation are made available through flat-files encoded in the 
 ggf3 (or its derivatives) format. `gff3` stands for `Generic Feature Format version 3`. 
@@ -27,6 +34,11 @@ Find the number of features (replace ... by the file name your found) :
 options return the selected "field", _i.e._ here the content of the third column.
 `sort` and `uniq` are self-explanatory. The `-c` option is to count the occurences.
 
+```{r inv-0403, echo=FALSE}
+quest(7)
+endQuest()
+startQuest("Examining the GFF3")
+```
 Let us find out some more about the gff3 structure, but for that let us use `R`.
 
 ```{r message=FALSE,warning=FALSE,results='hide',echo=FALSE}
@@ -64,6 +76,11 @@ We get the same information as previously. Let us do now some validation:
     nrow(unique(gff[gff$type=="exon",])) / nrow(gff[gff$type=="gene",])
 ```
 
+```{r inv-0404, echo=FALSE}
+quest(8)
+endQuest()
+startQuest("Duplicated exons")
+```
 
 We will now use the `duplicated` function to identify the duplicated exons. 
 
@@ -82,6 +99,11 @@ gff[sel,][seqnames(gff[sel,]) == seqnames(firstDuplicate) &
               gff[sel,2] == firstDuplicate[,2],]
 ```
 
+```{r inv-0405, echo=FALSE}
+quest(9)
+endQuest()
+startQuest("Validating with genomeTools")
+```
 
 GenomeTools [@Gremme2013] offers a nice utility to validate a gff3 file. 
 
@@ -94,6 +116,11 @@ GenomeTools [@Gremme2013] offers a nice utility to validate a gff3 file.
     2>&1  | grep -v "##sequence-region"
 ```
 
+```{r inv-0406, echo=FALSE}
+quest(10)
+endQuest()
+startQuest("Creating a synthetic set of transcripts")
+```
 
 The issue with identical exons identified by different IDs is that these will bias
 the gene expression summarisation. Consider a single mRNA molecule giving raise to
@@ -122,6 +149,11 @@ Next, we save our flattened annotation for later use at the counting stage.
 writeGff3(synthTrx,file="~/gff3/Ptrichocarpa_v3.0_210_synthetic_transcripts.gff3")
 ```
 
+```{r inv-0407, echo=FALSE}
+quest(11)
+endQuest()
+startQuest("Validating the new file")
+```
 
 Let us start with GenomeTools again:
 
@@ -139,14 +171,23 @@ Unsurprisingly this works, but we are going to be very suspicious and go back to
 Adapt the previous `R` commands we used to check the duplicates in the original 
 gff3 file. What do you observe?
 
+```{r inv-0408, echo=FALSE}
+quest(12)
+endQuest()
+```
 
 Obviously, annotation are always to be taken with a grain of salt as we have 
 discussed in the lecture and exemplified here. The _P. trichocarpa_ annotation is
 actually of a decent quality (nonwithstanding its poor application of the gff3
 standard!).
 
-## Retrieving annotations
+```{r head-0403, echo=FALSE}
+    h2("Retrieving annotations")
+```
 
+```{r inv-0409, echo=FALSE}
+startQuest("Retrieving annotations")
+```
 
 Bioconductor provides extensive annotation resources, summarized in
 the following figure. These can be *gene*-, or *genome*-centric.
@@ -202,7 +243,9 @@ Web-based resources include
 Here, we will focus on the Genome-centric type of approaches using
 the GenomicFeatures package.
 
-## Genome-centric annotations with `GenomicFeatures`
+```{r head-0404, echo=FALSE}
+h2("Genome-centric annotations with `GenomicFeatures`")
+```
 
 Genome-centric packages are very useful for annotations involving
 genomic coordinates. It is straight-forward, for instance, to discover
@@ -298,8 +341,15 @@ correctly.
     head(translate(txx), 3)
 ```
 
+```{r inv-0402, echo=FALSE}
+quest(6)
+endQuest()
+startQuest("Reading a GFF3")
+```
 
-## Appendix
+```{r head-0405, echo=FALSE}
+h2("Appendix")
+```
 
 One major caveat estimating gene expression using aligned RNA-Seq reads
 is that a single read, which originated from a single mRNA molecule, can
@@ -424,3 +474,6 @@ synthTrx$gffAttributes<- paste("ID=",
 This gives us a similar results to that of the `easyRNASeq` `createSyntheticTranscripts`
 function with the exception that we only generated feature of type `exon`
 
+```{r inv-0410, echo=FALSE}
+endQuest()
+```
