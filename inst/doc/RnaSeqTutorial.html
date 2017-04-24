@@ -654,10 +654,10 @@ GENOME/FASTA/genome.fa --runThreadN 16 --sjdbOverhang 100 \
 <p>The fill specification is described here, with all the technical details you could ever want: <a href="https://samtools.github.io/hts-specs/SAMv1.pdf" class="uri">https://samtools.github.io/hts-specs/SAMv1.pdf</a></p>
 <p>For this tutorial, we will be often working with multiple BAM files, so first you should copy five BAM files from <code>~/share/Day1/star</code> (feel free to pick other files, but always inlcude <code>202_subset_sortmerna_trimmomatic_sorted.bam</code>):</p>
 <pre class="bash"><code>mkdir ~/alignments
-cp ~/share/Day1/star/{202,207,213.1,221,226.1}_subset* ~/alignments</code></pre>
+cp ~/share/Day1/data/star/{202,207,213.1,221,226.1}_subset*Aligned.sortedByCoord.out.bam ~/alignments</code></pre>
 <p>Now that we have got our data, we want to look at what’s inside. These are BAM files though, so they aren’t human readable. We need a way to convert these files to a representation which we can read. This is where <code>samtools</code> comes is. <code>samtools</code> is a very versatile program and deserves it’s own chapter (the next chapter). For now, we will be using the <code>samtools view</code> sub-command, which converts SAM to BAM data. Since there are over a million reads (and so over a million lines), we should use the Linux <code>|</code> to direct the output to a pager, such as <code>less</code> (adding the <code>-S</code> option allows us to also scroll sideways).</p>
 <pre class="bash"><code>cd ~/alignments
-samtools view 202_subset_sortmerna_trimmomatic_sorted.bam | less -S</code></pre>
+samtools view 202_subset-sortmerna-trimmomatic-STARAligned.sortedByCoord.out.bam | less -S</code></pre>
 <p>Each line that we see now represents a record (an aligment). Let’s look at this read and remind ourselves of the format once more. What is what here?</p>
 <pre><code>HWI-ST188:3:1103:7821:157455#0  355     Chr01   3683    3       101M    =       7126    3498    GGAGAACTCAAGTTCAAATTTGTGGACAAATGGTAGAGATGCATCTACCTCCACACACAACCGCGCATAGTCTAGGCGCTTACATCCGAGTGTCAACTCAT   bbbeeeeegfgggihhhhiihhfgigihiidfhfdgfhfghh_gfhihghhhiiifhhhhhffhedcecd_bcddbRKWZa\bb_b^[^a^a`bbcccccb   NH:i:2  HI:i:2  AS:i:135        nM:i:9</code></pre>
 <p>After you answer the question, let’s dive deeper into what samtools can do.</p>
@@ -717,7 +717,7 @@ Commands:
 <p>The the index can be computed easily:</p>
 <pre class="bash"><code>samtools index &lt;BAM&gt;</code></pre>
 <p>Or for all files:</p>
-<pre class="bash"><code>find . -name &quot;*sorted.bam&quot; | xargs -I{} samtools index {}</code></pre>
+<pre class="bash"><code>samtools index *sorted.bam</code></pre>
 <p>If we are only interested in a specific region, <code>samtools view</code> can be called as <code>samtools view &lt;BAM&gt; &lt;region&gt;</code>, where ‘<region>’ takes the format of ‘Chromosme:Start-Stop’. Let’s consider this example: want to look at only the reads that mapped to chromosome 19, somewhere between basepair 80,000 and 100,000. We could call: <code>samtools view &lt;BAM&gt; Chr19:80000-100000</code> and <code>samtools</code> would only display those reads. Further we can filter based on SAM flags to include (<code>-f</code>) or exclude (<code>-F</code>) specific SAM flags. We can filter read groups, mapping quality, overlap with a BED file or number of CIGAR operations.</p>
 <p>Sidenote: Similar to the region filter for BAM files, <code>samtools faidx</code> can perform the same task on FASTA files.</p>
 <p>Samtools can also compute a variety of interesting statistics for a SAM/BAM file. At the most basic, let’s try and see what <code>samtools flagstat</code> does:</p>
@@ -727,9 +727,7 @@ Commands:
 <p>Finally, the <code>idxstats</code> command offers statistics on the number of mapped reads per chromosome:</p>
 <pre class="bash"><code>samtools idxstats &lt;BAM&gt; | less -S</code></pre>
 <p>The otpus files of <code>samtools flagstat</code>, <code>samtools stats</code> and <code>samtools idxstat</code> can also be processed by <code>multiqc</code> to produce a nice summarizing the results for multiple files. Let’s summarize all BAM files in our current directory:</p>
-<pre class="bash"><code>find . -name &quot;*sorted.bam&quot; | xargs -I{} samtools index {}
-
-find . -name &quot;*sorted.bam&quot; | xargs -I{} bash -c 'samtools flagstat $0 &gt; ${0/.bam/_flagstat.txt}' {}
+<pre class="bash"><code>find . -name &quot;*sorted.bam&quot; | xargs -I{} bash -c 'samtools flagstat $0 &gt; ${0/.bam/_flagstat.txt}' {}
 
 find . -name &quot;*sorted.bam&quot; | xargs -I{} bash -c 'samtools idxstats $0 &gt; ${0/.bam/_idxstats.txt}' {}
 

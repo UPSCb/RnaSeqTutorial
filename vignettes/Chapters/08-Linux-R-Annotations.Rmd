@@ -22,12 +22,12 @@ This is probably the most commonly used format, in particular when it comes to
 recently sequenced genomes. Another common format is the `gtf` (`Gene Transfer Format`), an alternative to the `gff2` format. This format is arguably popular from its exclusive use by
 the `EnsEMBL` consortium.
 
-In the `Day1` folder, locate the _P. trichocarpa_ gff3 file. Using the `cut`, 
+In the `Day2` folder, locate the _P. trichocarpa_ gff3 file. Using the `cut`, 
 `sort` and `uniq` commands, let us extract some key statistics from the file. 
 
 Find the number of features (replace ... by the file name your found) :
 ```{bash b6801, eval=FALSE}
-    cut -f3 Day1/... | sort | uniq -c
+    cut -f3 share/Day2/... | sort | uniq -c
 ```
 
 `cut` splits every line based on a default separator (space by default). The `-f`
@@ -35,7 +35,7 @@ options return the selected "field", _i.e._ here the content of the third column
 `sort` and `uniq` are self-explanatory. The `-c` option is to count the occurences.
 
 ```{r inv-0403, echo=FALSE}
-quest(7)
+quest(1)
 endQuest()
 startQuest("Examining the GFF3")
 ```
@@ -77,7 +77,7 @@ We get the same information as previously. Let us do now some validation:
 ```
 
 ```{r inv-0404, echo=FALSE}
-quest(8)
+quest(2)
 endQuest()
 startQuest("Duplicated exons")
 ```
@@ -100,7 +100,7 @@ gff[sel,][seqnames(gff[sel,]) == seqnames(firstDuplicate) &
 ```
 
 ```{r inv-0405, echo=FALSE}
-quest(9)
+quest(3)
 endQuest()
 startQuest("Validating with genomeTools")
 ```
@@ -108,16 +108,16 @@ startQuest("Validating with genomeTools")
 GenomeTools [@Gremme2013] offers a nice utility to validate a gff3 file. 
 
 ```{bash, eval=FALSE}
-    cd && mkdir gff3
+    cd && mkdir gff3 && cd gff3
     gt gff3 -force -tidy yes -addids yes -fixregionboundaries yes \
     -retainids yes -sort yes -checkids yes \
     -o Ptrichocarpa_v3.0_210_gene_exons-validated.gff3 \
-    share/Day1/data/reference/gff/Ptrichocarpa_v3.0_210_gene_exons.gff3.gz \
+    ~/share/Day2/data/reference/gff/Ptrichocarpa_v3.0_210_gene_exons.gff3 \
     2>&1  | grep -v "##sequence-region"
 ```
 
 ```{r inv-0406, echo=FALSE}
-quest(10)
+quest(4)
 endQuest()
 startQuest("Creating a synthetic set of transcripts")
 ```
@@ -150,7 +150,7 @@ writeGff3(synthTrx,file="~/gff3/Ptrichocarpa_v3.0_210_synthetic_transcripts.gff3
 ```
 
 ```{r inv-0407, echo=FALSE}
-quest(11)
+quest(5)
 endQuest()
 startQuest("Validating the new file")
 ```
@@ -158,11 +158,11 @@ startQuest("Validating the new file")
 Let us start with GenomeTools again:
 
 ```{bash, eval=FALSE}
-    cd && mkdir gff3
+    cd gff3
     gt gff3 -force -tidy yes -addids yes -fixregionboundaries yes \
     -retainids yes -sort yes -checkids yes \
     -o Ptrichocarpa_v3.0_210_synthetic_transcripts-validated.gff3 \
-    share/Day1/data/reference/gff/Ptrichocarpa_v3.0_210_synthetic_transcripts.gff3 \
+    Ptrichocarpa_v3.0_210_synthetic_transcripts.gff3 \
     2>&1  | grep -v "##sequence-region"
 ```
 
@@ -171,22 +171,33 @@ Unsurprisingly this works, but we are going to be very suspicious and go back to
 Adapt the previous `R` commands we used to check the duplicates in the original 
 gff3 file. What do you observe?
 
+```{r inv-0411, echo=FALSE}
+quest(6)
+endQuest()
+startQuest("Summing up synthetic transcripts")
+```
+
 Obviously, annotation are always to be taken with a grain of salt as we have 
 discussed in the lecture and exemplified here. The _P. trichocarpa_ annotation is
 actually of a decent quality (nonwithstanding its poor application of the gff3
 standard!).
 
-```{r inv-0408, echo=FALSE}
-quest(12)
+```{r inv-0412, echo=FALSE}
+quest(7)
 endQuest()
+startQuest("Looking out")
+```
+
+Before looking into how to retrieve annotations, one last question, looking 
+forward
+```{r inv-0409, echo=FALSE}
+quest(8)
+endQuest()
+startQuest("Retrieving annotations")
 ```
 
 ```{r head-0403, echo=FALSE}
     h2("Retrieving annotations")
-```
-
-```{r inv-0409, echo=FALSE}
-startQuest("Retrieving annotations")
 ```
 
 Bioconductor provides extensive annotation resources, summarized in
@@ -342,9 +353,33 @@ correctly.
 ```
 
 ```{r inv-0402, echo=FALSE}
-quest(6)
+quest(9)
 endQuest()
-startQuest("Reading a GFF3")
+startQuest("Putting a GFF3 to use")
+```
+
+Pseudo-alignment tools, such as _e.g._ kallisto use transcripts' sequence to
+build their index and perform the pseudo-alignment and quantification. Here we
+will use the `gffread` tool to extract a set of transcripts sequences
+from a genome fasta file and a gff3 annotation file.
+
+As we want to use a tool that can quantify transcripts expression 
+(__not summarising it by gene !!!__), we will use the original gff3 file.
+
+```{bash, eval=FALSE}
+    cd && mkdir fasta && cd fasta
+    gffread -w Ptrichocarpa_v3.0_210_transcripts.fa \
+    ~/share/Day2/data/reference/gff/Ptrichocarpa_v3.0_210_gene_exons.gff3 \
+    -g ~/share/Day2/data/reference/fasta/Ptrichocarpa_v3.0_210.fa
+```
+
+This file now contains all the transcripts sequences extracted from the genome
+using the gff annotation. This file will be the input for the generation of the
+_e.g._ kallisto index.
+
+```{r inv-0402, echo=FALSE}
+endQuest()
+startQuest("Appendix")
 ```
 
 ```{r head-0405, echo=FALSE}

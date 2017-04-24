@@ -195,11 +195,11 @@ a <- 1
 
 ## ---- eval=FALSE, engine="bash"------------------------------------------
 ## mkdir ~/alignments
-## cp ~/share/Day1/star/{202,207,213.1,221,226.1}_subset* ~/alignments
+## cp ~/share/Day1/data/star/{202,207,213.1,221,226.1}_subset*Aligned.sortedByCoord.out.bam ~/alignments
 
 ## ---- eval=FALSE, engine="bash"------------------------------------------
 ## cd ~/alignments
-## samtools view 202_subset_sortmerna_trimmomatic_sorted.bam | less -S
+## samtools view 202_subset-sortmerna-trimmomatic-STARAligned.sortedByCoord.out.bam | less -S
 
 ## ---- eval=FALSE, engine="bash"------------------------------------------
 ## samtools
@@ -214,7 +214,7 @@ a <- 1
 ## samtools index <BAM>
 
 ## ---- eval=FALSE, engine="bash"------------------------------------------
-## find . -name "*sorted.bam" | xargs -I{} samtools index {}
+## samtools index *sorted.bam
 
 ## ---- eval=FALSE, engine="bash"------------------------------------------
 ## samtools flagstat <BAM>
@@ -226,8 +226,6 @@ a <- 1
 ## samtools idxstats <BAM> | less -S
 
 ## ---- eval=FALSE, engine="bash"------------------------------------------
-## find . -name "*sorted.bam" | xargs -I{} samtools index {}
-## 
 ## find . -name "*sorted.bam" | xargs -I{} bash -c 'samtools flagstat $0 > ${0/.bam/_flagstat.txt}' {}
 ## 
 ## find . -name "*sorted.bam" | xargs -I{} bash -c 'samtools idxstats $0 > ${0/.bam/_idxstats.txt}' {}
