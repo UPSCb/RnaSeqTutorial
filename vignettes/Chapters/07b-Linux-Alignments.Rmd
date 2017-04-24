@@ -1,0 +1,287 @@
+```{r inv-07b01, echo=FALSE}
+startQuest("Formats")
+```
+
+```{r head-07b01,echo=FALSE}
+h1("The SAM/BAM format")
+```
+
+Most alignment software in use today outputs a so called "SAM" file. SAM stands
+for Sequence Alignment/Map Format and it stores all information necessary to
+describe alignments (all data in the FASTQ/A file used, alignment position etc.).
+SAM is a human-readable format, meaning that is essence, it's just text. From a 
+computer's point of view, this is however vastly inefficient, since text wastes
+space and is hard to parse. This is the reason for BAM, which is a binary, compressed
+version of SAM and is storage and computing efficient.
+
+The fill specification is described here, with all the technical details you could
+ever want: https://samtools.github.io/hts-specs/SAMv1.pdf
+
+For this tutorial, we will be often working with multiple BAM files, so first
+you should copy five BAM files from `~/share/Day1/star` (feel free to pick
+other files, but always inlcude `202_subset_sortmerna_trimmomatic_sorted.bam`):
+
+```{bash, eval=FALSE}
+mkdir ~/alignments
+cp ~/share/Day1/star/{202,207,213.1,221,226.1}_subset* ~/alignments
+```
+
+Now that we have got our data, we want to look at what's inside. These are BAM
+files though, so they aren't human readable. We need a way to convert these files
+to a representation which we can read. This is where `samtools` comes is. 
+`samtools` is a very versatile program and deserves it's own chapter (the next 
+chapter). For now, we will be using the `samtools view` sub-command, which converts
+SAM to BAM data. Since there are over a million reads (and so over a million 
+lines), we should use the Linux `|` to direct the output to a pager, such as
+`less` (adding the `-S` option allows us to also scroll sideways).
+
+```{bash, eval=FALSE}
+cd ~/alignments
+samtools view 202_subset_sortmerna_trimmomatic_sorted.bam | less -S
+```
+
+Each line that we see now represents a record (an aligment).
+Let's look at this read and remind ourselves of the format once more. What is what here?
+
+```
+HWI-ST188:3:1103:7821:157455#0  355     Chr01   3683    3       101M    =       7126    3498    GGAGAACTCAAGTTCAAATTTGTGGACAAATGGTAGAGATGCATCTACCTCCACACACAACCGCGCATAGTCTAGGCGCTTACATCCGAGTGTCAACTCAT   bbbeeeeegfgggihhhhiihhfgigihiidfhfdgfhfghh_gfhihghhhiiifhhhhhffhedcecd_bcddbRKWZa\bb_b^[^a^a`bbcccccb   NH:i:2  HI:i:2  AS:i:135        nM:i:9
+```
+
+After you answer the question, let's dive deeper into what samtools can do.
+
+```{r head-07b02 }
+quest(1)
+endQuest()
+startQuest("Samtools")
+h1("Samtools")
+```
+
+
+Samtools is a powerful and efficient program, written to manipulate the SAM and BAM formats. With it, you can index, edit, perform file operations, calculate statistics and view SAM/BAM files in many different ways. First things first, let's see what's on the menu:
+
+```{bash, eval=FALSE}
+samtools
+```
+
+```
+Program: samtools (Tools for alignments in the SAM format)
+Version: 1.4 (using htslib 1.4)
+
+Usage:   samtools <command> [options]
+
+Commands:
+  -- Indexing
+     dict           create a sequence dictionary file
+     faidx          index/extract FASTA
+     index          index alignment
+
+  -- Editing
+     calmd          recalculate MD/NM tags and '=' bases
+     fixmate        fix mate information
+     reheader       replace BAM header
+     rmdup          remove PCR duplicates
+     targetcut      cut fosmid regions (for fosmid pool only)
+     addreplacerg   adds or replaces RG tags
+
+  -- File operations
+     collate        shuffle and group alignments by name
+     cat            concatenate BAMs
+     merge          merge sorted alignments
+     mpileup        multi-way pileup
+     sort           sort alignment file
+     split          splits a file by read group
+     quickcheck     quickly check if SAM/BAM/CRAM file appears intact
+     fastq          converts a BAM to a FASTQ
+     fasta          converts a BAM to a FASTA
+
+  -- Statistics
+     bedcov         read depth per BED region
+     depth          compute the depth
+     flagstat       simple stats
+     idxstats       BAM index stats
+     phase          phase heterozygotes
+     stats          generate stats (former bamcheck)
+
+  -- Viewing
+     flags          explain BAM flags
+     tview          text alignment viewer
+     view           SAM<->BAM<->CRAM conversion
+     depad          convert padded BAM to unpadded BAM
+```
+
+In addition to format conversion, `samtools view` comes with a variety of options to filter the output.
+
+Before working with a BAM file, it is usually a good idea to compute an index. This will allow very fast retrieval of records and is required for many commands to work at all. In order for an index to be computed, we need to sort the BAM file by alignment position first:
+
+```{bash, eval=FALSE}
+samtools sort <BAM> > <BAM_sorted>
+```
+
+Or for all files in a directory:
+
+```{bash, eval=FALSE}
+find . -name "*.bam" | xargs -I{} bash -c 'samtools sort $0 > ${0/.bam/_sorted.bam}' {}
+```
+
+The the index can be computed easily:
+
+```{bash, eval=FALSE}
+samtools index <BAM>
+```
+
+Or for all files:
+
+```{bash, eval=FALSE}
+find . -name "*sorted.bam" | xargs -I{} samtools index {}
+```
+
+If we are only interested in a specific region, `samtools view` can be called as `samtools view <BAM> <region>`, where '<region>' takes the format of 'Chromosme:Start-Stop'. Let's consider this example: want to look at only the reads that mapped to chromosome 19, somewhere between basepair 80,000 and 100,000. We could call: `samtools view <BAM> Chr19:80000-100000` and `samtools` would only display those reads. Further we can filter based on SAM flags to include (`-f`) or exclude (`-F`) specific SAM flags. We can filter read groups, mapping quality, overlap with a BED file or number of CIGAR operations.
+
+Sidenote: Similar to the region filter for BAM files, `samtools faidx` can perform the same task on FASTA files.
+
+Samtools can also compute a variety of interesting statistics for a SAM/BAM file. At the most basic, let's try and see what `samtools flagstat` does:
+
+```{bash, eval=FALSE}
+samtools flagstat <BAM>
+```
+
+If that's not detailed enough, samtools offers `samtools stats`, which is much more verbose:
+
+```{bash, eval=FALSE}
+samtools stats <BAM> | less -S
+```
+
+Finally, the `idxstats` command offers statistics on the number of mapped reads per chromosome:
+
+```{bash, eval=FALSE}
+samtools idxstats <BAM> | less -S
+```
+
+The otpus files of `samtools flagstat`, `samtools stats` and `samtools idxstat` can also be processed by `multiqc` to produce a nice summarizing the results for multiple files. Let's summarize all BAM files in our current directory:
+
+```{bash, eval=FALSE}
+find . -name "*sorted.bam" | xargs -I{} samtools index {}
+
+find . -name "*sorted.bam" | xargs -I{} bash -c 'samtools flagstat $0 > ${0/.bam/_flagstat.txt}' {}
+
+find . -name "*sorted.bam" | xargs -I{} bash -c 'samtools idxstats $0 > ${0/.bam/_idxstats.txt}' {}
+
+find . -name "*sorted.bam" | xargs -I{} bash -c 'samtools stats $0 > ${0/.bam/_stats.txt}' {}
+
+multiqc .
+```
+
+```{r head-07b05 }
+quest(2)
+endQuest()
+startQuest("Bedtools")
+h1("Bedtools")
+```
+
+Bedtools is a self-described "swiss army knife" for genomics analysis tasks and indeed a very powerful tool to manipulate genomics data of all sorts. It supports BED, VCF, BAM/SAM and even GFF3/GTF data for many operations. Again, let's see what's on the menu:
+
+```{bash, eval=FALSE}
+bedtools
+```
+
+```
+bedtools: flexible tools for genome arithmetic and DNA sequence analysis.
+usage:    bedtools <subcommand> [options]
+
+The bedtools sub-commands include:
+
+[ Genome arithmetic ]
+    intersect     Find overlapping intervals in various ways.
+    window        Find overlapping intervals within a window around an interval.
+    closest       Find the closest, potentially non-overlapping interval.
+    coverage      Compute the coverage over defined intervals.
+    map           Apply a function to a column for each overlapping interval.
+    genomecov     Compute the coverage over an entire genome.
+    merge         Combine overlapping/nearby intervals into a single interval.
+    cluster       Cluster (but don't merge) overlapping/nearby intervals.
+    complement    Extract intervals _not_ represented by an interval file.
+    subtract      Remove intervals based on overlaps b/w two files.
+    slop          Adjust the size of intervals.
+    flank         Create new intervals from the flanks of existing intervals. 
+    sort          Order the intervals in a file.
+    random        Generate random intervals in a genome.
+    shuffle       Randomly redistrubute intervals in a genome.
+    sample        Sample random records from file using reservoir sampling.
+    spacing       Report the gap lengths between intervals in a file.
+    annotate      Annotate coverage of features from multiple files.
+
+[ Multi-way file comparisons ]                            
+    multiinter    Identifies common intervals among multiple interval files.
+    unionbedg     Combines coverage intervals from multiple BEDGRAPH files.
+
+[ Paired-end manipulation ]
+    pairtobed     Find pairs that overlap intervals in various ways.
+    pairtopair    Find pairs that overlap other pairs in various ways.
+
+[ Format conversion ]
+    bamtobed      Convert BAM alignments to BED (& other) formats.
+    bedtobam      Convert intervals to BAM records.
+    bamtofastq    Convert BAM records to FASTQ records.
+    bedpetobam    Convert BEDPE intervals to BAM records.
+    bed12tobed6   Breaks BED12 intervals into discrete BED6 intervals.
+
+[ Fasta manipulation ]
+    getfasta      Use intervals to extract sequences from a FASTA file.
+    maskfasta     Use intervals to mask sequences from a FASTA file.
+    nuc           Profile the nucleotide content of intervals in a FASTA file.
+
+[ BAM focused tools ]
+    multicov      Counts coverage from multiple BAMs at specific intervals.
+    tag           Tag BAM alignments based on overlaps with interval files.
+
+[ Statistical relationships ]
+    jaccard       Calculate the Jaccard statistic b/w two sets of intervals.
+    reldist       Calculate the distribution of relative distances b/w two files.
+    fisher        Calculate Fisher statistic b/w two feature files.
+
+[ Miscellaneous tools ]
+    overlap       Computes the amount of overlap from two intervals.
+    igv           Create an IGV snapshot batch script.
+    links         Create a HTML page of links to UCSC locations.
+    makewindows   Make interval "windows" across a genome.
+    groupby       Group by common cols. & summarize oth. cols. (~ SQL "groupBy")
+    expand        Replicate lines based on lists of values in columns.
+    split         Split a file into multiple files with equal records or base pairs.
+
+[ General help ]
+    --help        Print this help menu.
+    --version     What version of bedtools are you using?.
+    --contact     Feature requests, bugs, mailing lists, etc.
+```
+
+Since this data stems from an experiment looking at the difference of 
+transcriptional expression in aspen trees, we would be interested to find
+sex specific genes, or even a sex locus. We did, in fact, discover such a 
+position in the aspen genome on chromosme 19, between basepairs 6554000 and 
+6564000. Using bedtools, we can quickly generate coverage statistics for this
+position:
+
+```{bash, eval = FALSE}
+mkdir ~/bedtools
+cd ~/bedtools
+bedtools multicov -bams ../star/*.sortedByCoord.out.bam -bed ~/share/Day1/data/bed/putative_sex_locus.bed | less -S
+```
+
+Often in RNA Seq, reads do not align to known features (e.g. in the GFF file).
+Bedtools can easily extract those reads and create a filtered BAM file:
+
+```{bash}
+cd ~/bedtools
+bedtools subtract -a ../star/202_subset-sortmerna-trimmomatic-STARAligned.sortedByCoord.out.bam -b ~/share/Day1/data/reference/gff/Ptrichocarpa_v3.0_210_synthetic-gene-models-wo-introns.gff3 > not_in_feature.bam
+samtools view not_in_feature.bam | less -S
+```
+
+Finally, in many cases it can be useful to look at the alignments directly. For
+this purpose, visualization tools like IGV exist (samtools also has a viewer, 
+see `samtools tview`). We have prepared a web-based alignment viewer called 
+JBrowse at http://watson.plantphys.umu.se:20000
+
+```{r head-07b03}
+quest(3)
+endQuest()
+```
