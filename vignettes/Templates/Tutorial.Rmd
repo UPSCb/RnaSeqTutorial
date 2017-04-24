@@ -30,7 +30,7 @@ options(digits=2)
 ```{r child = "Chapters/05-Alignment.Rmd"}
 ```
 
-```{r child = "Chapters/07b-Linux-Alignments.Rmd"}
+```{r child = "Chapters/07-Linux-Alignments.Rmd"}
 ```
 
 ```{r child = "Chapters/08-Linux-R-Annotations.Rmd"}

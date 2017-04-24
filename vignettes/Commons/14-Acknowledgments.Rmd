@@ -1,6 +1,6 @@
 # Acknowledgments 
 
-1.  Thanks to the Workshop organizer (Ari Löytinoja.
+1.  Thanks to the Workshop organizers.
 
 2.  Thanks to Martin Morgan ( R and Bioconductor guru among other
     things, not to say head of the Bioconductor core at FHCRC - he never
