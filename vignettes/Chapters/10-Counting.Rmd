@@ -30,8 +30,8 @@ the remainder of this tutorial - require additional data-preparation.
 
 This data preparation varies depending on whether expression at the gene
 or the transcript level is required. In our case, we are interested in
-gene expression, as we would like to perform a differential gene
-expression study.
+gene expression, as we have already conducted the analysis to obtain transcript
+expression estimates using kallisto.
 
 ```{r head-0702, echo=FALSE}
     h2("Data preparation for a DE analyses at the gene level")
@@ -87,10 +87,12 @@ part of the HTSeq python library [@Anders:2014p6365]. This associated
 [webpage](http://www-huber.embl.de/users/anders/HTSeq/doc/count.html)
 illustrates in greater detail the issues discussed above. For non-strand
 specific reads we suggest running htseq-count as follows:
-  
+
+```  
     htseq-count -f bam -r pos -m union -s no -t exon -i Parent \
     sample-sortmerna-trimmomatic-STAR.bam synthetic-transcript.gff3 > \
     sample-sortmerna-trimmomatic-STAR-HTSeq.txt
+```
 
 whereas for stranded data we advise using the following:
   
@@ -98,15 +100,32 @@ whereas for stranded data we advise using the following:
     -i Parent sample-sortmerna-trimmomatic-STAR.bam synthetic-transcript.gff3 > \
     sample-sortmerna-trimmomatic-STAR-HTSeq.txt
 
-Using your STAR aligned BAM file, and the gff3 file available there: 
-`~/share/Day1/data/reference/gff/Ptrichocarpa_v3.0_210_synthetic-gene-models-wo-introns.gff3`,
+Using the STAR aligned BAM files
+```
+~/share/Day1/data/star/*STARAligned.sortedByCoord.out.bam
+```
+
+and the synthetic transcript gff3 file you have created earlier: 
+
+```
+`~/gff3/Ptrichocarpa_v3.0_210_synthetic_transcripts.gff3`,
+```
+
 use the HTSeq *htseq-count* utility to create the count table for your
 sample (our data is not strand specific).
+
+To fasten the process, try using `xargs`, _e.g._ complete the following pragma:
+
+```
+find <DIR> -name <PATTERN> | xargs -I {} -P 16 \
+bash -c 'htseq-count -f bam -r pos -m union -s no -t exon -i Parent $0 \
+<TRANSCRIPT FILE> > ${0/.bam/.txt}'
+```
 
 Before you proceed further, read about the count modes in HTSeq and think about 
 why we choose the [union mode](http://www-huber.embl.de/users/anders/HTSeq/doc/count.html).
 
 ```{r inv-0702, echo=FALSE}
-    quest(13)
+    quest(1)
     endQuest()
 ```

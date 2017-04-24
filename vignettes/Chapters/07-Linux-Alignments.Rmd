@@ -134,7 +134,7 @@ samtools index <BAM>
 Or for all files:
 
 ```{bash, eval=FALSE}
-samtools index *sorted.bam
+find . -name "*sorted.bam" | xargs -I {} samtools index {}
 ```
 
 If we are only interested in a specific region, `samtools view` can be called as `samtools view <BAM> <region>`, where '<region>' takes the format of 'Chromosme:Start-Stop'. Let's consider this example: want to look at only the reads that mapped to chromosome 19, somewhere between basepair 80,000 and 100,000. We could call: `samtools view <BAM> Chr19:80000-100000` and `samtools` would only display those reads. Further we can filter based on SAM flags to include (`-f`) or exclude (`-F`) specific SAM flags. We can filter read groups, mapping quality, overlap with a BED file or number of CIGAR operations.
@@ -273,7 +273,7 @@ bedtools multicov -bams ../star/*.sortedByCoord.out.bam -bed ~/share/Day1/data/b
 Often in RNA Seq, reads do not align to known features (e.g. in the GFF file).
 Bedtools can easily extract those reads and create a filtered BAM file:
 
-```{bash, eval=FALSE}
+```
 cd ~/bedtools
 bedtools subtract -a ../star/202_subset-sortmerna-trimmomatic-STARAligned.sortedByCoord.out.bam -b ~/share/Day1/data/reference/gff/Ptrichocarpa_v3.0_210_synthetic-gene-models-wo-introns.gff3 > not_in_feature.bam
 samtools view not_in_feature.bam | less -S

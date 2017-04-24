@@ -39,6 +39,9 @@ options(digits=2)
 ```{r child = "Chapters/10-Counting.Rmd"}
 ```
 
+```{r child = "Chapters/12-R-Biological-QA.Rmd"}
+```
+
 ```{r child = "Commons/17-SessionInfo.Rmd" }
 ```
 

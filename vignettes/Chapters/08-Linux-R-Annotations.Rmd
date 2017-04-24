@@ -1,3 +1,8 @@
+```{r message=FALSE,warning=FALSE,results='hide',echo=FALSE}
+    options(digits=2)
+    library(RnaSeqTutorial)
+```
+
 ```{r inv-0401, echo=FALSE}
     startQuest("Annotation packages")
 ```
@@ -26,7 +31,7 @@ In the `Day2` folder, locate the _P. trichocarpa_ gff3 file. Using the `cut`,
 `sort` and `uniq` commands, let us extract some key statistics from the file. 
 
 Find the number of features (replace ... by the file name your found) :
-```{bash b6801, eval=FALSE}
+```
     cut -f3 share/Day2/... | sort | uniq -c
 ```
 
@@ -34,17 +39,13 @@ Find the number of features (replace ... by the file name your found) :
 options return the selected "field", _i.e._ here the content of the third column.
 `sort` and `uniq` are self-explanatory. The `-c` option is to count the occurences.
 
-```{r inv-0403, echo=FALSE}
+```{r inv-0402, echo=FALSE}
 quest(1)
 endQuest()
 startQuest("Examining the GFF3")
 ```
-Let us find out some more about the gff3 structure, but for that let us use `R`.
 
-```{r message=FALSE,warning=FALSE,results='hide',echo=FALSE}
-    options(digits=2)
-    library(RnaSeqTutorial)
-```
+Let us find out some more about the gff3 structure, but for that let us use R.
 
 First, we load the necessary libraries
 
@@ -76,7 +77,7 @@ We get the same information as previously. Let us do now some validation:
     nrow(unique(gff[gff$type=="exon",])) / nrow(gff[gff$type=="gene",])
 ```
 
-```{r inv-0404, echo=FALSE}
+```{r inv-0403, echo=FALSE}
 quest(2)
 endQuest()
 startQuest("Duplicated exons")
@@ -99,7 +100,7 @@ gff[sel,][seqnames(gff[sel,]) == seqnames(firstDuplicate) &
               gff[sel,2] == firstDuplicate[,2],]
 ```
 
-```{r inv-0405, echo=FALSE}
+```{r inv-0404, echo=FALSE}
 quest(3)
 endQuest()
 startQuest("Validating with genomeTools")
@@ -107,7 +108,7 @@ startQuest("Validating with genomeTools")
 
 GenomeTools [@Gremme2013] offers a nice utility to validate a gff3 file. 
 
-```{bash, eval=FALSE}
+```
     cd && mkdir gff3 && cd gff3
     gt gff3 -force -tidy yes -addids yes -fixregionboundaries yes \
     -retainids yes -sort yes -checkids yes \
@@ -116,7 +117,7 @@ GenomeTools [@Gremme2013] offers a nice utility to validate a gff3 file.
     2>&1  | grep -v "##sequence-region"
 ```
 
-```{r inv-0406, echo=FALSE}
+```{r inv-0405, echo=FALSE}
 quest(4)
 endQuest()
 startQuest("Creating a synthetic set of transcripts")
@@ -149,7 +150,7 @@ Next, we save our flattened annotation for later use at the counting stage.
 writeGff3(synthTrx,file="~/gff3/Ptrichocarpa_v3.0_210_synthetic_transcripts.gff3")
 ```
 
-```{r inv-0407, echo=FALSE}
+```{r inv-0406, echo=FALSE}
 quest(5)
 endQuest()
 startQuest("Validating the new file")
@@ -157,7 +158,7 @@ startQuest("Validating the new file")
 
 Let us start with GenomeTools again:
 
-```{bash, eval=FALSE}
+```
     cd gff3
     gt gff3 -force -tidy yes -addids yes -fixregionboundaries yes \
     -retainids yes -sort yes -checkids yes \
@@ -171,7 +172,7 @@ Unsurprisingly this works, but we are going to be very suspicious and go back to
 Adapt the previous `R` commands we used to check the duplicates in the original 
 gff3 file. What do you observe?
 
-```{r inv-0411, echo=FALSE}
+```{r inv-0407, echo=FALSE}
 quest(6)
 endQuest()
 startQuest("Summing up synthetic transcripts")
@@ -182,7 +183,7 @@ discussed in the lecture and exemplified here. The _P. trichocarpa_ annotation i
 actually of a decent quality (nonwithstanding its poor application of the gff3
 standard!).
 
-```{r inv-0412, echo=FALSE}
+```{r inv-0408, echo=FALSE}
 quest(7)
 endQuest()
 startQuest("Looking out")
@@ -352,7 +353,7 @@ correctly.
     head(translate(txx), 3)
 ```
 
-```{r inv-0413, echo=FALSE}
+```{r inv-0410, echo=FALSE}
 quest(9)
 endQuest()
 startQuest("Putting a GFF3 to use")
@@ -366,7 +367,7 @@ from a genome fasta file and a gff3 annotation file.
 As we want to use a tool that can quantify transcripts expression 
 (__not summarising it by gene !!!__), we will use the original gff3 file.
 
-```{bash, eval=FALSE}
+```
     cd && mkdir fasta && cd fasta
     gffread -w Ptrichocarpa_v3.0_210_transcripts.fa \
     ~/share/Day2/data/reference/gff/Ptrichocarpa_v3.0_210_gene_exons.gff3 \
@@ -376,11 +377,6 @@ As we want to use a tool that can quantify transcripts expression
 This file now contains all the transcripts sequences extracted from the genome
 using the gff annotation. This file will be the input for the generation of the
 _e.g._ kallisto index.
-
-```{r inv-0402, echo=FALSE}
-endQuest()
-startQuest("Appendix")
-```
 
 ```{r head-0405, echo=FALSE}
 h2("Appendix")
@@ -508,7 +504,6 @@ synthTrx$gffAttributes<- paste("ID=",
 
 This gives us a similar results to that of the `easyRNASeq` `createSyntheticTranscripts`
 function with the exception that we only generated feature of type `exon`
-
-```{r inv-0410, echo=FALSE}
+```{r inv-0411, echo=FALSE}
 endQuest()
 ```

@@ -1,7 +1,3 @@
-```{r echo=FALSE,eval=FALSE,message=FALSE,warning=FALSE,results='hide'}
-    # TODO keep in mind a comparison of HTSeq with 11-R-Counts
-```
-
 ```{r inv-1301, echo=FALSE}
     startQuest("Biological QA - Variance Stabilising Transformation")
 ```
@@ -48,7 +44,7 @@ res <- mclapply(dir(file.path(extdata(),"htseq"),
                     pattern="^[2,3].*_STAR\\.txt",
                     full.names=TRUE),function(fil){
   read.delim(fil,header=FALSE,stringsAsFactors=FALSE)
-},mc.cores=2)
+},mc.cores=16)
 names(res) <- gsub("_.*_STAR\\.txt","",dir(file.path(extdata(),"htseq"),
                                            pattern="^[2,3].*_STAR\\.txt"))
 ```
@@ -94,13 +90,13 @@ Then we convert them as percentages and check them all
 apply(count.stats,2,function(co){round(co*100/sum(co))})
 ```
 
-As can be seen an average 86% of the reads aligned uniquely
-unambiguously to features. About 3% were mapping multiple 
-locations, 4% were on ambigous features (as the data is non
+As can be seen an average 82% of the reads aligned uniquely
+unambiguously to features. About 13% were mapping multiple 
+locations, 2% were on ambigous features (as the data is non
 strand specific, we have used the "Union" counting scheme) and
-finally 7% align to no features. This is not at all unexpected
+finally 3% align to no features. This is expected
 given the fact that the alignments were done against the 
-the draft of the P. tremula genome.
+the P. trichocarpa genome.
 
 ```{r head-1306, echo =FALSE}
      h3("Visualizing the HTSeq stats")
@@ -133,7 +129,7 @@ sprintf("%s percent",round(sum(sel) * 100/ nrow(count.table),digits=1))
 sprintf("of %s genes are not expressed",nrow(count.table))
 ```
 
-So 13.1% of the genes are not expressed out of a total of 35309 genes
+So 13.9% of the genes are not expressed out of a total of 41335 genes
 
 ```{r head-1309, echo =FALSE}
      h2("Biological QA")
@@ -176,13 +172,12 @@ affect the global shape of the curve.
 
 For visualization, the data is submitted to a variance 
 stabilization transformation using DESeq2. The 
- dispersion is estimated independently of the sample type
-We nonetheless define the metadata fo importance, i.e. every
+ dispersion is going to be estimated independently of the sample type but
+we nonetheless define the metadata fo importance, i.e. every
 sample sex and year of sampling
 
 ```{r }
 samples <- read.csv(file.path(extdata(),"sex-samples.csv"))
-conditions <- names(res)
 sex <- samples$sex[match(names(res),samples$sample)]
 date <- factor(samples$date[match(names(res),samples$sample)])
 ```
@@ -193,10 +188,10 @@ as condition (which is hence irrelevant to any comparison)
 ```{r }
 dds <- DESeqDataSetFromMatrix(
   countData = count.table,
-  colData = data.frame(condition=conditions,
+  colData = data.frame(
                        sex=sex,
                        date=date),
-  design = ~ condition)
+  design = ~ date + sex)
 ```
 
 Once this is done, we first check the size factors and
@@ -212,11 +207,12 @@ sizes
 boxplot(sizes,main="relative library sizes",ylab="scaling factor")
 ```
 
-Let us do the vst
+Let us do the vst. Here we do not want to give any prior to the normalisation,
+so we perform a __BLIND__ transformation. If we were planning to work with the 
+_vst_ data for non-QC analysis, then we __WOULD__ set `blind=FALSE` to ensure
+a more adequate dispersion estimation.
 
 ```{r }
-colData(dds)$condition <- factor(colData(dds)$condition,
-                                 levels=unique(conditions))
 vsd <- varianceStabilizingTransformation(dds, blind=TRUE)
 vst <- assay(vsd)
 colnames(vst) <- colnames(count.table)
@@ -254,7 +250,7 @@ meanSdPlot(log2(counts(dds,normalized=TRUE)[rowSums(count.table)>0,]))
 ```
 
 ```{r inv-1302, echo=FALSE}
-    quest(16)
+    quest(2)
     endQuest()
     startQuest("Biological QA - PCA and heatmap")
 ```
@@ -337,7 +333,7 @@ Sometimes the 3D PCA are not so easy to read and we may be just
 as well off looking at 2 dimensions at a time. First the 2 first dims
 
 ```{r }
-plot(pc$x[,1],  
+plot(pc$x[,1],
      pc$x[,2],
      xlab=paste("Comp. 1 (",percent[1],"%)",sep=""),
      ylab=paste("Comp. 2 (",percent[2],"%)",sep=""),
@@ -350,7 +346,7 @@ legend("topright",pch=c(NA,21,24),col=c(NA,1,1),
        legend=c("Symbol:",levels(factor(dat))),cex=0.85)
 text(pc$x[,1],  
      pc$x[,2],
-     labels=conditions,cex=.5,adj=-1)
+     labels=colnames(count.table),cex=.5,adj=-1)
 ```
 
 Clearly the sampling date separate most samples. It is interesting to see that
@@ -376,36 +372,58 @@ legend("topright",pch=c(NA,21,24),col=c(NA,1,1),
        legend=c("Symbol:",levels(factor(dat))),cex=0.85)
 ```
 
-```{r head-1313, echo =FALSE}
-     h3("Heatmap")
-```
-
-Another way to look at the data is to create a heatmap. As heatmaps are computationally demanding
-and hard to read if there is too much data, we look only at the 1000 most variable genes
-
-```{r }
-sel <- order(apply(vst,1,sd),decreasing=TRUE)[1:1000]
-```
-
-First with their ID
-
-```{r }
-heatmap.2(vst[sel,],labRow = NA,trace = "none",cexCol = 0.6 )
-```
-
-Then the sex
-
-```{r }
-heatmap.2(vst[sel,],labRow = NA, labCol = sex,trace = "none",cexCol = 0.6 )
-```
-
-And the date
-
-```{r }
-heatmap.2(vst[sel,],labRow = NA, labCol = date,trace = "none",cexCol = 0.6 )
-```
-
 ```{r inv-1303, echo=FALSE}
-    quest(17)
+    quest(3)
+    endQuest()
+    startQuest("Kallisto vs. HTSeq")
+```
+
+```{r head-1313, echo =FALSE}
+     h1("Kallisto - HTSeq comparison")
+```
+
+__Caveats:__ 
+1. This section has not been properly tested, just felt like a nice
+addon :-)
+2. We have created the kallisto index using the synthetic transcripts, hence
+we only have a one to one mapping, which defeats the purpose of running kallisto
+
+Anyway, before moving on to the topic of differential expression, let us take a 
+look at the differences between the HTSeq and Kallisto counts.
+
+First, we read in the kallisto abundance files using the `tximport` package
+```{r, eval=FALSE}
+    library(tximport)
+    files <- list.files("~/kallisto", 
+                    pattern = ".*-abundance.tsv",
+                    full.names = TRUE)
+    tx <- suppressMessages(tximport(files = files,
+                                     type = "kallisto", 
+                                     txOut = TRUE))
+```
+
+Next, we extract the gene expression counts (since we have a 1to1 relationship)
+
+```{r, eval=FALSE}
+k.countTable <- round(tx$counts)
+```
+
+Finally, let's plot all samples kallisto vs. htseq counts.
+
+```{r, eval=FALSE}
+library(LSD)
+par(mfrow=c(3,3))
+dev.null <- sapply(1:ncol(count.table),function(i){
+    heatscatter(log2(count.table[,i]+1),
+                log2(k.countTable[,i]+1),
+                main=colnames(count.table)[i],
+                xlab="HTSeq count (log2 + pseudo-count)",
+                ylab="Kallisto count (log2 + pseudo-count)",
+                )
+})
+```
+
+```{r inv-1304, echo=FALSE}
+    quest(4)
     endQuest()
 ```

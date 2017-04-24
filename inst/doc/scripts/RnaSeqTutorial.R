@@ -214,7 +214,7 @@ a <- 1
 ## samtools index <BAM>
 
 ## ---- eval=FALSE, engine="bash"------------------------------------------
-## samtools index *sorted.bam
+## find . -name "*sorted.bam" | xargs -I {} samtools index {}
 
 ## ---- eval=FALSE, engine="bash"------------------------------------------
 ## samtools flagstat <BAM>
@@ -242,16 +242,8 @@ a <- 1
 ## cd ~/bedtools
 ## bedtools multicov -bams ../star/*.sortedByCoord.out.bam -bed ~/share/Day1/data/bed/putative_sex_locus.bed | less -S
 
-## ---- eval=FALSE, engine="bash"------------------------------------------
-## cd ~/bedtools
-## bedtools subtract -a ../star/202_subset-sortmerna-trimmomatic-STARAligned.sortedByCoord.out.bam -b ~/share/Day1/data/reference/gff/Ptrichocarpa_v3.0_210_synthetic-gene-models-wo-introns.gff3 > not_in_feature.bam
-## samtools view not_in_feature.bam | less -S
-
 
 ## ----child = "Chapters/08-Linux-R-Annotations.Rmd"-----------------------
-
-## ----b6801, eval=FALSE, engine="bash"------------------------------------
-##     cut -f3 share/Day2/... | sort | uniq -c
 
 ## ----message=FALSE,warning=FALSE,results='hide',echo=FALSE---------------
     options(digits=2)
@@ -286,14 +278,6 @@ gff[sel,][seqnames(gff[sel,]) == seqnames(firstDuplicate) &
               gff[sel,1] == firstDuplicate[,1] &
               gff[sel,2] == firstDuplicate[,2],]
 
-## ---- eval=FALSE, engine="bash"------------------------------------------
-##     cd && mkdir gff3 && cd gff3
-##     gt gff3 -force -tidy yes -addids yes -fixregionboundaries yes \
-##     -retainids yes -sort yes -checkids yes \
-##     -o Ptrichocarpa_v3.0_210_gene_exons-validated.gff3 \
-##     ~/share/Day2/data/reference/gff/Ptrichocarpa_v3.0_210_gene_exons.gff3 \
-##     2>&1  | grep -v "##sequence-region"
-
 ## ------------------------------------------------------------------------
 synthTrx <- createSyntheticTranscripts(
     file.path(extdata(),"GFF3/Ptrichocarpa_v3.0_210_gene_exons.gff3.gz"),
@@ -301,14 +285,6 @@ synthTrx <- createSyntheticTranscripts(
 
 ## ---- eval=FALSE---------------------------------------------------------
 ## writeGff3(synthTrx,file="~/gff3/Ptrichocarpa_v3.0_210_synthetic_transcripts.gff3")
-
-## ---- eval=FALSE, engine="bash"------------------------------------------
-##     cd gff3
-##     gt gff3 -force -tidy yes -addids yes -fixregionboundaries yes \
-##     -retainids yes -sort yes -checkids yes \
-##     -o Ptrichocarpa_v3.0_210_synthetic_transcripts-validated.gff3 \
-##     Ptrichocarpa_v3.0_210_synthetic_transcripts.gff3 \
-##     2>&1  | grep -v "##sequence-region"
 
 ## ------------------------------------------------------------------------
     library(TxDb.Dmelanogaster.UCSC.dm3.ensGene)
@@ -331,12 +307,6 @@ synthTrx <- createSyntheticTranscripts(
     length(txx)
     head(txx, 3)
     head(translate(txx), 3)
-
-## ---- eval=FALSE, engine="bash"------------------------------------------
-##     cd && mkdir fasta && cd fasta
-##     gffread -w Ptrichocarpa_v3.0_210_transcripts.fa \
-##     ~/share/Day2/data/reference/gff/Ptrichocarpa_v3.0_210_gene_exons.gff3 \
-##     -g ~/share/Day2/data/reference/fasta/Ptrichocarpa_v3.0_210.fa
 
 ## ------------------------------------------------------------------------
 library(IRanges)
@@ -403,6 +373,208 @@ synthTrx$gffAttributes<- paste("ID=",
 
 ## ----child = "Chapters/10-Counting.Rmd"----------------------------------
 
+
+
+## ----child = "Chapters/12-R-Biological-QA.Rmd"---------------------------
+
+## ----message=FALSE,warning=FALSE,results='hide'--------------------------
+    library(RnaSeqTutorial)
+
+## ------------------------------------------------------------------------
+res <- mclapply(dir(file.path(extdata(),"htseq"),
+                    pattern="^[2,3].*_STAR\\.txt",
+                    full.names=TRUE),function(fil){
+  read.delim(fil,header=FALSE,stringsAsFactors=FALSE)
+},mc.cores=16)
+names(res) <- gsub("_.*_STAR\\.txt","",dir(file.path(extdata(),"htseq"),
+                                           pattern="^[2,3].*_STAR\\.txt"))
+
+## ------------------------------------------------------------------------
+addInfo <- c("__no_feature","__ambiguous",
+             "__too_low_aQual","__not_aligned",
+             "__alignment_not_unique")
+
+## ------------------------------------------------------------------------
+sel <- match(addInfo,res[[1]][,1])
+count.table <- do.call(cbind,lapply(res,"[",2))[-sel,]
+colnames(count.table) <- names(res)
+rownames(count.table) <- res[[1]][,1][-sel]
+
+## ------------------------------------------------------------------------
+count.stats <- do.call(cbind,lapply(res,"[",2))[sel,]
+colnames(count.stats) <- names(res)
+rownames(count.stats) <- sub("__","",addInfo)
+count.stats <- rbind(count.stats,aligned=colSums(count.table))
+count.stats <- count.stats[rowSums(count.stats) > 0,]
+
+## ------------------------------------------------------------------------
+apply(count.stats,2,function(co){round(co*100/sum(co))})
+
+## ------------------------------------------------------------------------
+pal=brewer.pal(6,"Dark2")[1:nrow(count.stats)]
+mar <- par("mar")
+par(mar=c(7.1,5.1,4.1,2.1))
+barplot(as.matrix(count.stats),col=pal,beside=TRUE,las=2,main="read proportion",
+        ylim=range(count.stats)+c(0,1e+7))
+legend("top",fill=pal,legend=rownames(count.stats),bty="n",cex=0.8,horiz=TRUE)
+par(mar=mar)
+
+## ------------------------------------------------------------------------
+sel <- rowSums(count.table) == 0
+sprintf("%s percent",round(sum(sel) * 100/ nrow(count.table),digits=1))
+sprintf("of %s genes are not expressed",nrow(count.table))
+
+## ------------------------------------------------------------------------
+plot(density(log10(rowMeans(count.table))),col=pal[1],
+     main="mean raw counts distribution",
+     xlab="mean raw counts (log10)")
+
+## ------------------------------------------------------------------------
+pal=brewer.pal(8,"Dark2")
+plot.multidensity(log10(count.table),col=rep(pal,each=3),
+                  legend.x="topright",legend.cex=0.5,
+                  main="sample raw counts distribution",
+                  xlab="per gene raw counts (log10)")
+
+## ------------------------------------------------------------------------
+samples <- read.csv(file.path(extdata(),"sex-samples.csv"))
+sex <- samples$sex[match(names(res),samples$sample)]
+date <- factor(samples$date[match(names(res),samples$sample)])
+
+## ------------------------------------------------------------------------
+dds <- DESeqDataSetFromMatrix(
+  countData = count.table,
+  colData = data.frame(
+                       sex=sex,
+                       date=date),
+  design = ~ date + sex)
+
+## ------------------------------------------------------------------------
+dds <- estimateSizeFactors(dds)
+sizes <- sizeFactors(dds)
+names(sizes) <- names(res)
+sizes
+boxplot(sizes,main="relative library sizes",ylab="scaling factor")
+
+## ------------------------------------------------------------------------
+vsd <- varianceStabilizingTransformation(dds, blind=TRUE)
+vst <- assay(vsd)
+colnames(vst) <- colnames(count.table)
+
+## ------------------------------------------------------------------------
+vst <- vst - min(vst)
+
+## ------------------------------------------------------------------------
+meanSdPlot(assay(vsd)[rowSums(count.table)>0,])
+
+## ------------------------------------------------------------------------
+meanSdPlot(log2(as.matrix(count.table[rowSums(count.table)>0,])))
+
+## ------------------------------------------------------------------------
+meanSdPlot(log2(counts(dds,normalized=TRUE)[rowSums(count.table)>0,]))
+
+## ------------------------------------------------------------------------
+pc <- prcomp(t(vst))
+percent <- round(summary(pc)$importance[2,]*100)
+smpls <- conditions
+
+## ------------------------------------------------------------------------
+sex.cols<-c("pink","lightblue")
+sex.names<-c(F="Female",M="Male")
+
+## ------------------------------------------------------------------------
+scatterplot3d(pc$x[,1],
+              pc$x[,2],
+              pc$x[,3],
+              xlab=paste("Comp. 1 (",percent[1],"%)",sep=""),
+              ylab=paste("Comp. 2 (",percent[2],"%)",sep=""),
+              zlab=paste("Comp. 3 (",percent[3],"%)",sep=""),
+              color=sex.cols[as.integer(factor(sex))],
+              pch=19)
+legend("bottomright",pch=c(NA,15,15),col=c(NA,sex.cols[1:2]),
+       legend=c("Color:",sex.names[levels(factor(sex))]))
+par(mar=mar)
+
+## ------------------------------------------------------------------------
+dat <- date
+scatterplot3d(pc$x[,1],
+              pc$x[,2],
+              pc$x[,3],
+              xlab=paste("Comp. 1 (",percent[1],"%)",sep=""),
+              ylab=paste("Comp. 2 (",percent[2],"%)",sep=""),
+              zlab=paste("Comp. 3 (",percent[3],"%)",sep=""),
+              color=pal[as.integer(factor(dat))],
+              pch=19)
+legend("topleft",pch=rep(c(19,23),each=10),col=rep(pal,2),legend=levels(factor(dat)),bty="n")
+par(mar=mar)
+
+## ------------------------------------------------------------------------
+scatterplot3d(pc$x[,1],
+              pc$x[,2],
+              pc$x[,3],
+              xlab=paste("Comp. 1 (",percent[1],"%)",sep=""),
+              ylab=paste("Comp. 2 (",percent[2],"%)",sep=""),
+              zlab=paste("Comp. 3 (",percent[3],"%)",sep=""),
+              color=sex.cols[as.integer(factor(sex))],
+              pch=c(19,17)[as.integer(factor(dat))])
+legend("bottomright",pch=c(NA,15,15),col=c(NA,sex.cols[1:2]),
+       legend=c("Color:",sex.names[levels(factor(sex))]))
+legend("topleft",pch=c(NA,21,24),col=c(NA,1,1),
+       legend=c("Symbol:",levels(factor(dat))),cex=0.85)
+par(mar=mar)
+
+## ------------------------------------------------------------------------
+plot(pc$x[,1],
+     pc$x[,2],
+     xlab=paste("Comp. 1 (",percent[1],"%)",sep=""),
+     ylab=paste("Comp. 2 (",percent[2],"%)",sep=""),
+     col=sex.cols[as.integer(factor(sex))],
+     pch=c(19,17)[as.integer(factor(dat))],
+     main="Principal Component Analysis",sub="variance stabilized counts")
+legend("bottomleft",pch=c(NA,15,15),col=c(NA,sex.cols[1:2]),
+       legend=c("Color:",sex.names[levels(factor(sex))]))
+legend("topright",pch=c(NA,21,24),col=c(NA,1,1),
+       legend=c("Symbol:",levels(factor(dat))),cex=0.85)
+text(pc$x[,1],  
+     pc$x[,2],
+     labels=colnames(count.table),cex=.5,adj=-1)
+
+## ------------------------------------------------------------------------
+plot(pc$x[,2],
+     pc$x[,3],
+     xlab=paste("Comp. 2 (",percent[2],"%)",sep=""),
+     ylab=paste("Comp. 3 (",percent[3],"%)",sep=""),
+     col=sex.cols[as.integer(factor(sex))],
+     pch=c(19,17)[as.integer(factor(dat))],     
+     main="Principal Component Analysis",sub="variance stabilized counts")
+legend("bottomleft",pch=c(NA,15,15),col=c(NA,sex.cols[1:2]),
+       legend=c("Color:",sex.names[levels(factor(sex))]))
+legend("topright",pch=c(NA,21,24),col=c(NA,1,1),
+       legend=c("Symbol:",levels(factor(dat))),cex=0.85)
+
+## ---- eval=FALSE---------------------------------------------------------
+##     library(tximport)
+##     files <- list.files("~/kallisto",
+##                     pattern = ".*-abundance.tsv",
+##                     full.names = TRUE)
+##     tx <- suppressMessages(tximport(files = files,
+##                                      type = "kallisto",
+##                                      txOut = TRUE))
+
+## ---- eval=FALSE---------------------------------------------------------
+## k.countTable <- round(tx$counts)
+
+## ---- eval=FALSE---------------------------------------------------------
+## library(LSD)
+## par(mfrow=c(3,3))
+## dev.null <- sapply(1:ncol(count.table),function(i){
+##     heatscatter(log2(count.table[,i]+1),
+##                 log2(k.countTable[,i]+1),
+##                 main=colnames(count.table)[i],
+##                 xlab="HTSeq count (log2 + pseudo-count)",
+##                 ylab="Kallisto count (log2 + pseudo-count)",
+##                 )
+## })
 
 
 ## ----child = "Commons/17-SessionInfo.Rmd"--------------------------------
