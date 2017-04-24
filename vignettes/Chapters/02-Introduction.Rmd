@@ -1,5 +1,9 @@
-# Introduction
-## About the tutorial
+```{r head-0201, echo=FALSE}
+h1("Introduction")
+```
+```{r head-0202, echo=FALSE}
+h2("About the tutorial")
+```
 
 This tutorial adresses several aspect of an RNA-Seq data analysis. First, 
 it deals with data pre-processing (a process rather agnostic to the type 
@@ -27,7 +31,9 @@ The goals of the tutorial are:
 * Third part
     + become familiar with the Differential Expression type of analysis
 
-## Main softwares of interest
+```{r head-0203, echo=FALSE}
+  h2("Main softwares of interest")
+```
 1.  `FastQC` - Sequence data quality control
 
 2.  `SortMeRNA` - rRNA filtering
@@ -38,7 +44,9 @@ The goals of the tutorial are:
 
 5.  `HTSeq` and `Kallisto` - Feature summarization
 
-## Main R/Bioconductor packages of interest
+```{r head-0204, echo=FALSE}
+h2("Main R/Bioconductor packages of interest")
+```
 
 Bioconductor is a collection of R packages for the analysis and
 comprehension of high-throughput genomic data. Among these, we will
@@ -50,7 +58,9 @@ taking a look under the hood) and (ii) as an introduction to computational optim
 We will, in addition, use two packages for Differential Expression data 
 analysis: `tximport ` and `DESeq2`.
 
-### A word on High-throughput sequence analysis
+```{r head-0205, echo=FALSE}
+h3("A word on High-throughput sequence analysis")
+```
   
 Recent technological developments introduced high-throughput sequencing
 approaches. A variety of experimental protocols and analysis workflows
@@ -65,7 +75,9 @@ large-scale genomic rearrangements). Sample sizes range from minimal
 replication (_e.g._: 2 samples per treatment group) to thousands of
 individuals.
 
-### A word on RNA-Seq
+```{r head-0206, echo=FALSE}
+    h3("A word on RNA-Seq")
+```
 RNA-Seq (RNA-Sequencing) has become the preferred method for measuring
 gene expression, providing an accurate proxy for absolute quantitation
 of messenger RNA (mRNA) levels within a sample
@@ -95,7 +107,9 @@ description of it has been published[^2].
 
 ![The pre-processing pipeline used during the course][pipeline]
 
-## A word on the dataset that is used in this tutorial
+```{r head-0207, echo=FALSE}
+    h2("A word on the dataset that is used in this tutorial")
+```
 
 As a running example, we use a dataset derived from a study performed in
 _P. tremula_ [@Robinson:2014p6362]. The authors test
@@ -126,7 +140,9 @@ Archive (ENA, accession ID ERP002471), and were aligned to the
 _P. trichocarpa_ reference genome using the STAR
 [@Dobin:2013p5293] aligner.
 
-## A word on Integrated Development Environment (IDE)
+```{r head-0208, echo=FALSE}
+    h2("A word on Integrated Development Environment (IDE)")
+```
 
 There are numerous tools to support developing programs and softwares in _R_. 
 For this course, we have selected one of them: the

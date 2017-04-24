@@ -1,4 +1,6 @@
-# Conventions
+```{r head-0101, echo=FALSE}
+h1("Conventions")
+```
 
 Just a few notes about the present tutorial. Most text will be formatted
 as present, but at times there will be:

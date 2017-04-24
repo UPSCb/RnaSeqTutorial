@@ -2,10 +2,17 @@
     # TODO keep in mind to save (as an rda in data) a copy of the count table
 ```
 
+```{r inv-1401, echo=FALSE}
+    startQuest("Differential Expression Analysis - DESeq and DESeq2")
+```
 
-# Sexual dimorphism study Differential Expression
+```{r head-1401, echo=FALSE}
+    h1("Sexual dimorphism study Differential Expression")
+```
 
-## Doing the differential expression analysis.
+```{r head-1402, echo=FALSE}
+    h2("Doing the differential expression analysis.")
+```
 
 ```{r message=FALSE,warning=FALSE,results='hide'}
     library(RnaSeqTutorial)
@@ -38,7 +45,9 @@ we will be able to block the year effect to investigate the sex effect.
 yearSexDesign <- samples[grep("[2,3].*",samples$sample),c("sex","date")]
 ```
 
-### DESeq
+```{r head-1403, echo=FALSE}
+    h3("DESeq")
+```
 
 The primary reason to use DESeq over DESeq2 or edgeR or 
 any other is that DESeq is very conservative. The second
@@ -136,7 +145,9 @@ padjGLM[padjGLM==0] <- min(padjGLM[padjGLM!=0])/10
 pvalsGLM[pvalsGLM==0] <- min(pvalsGLM[pvalsGLM!=0])/10
 ```
 
-### Visualize DESeq results
+```{r head-1404, echo=FALSE}
+    h3("Visualize DESeq results")
+```
 
 As a volcano plot with the non-adjusted p-values
 The red dots circles are the 4 most significantly differentially expressed genes,
@@ -185,8 +196,15 @@ which are not so many (one)
 UmAspD
 ```
 
+```{r inv-1302, echo=FALSE}
+    quest(18)
+    endQuest()
+    startQuest("DESeq vs. DESeq2")
+```
 
-### DESeq2 differential expression analyses
+```{r head-1405, echo=FALSE}
+    h3("DESeq2 differential expression analyses")
+```
 
 We redo the analyses performed above. As you will see, it has been made
 more intuitive in DESeq2 and the same can be achieved in fewer commands.
@@ -258,8 +276,15 @@ data.frame(
 mcols(dds)[names(rowRanges(dds))=="Potra000503g03273.0",]
 ```
 
+```{r inv-1303, echo=FALSE}
+    quest(19)
+    endQuest()
+    startQuest("DESeq and DESeq2 analyses comparison")
+```
 
-### DESeq2 with the sample re-sexed
+```{r head-1406, echo=FALSE}
+    h3("DESeq2 with the sample re-sexed")
+```
 Nevertheless, while waiting for the next time the tree
 flowers and we can confirm its sex with certainty, we can assume that the 
 sample was mis-sexed and see what effect a sex correction would have.
@@ -287,7 +312,9 @@ UmAspD2.swap
 
 Fair enough, the gene made it back in the list.
 
-### DESeq2 analysis - sample removed
+```{r head-1407, echo=FALSE}
+    h3("DESeq2 analysis - sample removed")
+```
 But, still, to assess the importance of the 226.1 sample, we redo the DESeq2 DE 
 analysis without it (since we have enough replicate for that removal not to 
 affect the power of our analysis)
@@ -311,7 +338,9 @@ UmAspD2.sel <- rownames(res.sel[order(res.sel$padj,na.last=TRUE),][1:sum(res.sel
 UmAspD2.sel
 ```
 
-## Results comparison
+```{r head-1408, echo=FALSE}
+    h2("Results comparison")
+```
 
 We compare the results from the 4 approaches, the easiest way being to plot
 a Vann Diagram
@@ -352,8 +381,15 @@ sort(intersect(UmAspD2.swap,UmAspD))
 sort(intersect(UmAspD2.sel,UmAspD))
 ```
 
+```{r inv-1304, echo=FALSE}
+    quest(20)
+    endQuest()
+    startQuest("Appendix")
+```
 
-## Appendix
+```{r head-1409, echo=FALSE}
+    h2("Appendix")
+```
 
 
 Analyses performed when asking Mike Love (DESeq2 developer)
@@ -407,3 +443,6 @@ Bioconductor version 3.1 and above.
 # 
 ```
 
+```{r inv-1305, echo=FALSE}
+    endQuest()
+```
