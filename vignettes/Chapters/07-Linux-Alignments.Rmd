@@ -2,7 +2,7 @@
 startQuest("Formats")
 ```
 
-```{r head-07b01,echo=FALSE}
+```{r head-07b01, echo=FALSE}
 h1("The SAM/BAM format")
 ```
 
@@ -55,7 +55,7 @@ endQuest()
 startQuest("Samtools")
 ```
 
-```{r head-07b02 , echo=FALSE}
+```{r head-07b02, echo=FALSE}
 h1("Samtools")
 ```
 

@@ -171,15 +171,15 @@ Unsurprisingly this works, but we are going to be very suspicious and go back to
 Adapt the previous `R` commands we used to check the duplicates in the original 
 gff3 file. What do you observe?
 
-```{r inv-0408, echo=FALSE}
-quest(12)
-endQuest()
-```
-
 Obviously, annotation are always to be taken with a grain of salt as we have 
 discussed in the lecture and exemplified here. The _P. trichocarpa_ annotation is
 actually of a decent quality (nonwithstanding its poor application of the gff3
 standard!).
+
+```{r inv-0408, echo=FALSE}
+quest(12)
+endQuest()
+```
 
 ```{r head-0403, echo=FALSE}
     h2("Retrieving annotations")
