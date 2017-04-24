@@ -23,7 +23,7 @@ other files, but always inlcude `202_subset_sortmerna_trimmomatic_sorted.bam`):
 
 ```{bash, eval=FALSE}
 mkdir ~/alignments
-cp ~/share/Day1/star/{202,207,213.1,221,226.1}_subset* ~/alignments
+cp ~/share/Day1/data/star/{202,207,213.1,221,226.1}_subset*Aligned.sortedByCoord.out.bam ~/alignments
 ```
 
 Now that we have got our data, we want to look at what's inside. These are BAM
@@ -37,7 +37,7 @@ lines), we should use the Linux `|` to direct the output to a pager, such as
 
 ```{bash, eval=FALSE}
 cd ~/alignments
-samtools view 202_subset_sortmerna_trimmomatic_sorted.bam | less -S
+samtools view 202_subset-sortmerna-trimmomatic-STARAligned.sortedByCoord.out.bam | less -S
 ```
 
 Each line that we see now represents a record (an aligment).
@@ -134,7 +134,7 @@ samtools index <BAM>
 Or for all files:
 
 ```{bash, eval=FALSE}
-find . -name "*sorted.bam" | xargs -I{} samtools index {}
+samtools index *sorted.bam
 ```
 
 If we are only interested in a specific region, `samtools view` can be called as `samtools view <BAM> <region>`, where '<region>' takes the format of 'Chromosme:Start-Stop'. Let's consider this example: want to look at only the reads that mapped to chromosome 19, somewhere between basepair 80,000 and 100,000. We could call: `samtools view <BAM> Chr19:80000-100000` and `samtools` would only display those reads. Further we can filter based on SAM flags to include (`-f`) or exclude (`-F`) specific SAM flags. We can filter read groups, mapping quality, overlap with a BED file or number of CIGAR operations.
@@ -162,8 +162,6 @@ samtools idxstats <BAM> | less -S
 The otpus files of `samtools flagstat`, `samtools stats` and `samtools idxstat` can also be processed by `multiqc` to produce a nice summarizing the results for multiple files. Let's summarize all BAM files in our current directory:
 
 ```{bash, eval=FALSE}
-find . -name "*sorted.bam" | xargs -I{} samtools index {}
-
 find . -name "*sorted.bam" | xargs -I{} bash -c 'samtools flagstat $0 > ${0/.bam/_flagstat.txt}' {}
 
 find . -name "*sorted.bam" | xargs -I{} bash -c 'samtools idxstats $0 > ${0/.bam/_idxstats.txt}' {}
