@@ -42,12 +42,6 @@ options(digits=2)
 ```{r child = "Chapters/11-R-Counts.Rmd"}
 ```
 
-```{r child = "Chapters/12-R-Biological-QA.Rmd"}
-```
-
-```{r child = "Chapters/13-R-Differential-Expression.Rmd"}
-```
-
 ```{r child = "Commons/17-SessionInfo.Rmd" }
 ```
 
