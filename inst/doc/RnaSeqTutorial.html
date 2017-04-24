@@ -822,9 +822,9 @@ samtools view not_in_feature.bam | less -S</code></pre>
 <div id="manipulating-annotations" class="section level2">
 <h2><span class="header-section-number">9.1</span> Manipulating annotations</h2>
 <p>Commonly, gene annotation are made available through flat-files encoded in the ggf3 (or its derivatives) format. <code>gff3</code> stands for <code>Generic Feature Format version 3</code>. This is probably the most commonly used format, in particular when it comes to recently sequenced genomes. Another common format is the <code>gtf</code> (<code>Gene Transfer Format</code>), an alternative to the <code>gff2</code> format. This format is arguably popular from its exclusive use by the <code>EnsEMBL</code> consortium.</p>
-<p>In the <code>Day1</code> folder, locate the <em>P. trichocarpa</em> gff3 file. Using the <code>cut</code>, <code>sort</code> and <code>uniq</code> commands, let us extract some key statistics from the file.</p>
+<p>In the <code>Day2</code> folder, locate the <em>P. trichocarpa</em> gff3 file. Using the <code>cut</code>, <code>sort</code> and <code>uniq</code> commands, let us extract some key statistics from the file.</p>
 <p>Find the number of features (replace … by the file name your found) :</p>
-<pre class="bash"><code>    cut -f3 Day1/... | sort | uniq -c</code></pre>
+<pre class="bash"><code>    cut -f3 share/Day2/... | sort | uniq -c</code></pre>
 <p><code>cut</code> splits every line based on a default separator (space by default). The <code>-f</code> options return the selected “field”, <em>i.e.</em> here the content of the third column. <code>sort</code> and <code>uniq</code> are self-explanatory. The <code>-c</code> option is to count the occurences.</p>
 <p>Let us find out some more about the gff3 structure, but for that let us use <code>R</code>.</p>
 <p>First, we load the necessary libraries</p>
@@ -907,11 +907,11 @@ gff[sel,][seqnames(gff[sel,]) == seqnames(firstDuplicate) &amp;
 ## 46 ID=PAC:27046909.exon.2;Parent=PAC:27046909;pacid=27046909
 ## 57 ID=PAC:27046906.exon.2;Parent=PAC:27046906;pacid=27046906</code></pre>
 <p>GenomeTools <span class="citation">(Gremme, Steinbiss, and Kurtz 2013)</span> offers a nice utility to validate a gff3 file.</p>
-<pre class="bash"><code>    cd &amp;&amp; mkdir gff3
+<pre class="bash"><code>    cd &amp;&amp; mkdir gff3 &amp;&amp; cd gff3
     gt gff3 -force -tidy yes -addids yes -fixregionboundaries yes \
     -retainids yes -sort yes -checkids yes \
     -o Ptrichocarpa_v3.0_210_gene_exons-validated.gff3 \
-    share/Day1/data/reference/gff/Ptrichocarpa_v3.0_210_gene_exons.gff3.gz \
+    ~/share/Day2/data/reference/gff/Ptrichocarpa_v3.0_210_gene_exons.gff3 \
     2&gt;&amp;1  | grep -v &quot;##sequence-region&quot;</code></pre>
 <p>The issue with identical exons identified by different IDs is that these will bias the gene expression summarisation. Consider a single mRNA molecule giving raise to a single read; if it overlaps with a <code>duplicated</code> exon, that single molecule will be counted twice!</p>
 <p>To prevent that from happening, as long as we are not planning on measuring transcript, but gene expression, we need to collapse the annotation; <em>i.e.</em> we need to create a synthetic transcript that regroups all the gene’s exons.</p>
@@ -923,15 +923,16 @@ gff[sel,][seqnames(gff[sel,]) == seqnames(firstDuplicate) &amp;
 <p>Next, we save our flattened annotation for later use at the counting stage.</p>
 <pre class="r"><code>writeGff3(synthTrx,file=&quot;~/gff3/Ptrichocarpa_v3.0_210_synthetic_transcripts.gff3&quot;)</code></pre>
 <p>Let us start with GenomeTools again:</p>
-<pre class="bash"><code>    cd &amp;&amp; mkdir gff3
+<pre class="bash"><code>    cd gff3
     gt gff3 -force -tidy yes -addids yes -fixregionboundaries yes \
     -retainids yes -sort yes -checkids yes \
     -o Ptrichocarpa_v3.0_210_synthetic_transcripts-validated.gff3 \
-    share/Day1/data/reference/gff/Ptrichocarpa_v3.0_210_synthetic_transcripts.gff3 \
+    Ptrichocarpa_v3.0_210_synthetic_transcripts.gff3 \
     2&gt;&amp;1  | grep -v &quot;##sequence-region&quot;</code></pre>
 <p>Unsurprisingly this works, but we are going to be very suspicious and go back to R to check.</p>
 <p>Adapt the previous <code>R</code> commands we used to check the duplicates in the original gff3 file. What do you observe?</p>
 <p>Obviously, annotation are always to be taken with a grain of salt as we have discussed in the lecture and exemplified here. The <em>P. trichocarpa</em> annotation is actually of a decent quality (nonwithstanding its poor application of the gff3 standard!).</p>
+<p>Before looking into how to retrieve annotations, one last question, looking forward</p>
 </div>
 <div id="retrieving-annotations" class="section level2">
 <h2><span class="header-section-number">9.2</span> Retrieving annotations</h2>
@@ -1033,6 +1034,13 @@ Gene-centric <code>AnnotationDbi</code> packages include:</p>
 <pre><code>##   A AAStringSet instance of length 1
 ##     width seq                                          names               
 ## [1]   808 MTLTTTTTASSAESQAKMDVK...EIDFNDLNMVRRGSTELST* FBtr0073547</code></pre>
+<p>Pseudo-alignment tools, such as <em>e.g.</em> kallisto use transcripts’ sequence to build their index and perform the pseudo-alignment and quantification. Here we will use the <code>gffread</code> tool to extract a set of transcripts sequences from a genome fasta file and a gff3 annotation file.</p>
+<p>As we want to use a tool that can quantify transcripts expression (<strong>not summarising it by gene !!!</strong>), we will use the original gff3 file.</p>
+<pre class="bash"><code>    cd &amp;&amp; mkdir fasta &amp;&amp; cd fasta
+    gffread -w Ptrichocarpa_v3.0_210_transcripts.fa \
+    ~/share/Day2/data/reference/gff/Ptrichocarpa_v3.0_210_gene_exons.gff3 \
+    -g ~/share/Day2/data/reference/fasta/Ptrichocarpa_v3.0_210.fa</code></pre>
+<p>This file now contains all the transcripts sequences extracted from the genome using the gff annotation. This file will be the input for the generation of the <em>e.g.</em> kallisto index.</p>
 </div>
 <div id="appendix" class="section level2">
 <h2><span class="header-section-number">9.4</span> Appendix</h2>

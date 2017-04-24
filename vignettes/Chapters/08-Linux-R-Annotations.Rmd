@@ -352,7 +352,7 @@ correctly.
     head(translate(txx), 3)
 ```
 
-```{r inv-0402, echo=FALSE}
+```{r inv-0413, echo=FALSE}
 quest(9)
 endQuest()
 startQuest("Putting a GFF3 to use")

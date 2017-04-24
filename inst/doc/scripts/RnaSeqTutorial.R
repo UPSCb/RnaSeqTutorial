@@ -251,7 +251,7 @@ a <- 1
 ## ----child = "Chapters/08-Linux-R-Annotations.Rmd"-----------------------
 
 ## ----b6801, eval=FALSE, engine="bash"------------------------------------
-##     cut -f3 Day1/... | sort | uniq -c
+##     cut -f3 share/Day2/... | sort | uniq -c
 
 ## ----message=FALSE,warning=FALSE,results='hide',echo=FALSE---------------
     options(digits=2)
@@ -287,11 +287,11 @@ gff[sel,][seqnames(gff[sel,]) == seqnames(firstDuplicate) &
               gff[sel,2] == firstDuplicate[,2],]
 
 ## ---- eval=FALSE, engine="bash"------------------------------------------
-##     cd && mkdir gff3
+##     cd && mkdir gff3 && cd gff3
 ##     gt gff3 -force -tidy yes -addids yes -fixregionboundaries yes \
 ##     -retainids yes -sort yes -checkids yes \
 ##     -o Ptrichocarpa_v3.0_210_gene_exons-validated.gff3 \
-##     share/Day1/data/reference/gff/Ptrichocarpa_v3.0_210_gene_exons.gff3.gz \
+##     ~/share/Day2/data/reference/gff/Ptrichocarpa_v3.0_210_gene_exons.gff3 \
 ##     2>&1  | grep -v "##sequence-region"
 
 ## ------------------------------------------------------------------------
@@ -303,11 +303,11 @@ synthTrx <- createSyntheticTranscripts(
 ## writeGff3(synthTrx,file="~/gff3/Ptrichocarpa_v3.0_210_synthetic_transcripts.gff3")
 
 ## ---- eval=FALSE, engine="bash"------------------------------------------
-##     cd && mkdir gff3
+##     cd gff3
 ##     gt gff3 -force -tidy yes -addids yes -fixregionboundaries yes \
 ##     -retainids yes -sort yes -checkids yes \
 ##     -o Ptrichocarpa_v3.0_210_synthetic_transcripts-validated.gff3 \
-##     share/Day1/data/reference/gff/Ptrichocarpa_v3.0_210_synthetic_transcripts.gff3 \
+##     Ptrichocarpa_v3.0_210_synthetic_transcripts.gff3 \
 ##     2>&1  | grep -v "##sequence-region"
 
 ## ------------------------------------------------------------------------
@@ -331,6 +331,12 @@ synthTrx <- createSyntheticTranscripts(
     length(txx)
     head(txx, 3)
     head(translate(txx), 3)
+
+## ---- eval=FALSE, engine="bash"------------------------------------------
+##     cd && mkdir fasta && cd fasta
+##     gffread -w Ptrichocarpa_v3.0_210_transcripts.fa \
+##     ~/share/Day2/data/reference/gff/Ptrichocarpa_v3.0_210_gene_exons.gff3 \
+##     -g ~/share/Day2/data/reference/fasta/Ptrichocarpa_v3.0_210.fa
 
 ## ------------------------------------------------------------------------
 library(IRanges)
