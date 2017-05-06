@@ -25,4 +25,3 @@ of the RnaSeqTutorial package
   extdata()
   
 }
-

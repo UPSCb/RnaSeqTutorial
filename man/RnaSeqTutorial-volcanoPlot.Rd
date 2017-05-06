@@ -35,4 +35,3 @@ volcanoPlot(dataFrame)
 \seealso{
 \code{\link[DESeq:newCountDataSet]{DESeq package}}
 }
-

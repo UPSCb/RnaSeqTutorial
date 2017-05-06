@@ -1,6 +1,7 @@
 .DS_Store
 .Rproj.user
 .Rbuildignore
+.Rhistory
 RnaSeqTutorial.Rproj
 data
 inst

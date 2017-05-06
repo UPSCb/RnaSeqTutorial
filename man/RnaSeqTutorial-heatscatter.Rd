@@ -68,4 +68,3 @@ plotMALSD(dataFrame)
 \code{\link[DESeq:plotDispEsts]{plotDispEsts}},
 \code{\link[DESeq:plotMA]{plotMA}}
 }
-

@@ -63,4 +63,3 @@ plot.multidensity(density.list)
 \code{\link[graphics:legend]{legend}} and
 \code{\link[graphics:par]{par}}
 }
-

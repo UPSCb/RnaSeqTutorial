@@ -24,7 +24,8 @@ will introduce how this is commonly done and what caveats this implies.
 Commonly, gene annotation are made available through flat-files encoded in the 
 ggf3 (or its derivatives) format. `gff3` stands for `Generic Feature Format version 3`. 
 This is probably the most commonly used format, in particular when it comes to
-recently sequenced genomes. Another common format is the `gtf` (`Gene Transfer Format`), an alternative to the `gff2` format. This format is arguably popular from its exclusive use by
+recently sequenced genomes. Another common format is the `gtf` (`Gene Transfer Format`), 
+an alternative to the `gff2` format. This format is arguably popular from its exclusive use by
 the `EnsEMBL` consortium.
 
 In the `Day2` folder, locate the _P. trichocarpa_ gff3 file. Using the `cut`, 
@@ -106,7 +107,11 @@ endQuest()
 startQuest("Validating with genomeTools")
 ```
 
-GenomeTools [@Gremme2013] offers a nice utility to validate a gff3 file. 
+GenomeTools [@Gremme2013] offers a nice utility to validate a gff3 file. Let's move
+back to the terminal and check the validaity of the gff3 file. The tool will
+only report errors so if it deems everything is fine, expect no output. The gff3
+validation tool has many parameters, which all set on in the following command to
+make the test as stringent as possible.
 
 ```
     cd && mkdir gff3 && cd gff3
@@ -117,23 +122,31 @@ GenomeTools [@Gremme2013] offers a nice utility to validate a gff3 file.
     2>&1  | grep -v "##sequence-region"
 ```
 
+Was that what we expected? It would appear that despite checking IDs `-checkids yes`,
+identical genomic features - _e.g._ duplicated exons - pass the validation.
+
 ```{r inv-0405, echo=FALSE}
 quest(4)
 endQuest()
 startQuest("Creating a synthetic set of transcripts")
 ```
 
+The duplicated exons we observe have different IDs, which is how they circumvent
+the previous gff3 validation, _i.e._ by breaking the gff3 format specifications.
+
 The issue with identical exons identified by different IDs is that these will bias
 the gene expression summarisation. Consider a single mRNA molecule giving raise to
-a single read; if it overlaps with a `duplicated` exon, that single molecule will
-be counted twice!
+a single read; if it overlaps with a `duplicated` exon, that single molecule would
+be counted twice! Or alternatively discarded, as the read could not be unambiguously 
+assigned to a single feature!
 
 To prevent that from happening, as long as we are not planning on measuring transcript, 
 but gene expression, we need to collapse the annotation; _i.e._ we need to create a
 synthetic transcript that regroups all the gene's exons.
 
 This process relies on identifying all the exons of a gene and merging any overlapping
-exons into `super-exons`. We can do that using the Bioconductor easyRNASeq [@easyRNASeq] `createSyntheticTranscripts` function.
+exons into `super-exons`. We can do that using the R Bioconductor 
+easyRNASeq [@easyRNASeq] `createSyntheticTranscripts` function. So back to RStudio:
 
 ```{r}
 synthTrx <- createSyntheticTranscripts(
@@ -156,7 +169,8 @@ endQuest()
 startQuest("Validating the new file")
 ```
 
-Let us start with GenomeTools again:
+As we have modified our annotation, a good practice is to validate it again, so
+let us run GenomeTools again:
 
 ```
     cd gff3
@@ -182,6 +196,37 @@ Obviously, annotation are always to be taken with a grain of salt as we have
 discussed in the lecture and exemplified here. The _P. trichocarpa_ annotation is
 actually of a decent quality (nonwithstanding its poor application of the gff3
 standard!).
+
+__IMPORTANT NOTE__ The present issue with the gff3 format is common. Using the 
+recent years _de-facto_ standard for counting (_i.e._ `htseq-count`, but note 
+that this paradigm is changing with the advent of pseudo-alignment counting 
+methods such as `kallisto` or `salmon`), it can lead to dramatic issues as the
+example below displays.
+
+```{r, eval=FALSE}
+library(DESeq2)
+setwd("~/share/CIBNOR2017/Day1/data/htseq-comp/")
+tab <- data.frame("SampleID"=sub("_subset.txt","",dir("full-gff/")),
+                    "File"=dir("full-gff/"),
+                    "Sample"=sub("_subset.txt","",dir("full-gff/")))
+
+full <- DESeqDataSetFromHTSeqCount(tab,"full-gff",design = ~Sample)
+
+synth <- DESeqDataSetFromHTSeqCount(tab,"synth-gff",design = ~Sample)
+
+par(mfrow=c(1,2))
+barplot(colSums(counts(synth)),ylim=c(1,1e6),las=2,main="Synthetic Transcripts gff3")
+barplot(colSums(counts(full)),ylim=c(1,1e6),las=2,main="Original Transcripts gff3")
+```
+
+The reason counting is biased is that `htseq-count` only parses the exon lines,
+and hence only retrieves the _Parent_ of the exon, _i.e._ the _mRNA_ and not 
+the _gene_ feature. 
+
+__NOTE__ Using a `gtf` file instead avoids that issue as exons are annotated
+with both the `transcript_id` and `gene_id`. It does not prevent the issue
+caused by overlapping genes though, so caution is still warranted.
+
 
 ```{r inv-0408, echo=FALSE}
 quest(7)

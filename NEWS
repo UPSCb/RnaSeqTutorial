@@ -1,6 +1,41 @@
+CHANGES IN VERSION 0.99.7
+-------------------------
+
+  o Modification for the CIBNOR Workshop on NGS Data Analyses:
+  RNAseq and Metagenomics
+  held in La Paz, BCS, Mexico, May 2017
+
+CHANGES IN VERSION 0.99.6
+-------------------------
+
+  o Modification for the EBI Advanced RNA-Seq and ChIP-Seq Data Analysis
+  held at the EBI, Cambridge, UK, April 2017
+
+CHANGES IN VERSION 0.99.5
+-------------------------
+
+  o Modification for the EMBO Practical course on Analysis of high throughput
+  sequencing data, held at the Cambridge University, Cambridge, UK, September 2016
+
+CHANGES IN VERSION 0.99.4
+-------------------------
+
+  o Modification for the EBI Advanced RNA-Seq and ChIP-Seq Data Analysis
+  held at the EBI, Cambridge, UK, May 2016
+
+CHANGES IN VERSION 0.99.3
+-------------------------
+
+  o None reported
+
+CHANGES IN VERSION 0.99.2
+-------------------------
+
+  o None reported
+
 CHANGES IN VERSION 0.99.1
 -------------------------
-  
+
   o Modification for the EBI Advanced RNA-Seq and ChIP-Seq Data Analysis
   held at the EBI, Cambridge, UK, May 2015
 
@@ -21,7 +56,7 @@ CHANGES IN VERSION 0.5.3
 ------------------------
 
   o Fixed a number of issues due to API changes
-  o Some vignette discrepancies have been corrected. 
+  o Some vignette discrepancies have been corrected.
 
 CHANGES IN VERSION 0.0.16
 -------------------------
@@ -39,7 +74,7 @@ CHANGES IN VERSION 0.0.10
 
     o Introduced the NEWS file.
 
-    o Some vignette discrepancies have been corrected. 
+    o Some vignette discrepancies have been corrected.
     Thanks to Richard Friedman for spotting them.
 
     o Added the easyRNASeq CITATION file and a reference

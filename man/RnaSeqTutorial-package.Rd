@@ -3,8 +3,8 @@
 \docType{package}
 \name{RnaSeqTutorial package}
 \alias{RnaSeqTutorial package}
-\alias{RnaSeqTutorial package-package}
 \alias{RnaSeqTutorial-package}
+\alias{RnaSeqTutorial package-package}
 \title{Count summarization and normalization pipeline for Next Generation
 Sequencing data.}
 \description{
@@ -21,11 +21,10 @@ or \code{\link[edgeR:DGEList]{edgeR}}.
     }
 
 }
-\author{
-Nicolas Delhomme, Bastian Schiffthaler, Ismael Padioleau
-}
 \seealso{
 \code{\link[easyRNASeq:easyRNASeq-package]{easyRNASeq}}
 }
+\author{
+Nicolas Delhomme, Bastian Schiffthaler, Ismael Padioleau
+}
 \keyword{package}
-

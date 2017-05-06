@@ -27,4 +27,3 @@ by Martin Morgan for the original version of that package.
   gcFunction(someDNAStringSet)
 }
 }
-

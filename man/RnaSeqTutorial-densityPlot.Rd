@@ -45,4 +45,3 @@ densityPlot(log10(dataFrame$baseMean),
 \code{\link[graphics:image]{image}} and
 \code{\link[LSD:heatscatter]{heatscatter}}
 }
-

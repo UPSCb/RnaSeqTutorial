@@ -1,6 +1,6 @@
 ---
-title: "Advanced RNA-Seq and ChiP-Seq Data Analysis, 2017, European Bioinformatics Institute, Cambridge, UK"
-author: "Federico Agostini, Nicolas Delhomme, Bori Mifsud, Gabriella Rustici, Bastian Schiffthaler, Charlotte Soneson"
+title: "Workshop on NGS Data Analyses: RNAseq and Metagenomics, 2017, CIBNOR, La Paz, Mexico"
+author: "Titus Brown, Nicolas Delhomme, Adina Chuang Howe, Benito Pereyra, Gabriella Rustici, Alejandro Sanchez-Flores, Ricardo Vasquez-Suarez, Fan Yang, with materials contributed by Brian Haas, Bastian Schiffthaler, Charlotte Soneson"
 date: "`r Sys.Date()`"
 bibliography: Bibliography/References.bib
 output:
@@ -22,6 +22,9 @@ options(digits=2)
 ```
 
 ```{r child = "Chapters/02-Introduction.Rmd"}
+```
+
+```{r child = "Chapters/03-R-Introduction.Rmd"}
 ```
 
 ```{r child = "Chapters/04-Preprocessing.Rmd"}
