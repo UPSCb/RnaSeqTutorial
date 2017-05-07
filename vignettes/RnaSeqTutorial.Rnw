@@ -20,7 +20,7 @@ BiocStyle::latex()
 
 %% a check
 <<setup, echo=FALSE>>=
-stopifnot(BiocInstaller:::BIOC_VERSION == "3.4")
+stopifnot(BiocInstaller:::BIOC_VERSION == "3.5")
 ## check for unix as some dependencies are unix dependent
 ## or would be hard to get working on windows machines
 stopifnot(.Platform$OS.type=="unix")
