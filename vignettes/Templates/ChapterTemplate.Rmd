@@ -1,6 +1,6 @@
 ---
-title: "Workshop on NGS Data Analyses: RNAseq and Metagenomics, 2017, CIBNOR, La Paz, Mexico"
-author: "Titus Brown, Nicolas Delhomme, Adina Chuang Howe, Benito Pereyra, Gabriella Rustici, Alejandro Sanchez-Flores, Ricardo Vasquez-Suarez, Fan Yang, with materials contributed by Brian Haas, Bastian Schiffthaler, Charlotte Soneson"
+title: "High Throughput Sequencing DNA-Seq and RNA-Seq Analysis for Plant Breeding"
+author: "Chiara Batini, Carolina Bernhardsson, Nicolas Delhomme, Sandeep Kumar Kushwaha, Pär Ingvarsson, Matthew MacManes, Niklas Mähler, Gabriella Sferra, with materials contributed by Brian Haas, Bastian Schiffthaler, Charlotte Soneson"
 date: "`r Sys.Date()`"
 bibliography: References.bib
 output:

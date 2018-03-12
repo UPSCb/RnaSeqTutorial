@@ -75,9 +75,9 @@ This is achieved as follows:
     do
       read RV_READ
       FILEBASE=$(basename "${FW_READ%_1.fq.gz}")
-      STAR --genomeDir ~/share/Day1/data/indices/STAR --readFilesIn "$FW_READ" "$RV_READ" \
+      STAR --genomeDir ~/share/Day02/data/indices/STAR --readFilesIn "$FW_READ" "$RV_READ" \
         --runThreadN 16 --alignIntronMax 11000 --outSAMstrandField intronMotif \
-        --sjdbGTFfile ~/share/Day1/data/reference/gff/Ptrichocarpa_v3.0_210_synthetic-gene-models-wo-introns.gff3 \
+        --sjdbGTFfile ~/share/Day02/data/reference/gff/Ptrichocarpa_v3.0_210_synthetic-gene-models-wo-introns.gff3 \
         --readFilesCommand zcat --outFileNamePrefix "$FILEBASE-STAR"  --outSAMmapqUnique 254 \
         --outQSconversionAdd -31 --outReadsUnmapped Fastx --outSAMtype BAM SortedByCoordinate \
         --quantMode TranscriptomeSAM --outFilterMultimapNmax 100 --chimSegmentMin 1 --outWigType bedGraph \
@@ -184,7 +184,7 @@ Step 1 is to create the Kallisto index from a transcriptome:
 ```{bash, eval=FALSE}
     cd
     kallisto index -i Potri03-synthetic-transcripts.idx \
-    ~/share/Day1/data/reference/fasta/Potri03-synthetic-transcripts.fa
+    ~/share/Day02/data/reference/fasta/Potri03-synthetic-transcripts.fa
 ```
 
 We could modify the _k_-mer size using the `-k` option. This is - however - often

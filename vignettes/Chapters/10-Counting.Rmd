@@ -102,7 +102,7 @@ whereas for stranded data we advise using the following:
 
 Using the STAR aligned BAM files
 ```
-~/share/Day1/data/star/*STARAligned.sortedByCoord.out.bam
+~/share/Day02/data/star/*STARAligned.sortedByCoord.out.bam
 ```
 
 and the synthetic transcript gff3 file you have created earlier: 

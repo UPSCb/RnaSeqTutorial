@@ -28,12 +28,12 @@ recently sequenced genomes. Another common format is the `gtf` (`Gene Transfer F
 an alternative to the `gff2` format. This format is arguably popular from its exclusive use by
 the `EnsEMBL` consortium.
 
-In the `Day2` folder, locate the _P. trichocarpa_ gff3 file. Using the `cut`, 
+In the `Day03` folder, locate the _P. trichocarpa_ gff3 file. Using the `cut`, 
 `sort` and `uniq` commands, let us extract some key statistics from the file. 
 
 Find the number of features (replace ... by the file name your found) :
 ```
-    cut -f3 share/Day2/... | sort | uniq -c
+    cut -f3 share/Day03/... | sort | uniq -c
 ```
 
 `cut` splits every line based on a default separator (space by default). The `-f`
@@ -118,7 +118,7 @@ make the test as stringent as possible.
     gt gff3 -force -tidy yes -addids yes -fixregionboundaries yes \
     -retainids yes -sort yes -checkids yes \
     -o Ptrichocarpa_v3.0_210_gene_exons-validated.gff3 \
-    ~/share/Day2/data/reference/gff/Ptrichocarpa_v3.0_210_gene_exons.gff3 \
+    ~/share/Day03/data/reference/gff/Ptrichocarpa_v3.0_210_gene_exons.gff3 \
     2>&1  | grep -v "##sequence-region"
 ```
 
@@ -205,7 +205,7 @@ example below displays.
 
 ```{r, eval=FALSE}
 library(DESeq2)
-setwd("~/share/CIBNOR2017/Day1/data/htseq-comp/")
+setwd("~/share/Day02/data/htseq-comp/")
 tab <- data.frame("SampleID"=sub("_subset.txt","",dir("full-gff/")),
                     "File"=dir("full-gff/"),
                     "Sample"=sub("_subset.txt","",dir("full-gff/")))
@@ -415,8 +415,8 @@ As we want to use a tool that can quantify transcripts expression
 ```
     cd && mkdir fasta && cd fasta
     gffread -w Ptrichocarpa_v3.0_210_transcripts.fa \
-    ~/share/Day2/data/reference/gff/Ptrichocarpa_v3.0_210_gene_exons.gff3 \
-    -g ~/share/Day2/data/reference/fasta/Ptrichocarpa_v3.0_210.fa
+    ~/share/Day03/data/reference/gff/Ptrichocarpa_v3.0_210_gene_exons.gff3 \
+    -g ~/share/Day03/data/reference/fasta/Ptrichocarpa_v3.0_210.fa
 ```
 
 This file now contains all the transcripts sequences extracted from the genome

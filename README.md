@@ -14,6 +14,7 @@ Go to the vignettes folder
     2. In ChapterTemplate.Rmd: modify the title
 2. In the Chapters foolder:
     1. Modify/Add Rmd files   
+    2. Modify the path of the data (_e.g._ DayXX to match the course schedule)
 3. In the vignettes folder, run
     ```{bash, eval=FALSE}
         R CMD make

@@ -18,12 +18,12 @@ The fill specification is described here, with all the technical details you cou
 ever want: https://samtools.github.io/hts-specs/SAMv1.pdf
 
 For this tutorial, we will be often working with multiple BAM files, so first
-you should copy five BAM files from `~/share/Day1/star` (feel free to pick
+you should copy five BAM files from `~/share/Day02/star` (feel free to pick
 other files, but always inlcude `202_subset_sortmerna_trimmomatic_sorted.bam`):
 
 ```{bash, eval=FALSE}
 mkdir ~/alignments
-cp ~/share/Day1/data/star/{202,207,213.1,221,226.1}_subset*Aligned.sortedByCoord.out.bam ~/alignments
+cp ~/share/Day02/data/star/{202,207,213.1,221,226.1}_subset*Aligned.sortedByCoord.out.bam ~/alignments
 ```
 
 Now that we have got our data, we want to look at what's inside. These are BAM
@@ -267,7 +267,7 @@ position:
 ```{bash, eval = FALSE}
 mkdir ~/bedtools
 cd ~/bedtools
-bedtools multicov -bams ../star/*.sortedByCoord.out.bam -bed ~/share/Day1/data/bed/putative_sex_locus.bed | less -S
+bedtools multicov -bams ../star/*.sortedByCoord.out.bam -bed ~/share/Day02/data/bed/putative_sex_locus.bed | less -S
 ```
 
 Often in RNA Seq, reads do not align to known features (e.g. in the GFF file).
@@ -275,7 +275,7 @@ Bedtools can easily extract those reads and create a filtered BAM file:
 
 ```
 cd ~/bedtools
-bedtools subtract -a ../star/202_subset-sortmerna-trimmomatic-STARAligned.sortedByCoord.out.bam -b ~/share/Day1/data/reference/gff/Ptrichocarpa_v3.0_210_synthetic-gene-models-wo-introns.gff3 > not_in_feature.bam
+bedtools subtract -a ../star/202_subset-sortmerna-trimmomatic-STARAligned.sortedByCoord.out.bam -b ~/share/Day02/data/reference/gff/Ptrichocarpa_v3.0_210_synthetic-gene-models-wo-introns.gff3 > not_in_feature.bam
 samtools view not_in_feature.bam | less -S
 ```
 

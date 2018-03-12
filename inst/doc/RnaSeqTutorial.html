@@ -532,14 +532,14 @@ $(document).ready(function () {
 ## 
 ## Coefficients:
 ## (Intercept)            x  
-##      0.0253       0.9762</code></pre>
+##     0.00607      0.99731</code></pre>
 <pre class="r"><code>    anova(fit)</code></pre>
 <pre><code>## Analysis of Variance Table
 ## 
 ## Response: y
 ##            Df Sum Sq Mean Sq F value Pr(&gt;F)    
-## x           1   1041    1041    4123 &lt;2e-16 ***
-## Residuals 998    252       0                   
+## x           1   1056    1056    4274 &lt;2e-16 ***
+## Residuals 998    246       0                   
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <pre class="r"><code>    sqrt(var(resid(fit)))  # residuals accessor and subsequent transforms</code></pre>
@@ -874,7 +874,7 @@ $(document).ready(function () {
 <pre class="r"><code>    utils::head</code></pre>
 <pre><code>## function (x, ...) 
 ## UseMethod(&quot;head&quot;)
-## &lt;bytecode: 0x7fbeb615be30&gt;
+## &lt;bytecode: 0x7f9df4a42758&gt;
 ## &lt;environment: namespace:utils&gt;</code></pre>
 <pre class="r"><code>    methods(head)</code></pre>
 <pre><code>## [1] head.data.frame* head.default*    head.ftable*     head.function*  
@@ -967,9 +967,9 @@ $(document).ready(function () {
 <p>The <code>system.time</code> function is a straight-forward way to measure the length of time a portion of code takes to evaluate. Here we see that the use of <code>apply</code> to calculate row sums of a matrix is much less efficient than the specialized <code>rowSums</code> function.</p>
 <pre class="r"><code>    m &lt;- matrix(runif(200000), 20000)
     replicate(5, system.time(apply(m, 1, sum))[[1]])</code></pre>
-<pre><code>## [1] 0.037 0.059 0.052 0.049 0.047</code></pre>
+<pre><code>## [1] 0.020 0.018 0.019 0.018 0.018</code></pre>
 <pre class="r"><code>    replicate(5, system.time(rowSums(m))[[1]])</code></pre>
-<pre><code>## [1] 0.001 0.001 0.001 0.001 0.001</code></pre>
+<pre><code>## [1] 0.000 0.001 0.000 0.001 0.000</code></pre>
 <p>Usually it is appropriate to replicate timings to average over vagaries of system use, and to shuffle the order in which timings of alternative algorithms are calculated to avoid artifacts such as initial memory allocation.</p>
 <p>Speed is an important metric, but equivalent results are also needed. The functions <code>identical</code> and <code>all.equal</code> provide different levels of assessing equivalence, with <code>all.equal</code> providing ability to ignore some differences, <em>e.g.</em>: in the names of vector elements.</p>
 <pre class="r"><code>    res1 &lt;- apply(m, 1, sum)
@@ -2321,9 +2321,13 @@ dev.null &lt;- sapply(1:ncol(count.table),function(i){
 <div id="session-info" class="section level1">
 <h1><span class="header-section-number">14</span> Session Info</h1>
 <p>This conclude this differential expression analysis. The following details the R version that was used to perform the analyses.</p>
-<pre><code>## R version 3.3.3 (2017-03-06)
-## Platform: x86_64-apple-darwin13.4.0 (64-bit)
+<pre><code>## R version 3.4.0 (2017-04-21)
+## Platform: x86_64-apple-darwin15.6.0 (64-bit)
 ## Running under: macOS Sierra 10.12.4
+## 
+## Matrix products: default
+## BLAS: /Library/Frameworks/R.framework/Versions/3.4/Resources/lib/libRblas.0.dylib
+## LAPACK: /Library/Frameworks/R.framework/Versions/3.4/Resources/lib/libRlapack.dylib
 ## 
 ## locale:
 ## [1] en_GB.UTF-8/en_GB.UTF-8/en_GB.UTF-8/C/en_GB.UTF-8/en_GB.UTF-8
@@ -2337,63 +2341,76 @@ dev.null &lt;- sapply(1:ncol(count.table),function(i){
 ##  [2] RnaSeqTutorial_0.99.7                    
 ##  [3] VennDiagram_1.6.17                       
 ##  [4] futile.logger_1.4.3                      
-##  [5] vsn_3.42.3                               
-##  [6] scatterplot3d_0.3-39                     
+##  [5] vsn_3.44.0                               
+##  [6] scatterplot3d_0.3-40                     
 ##  [7] RColorBrewer_1.1-2                       
 ##  [8] LSD_3.0                                  
 ##  [9] gplots_3.0.1                             
-## [10] DESeq2_1.14.1                            
-## [11] DESeq_1.26.0                             
+## [10] DESeq2_1.16.1                            
+## [11] DESeq_1.28.0                             
 ## [12] locfit_1.5-9.1                           
 ## [13] BSgenome.Dmelanogaster.UCSC.dm3_1.4.0    
 ## [14] TxDb.Dmelanogaster.UCSC.dm3.ensGene_3.2.2
-## [15] ShortRead_1.32.1                         
-## [16] BiocParallel_1.8.2                       
-## [17] seqLogo_1.40.0                           
-## [18] leeBamViews_1.10.0                       
-## [19] BSgenome_1.42.0                          
-## [20] rtracklayer_1.34.2                       
-## [21] GenomicFeatures_1.26.4                   
-## [22] AnnotationDbi_1.36.2                     
-## [23] GenomicAlignments_1.10.1                 
-## [24] Rsamtools_1.26.2                         
-## [25] Biostrings_2.42.1                        
-## [26] XVector_0.14.1                           
-## [27] SummarizedExperiment_1.4.0               
-## [28] Biobase_2.34.0                           
-## [29] GenomicRanges_1.26.4                     
-## [30] GenomeInfoDb_1.10.3                      
-## [31] IRanges_2.8.2                            
-## [32] S4Vectors_0.12.2                         
-## [33] genomeIntervals_1.30.1                   
-## [34] intervals_0.15.1                         
-## [35] easyRNASeq_2.10.0                        
-## [36] BiocGenerics_0.20.0                      
-## [37] lattice_0.20-35                          
+## [15] ShortRead_1.34.0                         
+## [16] BiocParallel_1.10.1                      
+## [17] seqLogo_1.42.0                           
+## [18] leeBamViews_1.11.0                       
+## [19] BSgenome_1.44.0                          
+## [20] rtracklayer_1.36.0                       
+## [21] GenomicFeatures_1.28.0                   
+## [22] AnnotationDbi_1.38.0                     
+## [23] GenomicAlignments_1.12.0                 
+## [24] Rsamtools_1.28.0                         
+## [25] Biostrings_2.44.0                        
+## [26] XVector_0.16.0                           
+## [27] SummarizedExperiment_1.6.1               
+## [28] DelayedArray_0.2.1                       
+## [29] matrixStats_0.52.2                       
+## [30] Biobase_2.36.2                           
+## [31] GenomicRanges_1.28.1                     
+## [32] GenomeInfoDb_1.12.0                      
+## [33] IRanges_2.10.0                           
+## [34] S4Vectors_0.14.0                         
+## [35] genomeIntervals_1.32.0                   
+## [36] intervals_0.15.1                         
+## [37] easyRNASeq_2.12.0                        
+## [38] BiocGenerics_0.22.0                      
+## [39] lattice_0.20-35                          
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] bitops_1.0-6          rprojroot_1.2         tools_3.3.3          
-##  [4] backports_1.0.5       affyio_1.44.0         rpart_4.1-10         
-##  [7] KernSmooth_2.23-15    Hmisc_4.0-2           DBI_0.6-1            
-## [10] lazyeval_0.2.0        colorspace_1.3-2      nnet_7.3-12          
-## [13] gridExtra_2.2.1       preprocessCore_1.36.0 htmlTable_1.9        
-## [16] labeling_0.3          caTools_1.17.1        scales_0.4.1         
-## [19] checkmate_1.8.2       genefilter_1.56.0     affy_1.52.0          
-## [22] stringr_1.2.0         digest_0.6.12         foreign_0.8-67       
-## [25] rmarkdown_1.4         base64enc_0.1-3       htmltools_0.3.5      
-## [28] limma_3.30.13         htmlwidgets_0.8       RSQLite_1.1-2        
-## [31] BiocInstaller_1.24.0  hwriter_1.3.2         gtools_3.5.0         
-## [34] acepack_1.4.1         RCurl_1.95-4.8        magrittr_1.5         
-## [37] Formula_1.2-1         Matrix_1.2-8          Rcpp_0.12.10         
-## [40] munsell_0.4.3         stringi_1.1.5         yaml_2.1.14          
-## [43] edgeR_3.16.5          zlibbioc_1.20.0       plyr_1.8.4           
-## [46] gdata_2.17.0          splines_3.3.3         annotate_1.52.1      
-## [49] knitr_1.15.1          geneplotter_1.52.0    biomaRt_2.30.0       
-## [52] futile.options_1.0.0  XML_3.98-1.6          evaluate_0.10        
-## [55] latticeExtra_0.6-28   lambda.r_1.1.9        data.table_1.10.4    
-## [58] gtable_0.2.0          ggplot2_2.2.1         xtable_1.8-2         
-## [61] survival_2.41-3       tibble_1.3.0          memoise_1.0.0        
-## [64] cluster_2.0.6</code></pre>
+##  [1] bitops_1.0-6            rprojroot_1.2          
+##  [3] tools_3.4.0             backports_1.0.5        
+##  [5] affyio_1.46.0           rpart_4.1-11           
+##  [7] KernSmooth_2.23-15      Hmisc_4.0-3            
+##  [9] DBI_0.6-1               lazyeval_0.2.0         
+## [11] colorspace_1.3-2        nnet_7.3-12            
+## [13] gridExtra_2.2.1         preprocessCore_1.38.1  
+## [15] compiler_3.4.0          htmlTable_1.9          
+## [17] labeling_0.3            caTools_1.17.1         
+## [19] scales_0.4.1            checkmate_1.8.2        
+## [21] genefilter_1.58.1       affy_1.54.0            
+## [23] stringr_1.2.0           digest_0.6.12          
+## [25] foreign_0.8-68          rmarkdown_1.5          
+## [27] base64enc_0.1-3         htmltools_0.3.6        
+## [29] limma_3.32.2            htmlwidgets_0.8        
+## [31] RSQLite_1.1-2           BiocInstaller_1.26.0   
+## [33] hwriter_1.3.2           gtools_3.5.0           
+## [35] acepack_1.4.1           RCurl_1.95-4.8         
+## [37] magrittr_1.5            GenomeInfoDbData_0.99.0
+## [39] Formula_1.2-1           Matrix_1.2-10          
+## [41] Rcpp_0.12.10            munsell_0.4.3          
+## [43] stringi_1.1.5           yaml_2.1.14            
+## [45] edgeR_3.18.1            zlibbioc_1.22.0        
+## [47] plyr_1.8.4              gdata_2.17.0           
+## [49] splines_3.4.0           annotate_1.54.0        
+## [51] knitr_1.15.1            geneplotter_1.54.0     
+## [53] biomaRt_2.32.0          futile.options_1.0.0   
+## [55] XML_3.98-1.7            evaluate_0.10          
+## [57] latticeExtra_0.6-28     lambda.r_1.1.9         
+## [59] data.table_1.10.4       gtable_0.2.0           
+## [61] ggplot2_2.2.1           xtable_1.8-2           
+## [63] survival_2.41-3         tibble_1.3.0           
+## [65] memoise_1.1.0           cluster_2.0.6</code></pre>
 </div>
 <div id="acknowledgments" class="section level1">
 <h1><span class="header-section-number">15</span> Acknowledgments</h1>
@@ -2536,7 +2553,7 @@ $(document).ready(function () {
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>
