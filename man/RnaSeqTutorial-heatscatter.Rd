@@ -8,7 +8,8 @@
 \usage{
 plotMALSD(x, ylim, sign = 0.05, col = "forestgreen",
   linecol = "#00000080", xlab = "mean of normalized counts",
-  ylab = expression(log[2] ~ fold ~ change), log = "x", cex = 0.45, ...)
+  ylab = expression(log[2] ~ fold ~ change), log = "x", cex = 0.45,
+  ...)
 }
 \arguments{
 \item{x}{a data.frame object, the result of the \code{DESeq} analysis. 

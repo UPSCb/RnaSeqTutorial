@@ -7,25 +7,29 @@
 \alias{plotMA,DataFrame-method}
 \title{MA (median vs. average) plot}
 \usage{
-\S4method{plotMA}{DataFrame}(object, alpha = 0.001)
+\S4method{plotMA}{DataFrame}(object, alpha = 0.01, log2FC = 0.5)
 }
 \arguments{
 \item{object}{an object of class \code{\linkS4class{DataFrame}} having at
 least 3 columns named \code{baseMean}, \code{log2FoldChange} and \code{padj}}
 
 \item{alpha}{the significance cutoff to be used when plotting, defaults to
-10e-3.}
+10e-2}
+
+\item{log2FC}{the log2 fold change used for plotting, defaults to 0.5.}
 }
 \value{
 TRUE invisibly
 }
 \description{
-Draws an MA plot, in the present case (the log2 fold changes vs. the log10 
+Draws an MA plot, in the present case (the log2 fold changes vs. the log10
 of the mean)
 }
 \details{
-This function has been devised to draw a series of MA plot from a 
-\code{DESeq} result object.
+This function has been devised to draw a series of MA plot from a
+\code{DESeq} DataFrame object. Use as(object,"DataFrame") to use the
+\code{DESeq2::results} obtained from \code{DESeq2::DESeq}.  The cutoffs
+have been devised from Schurch et al., RNA, 2016
 }
 \examples{
 \dontrun{

@@ -5,6 +5,7 @@ genome - and its subsequent differential expression analysis at the gene
 and transcript level.
 
 # Installation
+First installed the dependencies. Then check that the package can "Build and Reload"
 
 # Preparation
 Go to the vignettes folder
@@ -23,6 +24,9 @@ If it works, save the html page you need, as well as the Rscript from the _RnaSe
 
 # Caveats
 inv block only numbers inv-XXXX
+
 When building if it fails at the stage at which it creates the RnaSeqTutorial.html
 page, be careful to restore the original structure of the vignette folder (_i.e._ copy
 Chapters.orig back to Chapters)
+
+Also the package need to be preinstalled so that the data, _etc._ is available.

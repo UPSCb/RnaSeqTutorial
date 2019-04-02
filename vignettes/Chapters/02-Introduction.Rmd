@@ -11,12 +11,14 @@ of NGS analysis, _i.e._ it would also be valid for ChIP-Seq or DNA-Seq).
 That part of the tutorial introduces the use of the command line
 (specifically the bourne-again shell: bash) and several software tools
 to prepare sequencing data for downstrem analysis. Specifically, we will
-be covering quality control, rRNA sorting, quality trimming, genome
-mapping and feature summarization. If these terms don’t mean much yet,
-hopefully they will by the end of today. Next, it deals with the 
-manipulation of alignment files (in BAM format) and the obtention and 
-manipulation of genomic (and genic) annotations to subsequently combine
-them to obtain a _raw count table_[^1]. This count table is the necessary 
+be covering quality control, rRNA sorting, quality trimming, and expression 
+quantification. For the latter, either by read mapping + feature summarization 
+or by pseudo-alignment; or both . If these terms don’t mean much yet,
+hopefully they will by the end of the practical. "Read mapping and feature
+summarisation" deals with the manipulation of alignment files (in BAM format) 
+and the obtention and manipulation of genomic (and genic) annotations to 
+subsequently combine them to obtain a _raw count table_[^1]. The pseudo-alignment
+method directly generates such a count table. This count table is the necessary 
 minimal input for a Differential Expression analysis, which is the ultimate
 step in this tutorial.
 
@@ -42,7 +44,7 @@ The goals of the tutorial are:
 
 4.  `STAR` - Read mapping
 
-5.  `HTSeq` and `Kallisto` - Feature summarization
+5.  `HTSeq` and `kallisto` - Feature summarization
 
 ```{r head-0204, echo=FALSE}
 h2("Main R/Bioconductor packages of interest")
@@ -79,7 +81,7 @@ individuals.
     h3("A word on RNA-Seq")
 ```
 RNA-Seq (RNA-Sequencing) has become the preferred method for measuring
-gene expression, providing an accurate proxy for absolute quantitation
+gene expression, providing an accurate proxy for quantitation
 of messenger RNA (mRNA) levels within a sample
 [@Mortazavi:2008p740]. RNA-Seq has reached rapid maturity in data
 handling, QC (Quality Control) and downstream statistical analysis
@@ -128,17 +130,14 @@ between 11 million and 34 million reads per sample.
 
 In the following sections, we look at a subset of the data,
 corresponding to reads obtained from individuals of the RNA-seq
-experiment, and aligned to the _P. trichocarpa_ reference
-genome. The reason why the reads were aligned to the
-_P. trichocarpa_ genome is that we are currently establishing the 
-_P. tremula_ genome. _P. trichocarpa_ is a closely related species 
-(the latter present in north-western america
+experiment, and quantified against the _P. trichocarpa_ reference. 
+The reason we used the  _P. trichocarpa_ reference is that we are currently 
+establishing the _P. tremula_ genome. _P. trichocarpa_ is a closely related 
+species (the latter present in north-western america
 while the former grows in northern and central europe).
 
 As a side note, reads were retrieved from the European Nucleotide
-Archive (ENA, accession ID ERP002471), and were aligned to the
-_P. trichocarpa_ reference genome using the STAR
-[@Dobin:2013p5293] aligner.
+Archive (ENA, accession ID ERP002471).
 
 ```{r head-0208, echo=FALSE}
     h2("A word on Integrated Development Environment (IDE)")

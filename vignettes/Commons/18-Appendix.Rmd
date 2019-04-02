@@ -1,0 +1,35 @@
+# Appendix A
+
+This appendix list the functions used during the biological QA and the DE analysis.
+The function code is displayed first and then briefly explained.
+
+## readAbundance
+```{r }
+showMethods(readAbundance,includeDefs = TRUE)
+```
+
+We read in the `kallisto` abundance files using the `tximport` library. This 
+returns expression estimates for every transcripts for all samples. Next, from 
+the data, we derived the mapping between transcripts and genes (_i.e._ which 
+splicing isoforms are encoded a given gene). The _P. trichocarpa_ gene are 
+easy to extract from the transcript names, they simply have an extra dot 
+followed by numbers following the gene identifier. Using this transcript to gene
+mapping we can summarise the expression estimate at the gene level.
+
+
+## nonExpressed
+```{r }
+showMethods(nonExpressed,includeDefs = TRUE)
+```
+
+This function just identifies the genes that have no expression; _i.e._ the sum 
+of the expression of these genes across all samples is `0`. It then simply
+calculate the proportion of the total genes and reports these values in a text
+message.
+
+## rawDataMeanPlot
+
+
+## rawDataSamplePlot
+
+

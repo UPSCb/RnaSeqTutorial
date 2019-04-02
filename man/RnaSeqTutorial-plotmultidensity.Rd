@@ -7,8 +7,8 @@
 \title{Multiple Density plot}
 \usage{
 plot.multidensity(x, xlab = "x", col = brewer.pal(8, "Dark2"),
-  legend.x = "top", xlim = NULL, ylim = NULL, lty = 1, legend.cex = 1,
-  legend = NULL, ...)
+  legend.x = "top", xlim = NULL, ylim = NULL, lty = 1,
+  legend.cex = 1, legend = NULL, ...)
 }
 \arguments{
 \item{x}{a list of numeric vectors}
@@ -18,35 +18,35 @@ plot.multidensity(x, xlab = "x", col = brewer.pal(8, "Dark2"),
 \item{col}{the color palette to use default to \code{brewer.pal(8,"Dark2")}
 from the \code{\link[RColorBrewer:RColorBrewer]{RColorBrewer}} package.}
 
-\item{legend.x}{the position of the legend, default to "top", 
-see the \code{\link[graphics:legend]{legend}} function for 
+\item{legend.x}{the position of the legend, default to "top",
+see the \code{\link[graphics:legend]{legend}} function for
 more details about the positional argument}
 
-\item{xlim}{the xlim defaults to NULL. If NULL the limit is automatically 
+\item{xlim}{the xlim defaults to NULL. If NULL the limit is automatically
 calculated}
 
-\item{ylim}{the ylim defaults to NULL. If NULL the limit is automatically 
+\item{ylim}{the ylim defaults to NULL. If NULL the limit is automatically
 calculated}
 
-\item{lty}{the line type, default to 1 (blank), see 
+\item{lty}{the line type, default to 1 (blank), see
 \code{\link[graphics:par]{par}} for more details}
 
 \item{legend.cex}{the character expansion of the legend, defaults to 1, see
 \code{\link[graphics:par]{cex}} for more details}
 
-\item{legend}{the legend to be displayed, if NULL and x is a named list, 
+\item{legend}{the legend to be displayed, if NULL and x is a named list,
 the names are used as legend, otherwise the legend is omitted. If provided,
 it must be a list of length \code{length(x)}}
 
-\item{...}{additional argument passed to the \code{plot} and \code{lines} 
+\item{...}{additional argument passed to the \code{plot} and \code{lines}
 functions.}
 }
 \description{
 Draws multiple density curves within a single plot.
 }
 \details{
-This function calculates the most suitable axis from the 
-densities calculated from the provided list of numerical 
+This function calculates the most suitable axis from the
+densities calculated from the provided list of numerical
 vectors and display all densities in a single plot
 }
 \examples{

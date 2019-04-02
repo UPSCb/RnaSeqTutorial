@@ -49,10 +49,10 @@ NULL
 ## import S4 methods
 ## @importMethodsFrom Biobase fData varMetadata
 ##' @importMethodsFrom BiocGenerics counts density paste plotMA subset
-##' @importMethodsFrom BSgenome colnames nrow
+## @importMethodsFrom BSgenome colnames nrow
 ## @importMethodsFrom easyRNASeq plotDispLSD
 ##' @importMethodsFrom IRanges pmax pmin quantile
-##' @importMethodsFrom S4Vectors ifelse
+##' @importMethodsFrom S4Vectors colnames nrow
 ##' @importMethodsFrom seqLogo plot
 ##' @importMethodsFrom ShortRead "%in%" lapply sapply
 ## import methods

@@ -1,0 +1,58 @@
+```{r inv-0603, echo=FALSE}
+    startQuest("Pseudo-alignment and read quantification with Kallisto")
+```
+```{r head-0607, echo=FALSE}
+    h1("Pseudo-alignment and read quantification with Kallisto")
+```
+
+Kallisto is a fairly recent program that makes heavy use of _k_-mer hash
+tables and De-Bruijn graphs to "pseudo-align" reads [@Bray2016]. This means that Kallisto
+does not map a read to a given position in a genome/transcriptome, but rather 
+to an abstract representation of a transcript. Kallisto then performs a 
+likelihood estimation and expectation maximization algorithms to calculate a
+count and - at request - bootstraps a confidence value. 
+
+Step 1 is to create the Kallisto index from a transcriptome:
+
+```{bash, eval=FALSE}
+    cd
+    kallisto index -i Potri03-synthetic-transcripts.idx \
+    ~/share/Day02/data/reference/fasta/Potri03-synthetic-transcripts.fa
+```
+
+We could modify the _k_-mer size using the `-k` option. This is - however - often
+a very sensitive parameter in _k_-mer/hash based applications. Lower values will
+provide higher sensitivity, but lower specificity and vice versa for higher
+values of _k_. The optimal choice for a _k_-mer would be the longest read length
+without a single mismatch due to natural polymorphisms or technical artefacts. In
+practise, this is very difficult to estimate unless you have access to a large
+pool of population genomics data.
+
+Next we can quantify the input data using this newly created index:
+
+```{bash, eval=FALSE}
+    mkdir ~/kallisto
+    cd ~/kallisto
+    find ../trimmomatic -name "*trimmomatic_[12].fq.gz" | sort | head -n 4 | while read FW_READ
+    do
+      read RV_READ
+      FILEBASE=$(basename "${FW_READ%_1.fq.gz}")
+      kallisto quant -i ../Potri03-synthetic-transcripts.idx -b 100 \
+      -o . -t 16 "$FW_READ" "$RV_READ"
+      # Kallisto doesn't let us specify an output filename so we rename all 
+      # output files
+      mv "abundance.tsv" $FILEBASE-"abundance.tsv"
+      mv "abundance.h5" $FILEBASE-"abundance.h5"
+      mv "run_info.json" $FILEBASE-"run_info.json"
+    done
+```    
+
+The option `-b 100` performs a bootstrap confidence estimation using 100 iterations.
+
+Kallisto outputs several files:
+
+  * abundance.tsv: This file is the main file of interest as it contains transcript
+  counts, tpm, etc.
+  * abundance.h5: This file contains the bootstrap values so confidence intervals
+  can be estimated for the gene counts
+  * run_info.json: This is a file containing the parameters supplied to Kallisto

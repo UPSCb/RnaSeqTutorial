@@ -1,11 +1,11 @@
 ##' Multiple Density plot
-##' 
+##'
 ##' Draws multiple density curves within a single plot.
-##' 
-##' This function calculates the most suitable axis from the 
-##' densities calculated from the provided list of numerical 
+##'
+##' This function calculates the most suitable axis from the
+##' densities calculated from the provided list of numerical
 ##' vectors and display all densities in a single plot
-##' 
+##'
 ##' @name Multiple density plot
 ##' @rdname RnaSeqTutorial-plotmultidensity
 ##' @aliases plot.multidensity plot.multidensity,list-method
@@ -13,21 +13,21 @@
 ##' @param xlab the label of the x axis, default to \code{x}
 ##' @param col the color palette to use default to \code{brewer.pal(8,"Dark2")}
 ##' from the \code{\link[RColorBrewer:RColorBrewer]{RColorBrewer}} package.
-##' @param legend.x the position of the legend, default to "top", 
-##' see the \code{\link[graphics:legend]{legend}} function for 
+##' @param legend.x the position of the legend, default to "top",
+##' see the \code{\link[graphics:legend]{legend}} function for
 ##' more details about the positional argument
-##' @param xlim the xlim defaults to NULL. If NULL the limit is automatically 
+##' @param xlim the xlim defaults to NULL. If NULL the limit is automatically
 ##' calculated
-##' @param ylim the ylim defaults to NULL. If NULL the limit is automatically 
+##' @param ylim the ylim defaults to NULL. If NULL the limit is automatically
 ##' calculated
-##' @param lty the line type, default to 1 (blank), see 
-##' \code{\link[graphics:par]{par}} for more details 
+##' @param lty the line type, default to 1 (blank), see
+##' \code{\link[graphics:par]{par}} for more details
 ##' @param legend.cex the character expansion of the legend, defaults to 1, see
 ##' \code{\link[graphics:par]{cex}} for more details
-##' @param legend the legend to be displayed, if NULL and x is a named list, 
+##' @param legend the legend to be displayed, if NULL and x is a named list,
 ##' the names are used as legend, otherwise the legend is omitted. If provided,
 ##' it must be a list of length \code{length(x)}
-##' @param ... additional argument passed to the \code{plot} and \code{lines} 
+##' @param ... additional argument passed to the \code{plot} and \code{lines}
 ##' functions.
 ##' @return NULL
 ##' @seealso \code{\link[RColorBrewer:RColorBrewer]{RColorBrewer}},
@@ -40,7 +40,7 @@
 ##' data(RST-densities)
 ##' plot.multidensity(density.list)
 ##' }
-##' 
+##'
 
 ##' @exportMethod plot.multidensity
 setGeneric(name="plot.multidensity",
@@ -55,10 +55,10 @@ setMethod(f="plot.multidensity",
           definition=function(x,xlab="x",col=brewer.pal(8,"Dark2"),
                               legend.x="top",xlim=NULL,ylim=NULL,
                               lty=1,legend.cex=1,legend=NULL,...){
-            
+
             ## check
             stopifnot(is.list(x))
-            
+
             ## densities
             dens <- lapply(x,density)
             if(is.null(xlim)){
@@ -67,24 +67,24 @@ setMethod(f="plot.multidensity",
             if(is.null(ylim)){
               ylim <- range(sapply(dens,"[[","y"))
             }
-            
+
             ## lty
             if(length(lty)==1){
               lty <- rep(lty,length(dens))
             }
-            
+
             ## plot
             plot(0,0,xlim=xlim,ylim=ylim,ylab="density",type="n",xlab=xlab,...)
-            
+
             ## lines
             sapply(1:length(dens),function(i,dens,col,...){
               lines(dens[[i]],col=col[i],
                     lty=lty[i],...)},dens,col,...)
-            
+
             ## legend
             if(!is.null(legend) | !is.null(names(x))){
               if(is.null(legend)){
-                leg <- names(x)    
+                leg <- names(x)
               } else {
                 leg <- legend
               }
@@ -93,3 +93,15 @@ setMethod(f="plot.multidensity",
             }
             return(NULL)
           })
+
+setMethod(f="plot.multidensity",
+          signature="matrix",
+          definition=function(x,xlab="x",col=brewer.pal(8,"Dark2"),
+                              legend.x="top",xlim=NULL,ylim=NULL,
+                              lty=1,legend.cex=1,legend=NULL,...){
+              plot.multidensity(lapply(1:ncol(x),function(co){x[,co]}),
+                                xlab=xlab,col=col,legend.x=legend.x,
+                                xlim=xlim,ylim=ylim,lty=lty,legend.cex=legend.cex,
+                                legend=legend,...)
+          }
+)

@@ -1,6 +1,6 @@
 ---
-title: "High Throughput Sequencing DNA-Seq and RNA-Seq Analysis for Plant Breeding"
-author: "Chiara Batini, Carolina Bernhardsson, Nicolas Delhomme, Sandeep Kumar Kushwaha, Pär Ingvarsson, Matthew MacManes, Niklas Mähler, Gabriella Sferra, with materials contributed by Brian Haas, Bastian Schiffthaler, Charlotte Soneson"
+title: "Functional Genomics Course Computer Lab, Umeå University, April 2019"
+author: "Nicolas Delhomme, Bastian Schiffthaler"
 date: "`r Sys.Date()`"
 bibliography: Bibliography/References.bib
 output:
@@ -24,31 +24,28 @@ options(digits=2)
 ```{r child = "Chapters/02-Introduction.Rmd"}
 ```
 
-```{r child = "Chapters/03-R-Introduction.Rmd"}
-```
-
 ```{r child = "Chapters/04-Preprocessing.Rmd"}
 ```
 
-```{r child = "Chapters/05-Alignment.Rmd"}
+```{r child = "Chapters/05-Pseudo-Alignment.Rmd"}
 ```
 
-```{r child = "Chapters/07-Linux-Alignments.Rmd"}
+```{r child = "Chapters/14-R-Biological-QA-FG.Rmd"}
 ```
 
-```{r child = "Chapters/08-Linux-R-Annotations.Rmd"}
+```{r child = "Chapters/15-R-Differential-Expression-FG.Rmd"}
 ```
 
-```{r child = "Chapters/10-Counting.Rmd"}
-```
-
-```{r child = "Chapters/12-R-Biological-QA.Rmd"}
+```{r child = "Chapters/16-R-DE-practical.Rmd"}
 ```
 
 ```{r child = "Commons/17-SessionInfo.Rmd" }
 ```
 
 ```{r child = "Commons/14-Acknowledgments.Rmd" }
+```
+
+```{r child = "Commons/18-Appendix.Rmd" }
 ```
 
 ```{r child = "Commons/15-Footnotes.Rmd" }

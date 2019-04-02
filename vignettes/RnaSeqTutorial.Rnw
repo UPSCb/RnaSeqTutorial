@@ -19,12 +19,12 @@ BiocStyle::latex()
 % \usepackage{bibunits}
 
 %% a check
-<<setup, echo=FALSE>>=
-stopifnot(BiocInstaller:::BIOC_VERSION == "3.5")
-## check for unix as some dependencies are unix dependent
-## or would be hard to get working on windows machines
-stopifnot(.Platform$OS.type=="unix")
-@
+% <<setup, echo=FALSE>>=
+% stopifnot(BiocInstaller:::BIOC_VERSION == "3.8")
+% ## check for unix as some dependencies are unix dependent
+% ## or would be hard to get working on windows machines
+% stopifnot(.Platform$OS.type=="unix")
+% @
 
 %% additional commands
 %\newcommand{\Dmel}{\emph{D.\ melanogaster}}

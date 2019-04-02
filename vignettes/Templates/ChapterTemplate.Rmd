@@ -1,6 +1,6 @@
 ---
-title: "High Throughput Sequencing DNA-Seq and RNA-Seq Analysis for Plant Breeding"
-author: "Chiara Batini, Carolina Bernhardsson, Nicolas Delhomme, Sandeep Kumar Kushwaha, Pär Ingvarsson, Matthew MacManes, Niklas Mähler, Gabriella Sferra, with materials contributed by Brian Haas, Bastian Schiffthaler, Charlotte Soneson"
+title: "Functional Genomics Course Computer Lab, Umeå University, April 2019"
+author: "Nicolas Delhomme, Bastian Schiffthaler"
 date: "`r Sys.Date()`"
 bibliography: References.bib
 output:

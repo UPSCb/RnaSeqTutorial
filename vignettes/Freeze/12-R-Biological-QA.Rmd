@@ -35,101 +35,55 @@ which yielded between 11 million and 34 million reads per sample.
     h3("Reading in the data")
 ```
 
-First we read the HTSeq files in a matrix. The DESeq2 package now
-actually has a function to ease that process: DESeqDataSetFromHTSeqCount. 
-Here we just process the samples in parallel using mclapply instead.
+First, we read in the expression quantification values we obtained running 
+the pseudo-alignment software kallisto. The so-called "abundance" files are  
+loaded using the `tximport` package
+```{r }
+    library(tximport)
+    files <- list.files("~/kallisto", 
+                    pattern = ".*_abundance.tsv",
+                    full.names = TRUE)
+    tx <- suppressMessages(tximport(files = files,
+                                     type = "kallisto", 
+                                     txOut = TRUE))
+```
+
+The `tx` object contains the transcript expression extimates of our 17 samples.
 
 ```{r }
-res <- mclapply(dir(file.path(extdata(),"htseq"),
-                    pattern="^[2,3].*_STAR\\.txt",
-                    full.names=TRUE),function(fil){
-  read.delim(fil,header=FALSE,stringsAsFactors=FALSE)
-},mc.cores=16)
-names(res) <- gsub("_.*_STAR\\.txt","",dir(file.path(extdata(),"htseq"),
-                                           pattern="^[2,3].*_STAR\\.txt"))
+    tx.counts <- round(tx$counts)
+    colnames(tx.counts) <- sub("_.*","",basename(files))
 ```
 
-Then we extract the additional info that HTSeq writes at the end of every
-file detailing how many reads are aligned uniquely or not, have no or ambigous
-overlaps or are of too low a quality. That last category should not occur at this
-stage of the analysis, as we have sorted and trimmed the data before aligning.
+Next we can summarise them at the gene level. The _P. trichocarpa_ gene are 
+easy to extract from the transcript names, they simply have an extra dot 
+followed by numbers following the gene identifier.
 
 ```{r }
-addInfo <- c("__no_feature","__ambiguous",
-             "__too_low_aQual","__not_aligned",
-             "__alignment_not_unique")
+tx2gene <- data.frame(
+    TX=rownames(tx.counts),
+    GENEID=sub("\\.\\d+$","",rownames(tx.counts)))
 ```
 
-and we then extract the reads
+Using this transcript to gene mapping we can now summarise the expression 
+estimate at the gene level.
 
 ```{r }
-sel <- match(addInfo,res[[1]][,1])
-count.table <- do.call(cbind,lapply(res,"[",2))[-sel,]
-colnames(count.table) <- names(res)
-rownames(count.table) <- res[[1]][,1][-sel]
+    count.table <- round(summarizeToGene(tx,tx2gene)$counts)
+    colnames(count.table) <- sub("_.*","",basename(files))
 ```
-
-```{r head-1305, echo =FALSE}
-     h3("The HTSeq stat lines")
-```
-
-Here we aggreagte the information about how many
-reads aligned, how many were ambiguous, etc
-
-```{r }
-count.stats <- do.call(cbind,lapply(res,"[",2))[sel,]
-colnames(count.stats) <- names(res)
-rownames(count.stats) <- sub("__","",addInfo)
-count.stats <- rbind(count.stats,aligned=colSums(count.table))
-count.stats <- count.stats[rowSums(count.stats) > 0,]
-```
-
-Then we convert them as percentages and check them all
-
-```{r }
-apply(count.stats,2,function(co){round(co*100/sum(co))})
-```
-
-As can be seen an average 82% of the reads aligned uniquely
-unambiguously to features. About 13% were mapping multiple 
-locations, 2% were on ambigous features (as the data is non
-strand specific, we have used the "Union" counting scheme) and
-finally 3% align to no features. This is expected
-given the fact that the alignments were done against the 
-the P. trichocarpa genome.
-
-```{r head-1306, echo =FALSE}
-     h3("Visualizing the HTSeq stats")
-```
-
-```{r }
-pal=brewer.pal(6,"Dark2")[1:nrow(count.stats)]
-mar <- par("mar")
-par(mar=c(7.1,5.1,4.1,2.1))
-barplot(as.matrix(count.stats),col=pal,beside=TRUE,las=2,main="read proportion",
-        ylim=range(count.stats)+c(0,1e+7))
-legend("top",fill=pal,legend=rownames(count.stats),bty="n",cex=0.8,horiz=TRUE)
-par(mar=mar)
-```
-
-Here, one can clearly see a library size effect; the samples 229.1 and 349.2
-have been sequenced deeper as these are the parents of a large scale F1 population
-established for another study. Appart from these, the amount of reads per library
-seems fairly equally distributed.
-
-```{r head-1307, echo =FALSE}
-     h3("Deriving more information")
-```
-
-We can estimate how much of the genes are not expressed
+We can estimate how many of the genes are not expressed
 
 ```{r }
 sel <- rowSums(count.table) == 0
-sprintf("%s percent",round(sum(sel) * 100/ nrow(count.table),digits=1))
-sprintf("of %s genes are not expressed",nrow(count.table))
+sprintf("%s percent of %s genes are not expressed",round(sum(sel) * 100/ nrow(count.table),digits=1),nrow(count.table))
 ```
+And similarly for transcripts
 
-So 13.9% of the genes are not expressed out of a total of 41335 genes
+```{r }
+sel <- rowSums(tx.counts) == 0
+sprintf("%s percent of %s transcripts are not expressed",round(sum(sel) * 100/ nrow(tx.counts),digits=1),nrow(tx.counts))
+```
 
 ```{r head-1309, echo =FALSE}
      h2("Biological QA")
@@ -147,24 +101,36 @@ per-gene mean expression, i.e. the mean raw count of every
 gene across samples is calculated and displayed on a log10 scale
 
 ```{r }
+library(RColorBrewer)
+pal <- brewer.pal(8,"Dark2")
+mar <- par("mar")
 plot(density(log10(rowMeans(count.table))),col=pal[1],
-     main="mean raw counts distribution",
+     main="gene mean raw counts distribution",
      xlab="mean raw counts (log10)")
 ```
 
 Then the same is done for the individual samples colored by sample type
 
 ```{r }
-pal=brewer.pal(8,"Dark2")
 plot.multidensity(log10(count.table),col=rep(pal,each=3),
                   legend.x="topright",legend.cex=0.5,
                   main="sample raw counts distribution",
                   xlab="per gene raw counts (log10)")
 ```
 
-As one can see, most samples show the similar trends, a few samples are
+<!-- As one can see, most samples show  similar trends, a few samples are
 shifted to the right - those that were sequenced deeper, but this does not
-affect the global shape of the curve.
+affect the global shape of the curve. -->
+The samples show the same trend (since they are a subset of the original data)
+
+```{r }
+plot.multidensity(log10(tx.counts),col=rep(pal,each=3),
+                  legend.x="topright",legend.cex=0.5,
+                  main="sample raw counts distribution",
+                  xlab="per gene raw counts (log10)")
+```
+And so do the transcripts' counts. The counts are overall shifted towards the left,
+as expected since multiple isoforms on average contribute to a gene expression.
 
 ```{r head-1311, echo =FALSE}
      h2("Variance stabilisation for better visualisation")
@@ -178,8 +144,8 @@ sample sex and year of sampling
 
 ```{r }
 samples <- read.csv(file.path(extdata(),"sex-samples.csv"))
-sex <- samples$sex[match(names(res),samples$sample)]
-date <- factor(samples$date[match(names(res),samples$sample)])
+sex <- samples$sex[match(colnames(count.table),samples$sample)]
+date <- factor(samples$date[match(colnames(count.table),samples$sample)])
 ```
 
 And then we create the DESeq2 object, using the sample name
@@ -195,14 +161,13 @@ dds <- DESeqDataSetFromMatrix(
 ```
 
 Once this is done, we first check the size factors and
-as there is no big variation, we decide to go for a variance
+as there is no variation, we decide to go for a variance
 stabilisation transformation over a regularised log transformation.
 Check the DESeq2 vignette for more details about this.
 
 ```{r }
 dds <- estimateSizeFactors(dds)
 sizes <- sizeFactors(dds)
-names(sizes) <- names(res)
 sizes
 boxplot(sizes,main="relative library sizes",ylab="scaling factor")
 ```
@@ -234,6 +199,9 @@ counts in a few subset of the samples and hence having a
 higher variability. This is expected.
 
 ```{r }
+library(BiocManager)
+BiocManager::install("hexbin")
+library(hexbin)
 meanSdPlot(assay(vsd)[rowSums(count.table)>0,])
 ```
 
@@ -374,56 +342,5 @@ legend("topright",pch=c(NA,21,24),col=c(NA,1,1),
 
 ```{r inv-1303, echo=FALSE}
     quest(3)
-    endQuest()
-    startQuest("Kallisto vs. HTSeq")
-```
-
-```{r head-1313, echo =FALSE}
-     h1("Kallisto - HTSeq comparison")
-```
-
-__Caveats:__ 
-1. This section has not been properly tested, just felt like a nice
-addon :-)
-2. We have created the kallisto index using the synthetic transcripts, hence
-we only have a one to one mapping, which defeats the purpose of running kallisto
-
-Anyway, before moving on to the topic of differential expression, let us take a 
-look at the differences between the HTSeq and Kallisto counts.
-
-First, we read in the kallisto abundance files using the `tximport` package
-```{r, eval=FALSE}
-    library(tximport)
-    files <- list.files("~/kallisto", 
-                    pattern = ".*-abundance.tsv",
-                    full.names = TRUE)
-    tx <- suppressMessages(tximport(files = files,
-                                     type = "kallisto", 
-                                     txOut = TRUE))
-```
-
-Next, we extract the gene expression counts (since we have a 1to1 relationship)
-
-```{r, eval=FALSE}
-k.countTable <- round(tx$counts)
-```
-
-Finally, let's plot all samples kallisto vs. htseq counts.
-
-```{r, eval=FALSE}
-library(LSD)
-par(mfrow=c(3,3))
-dev.null <- sapply(1:ncol(count.table),function(i){
-    heatscatter(log2(count.table[,i]+1),
-                log2(k.countTable[,i]+1),
-                main=colnames(count.table)[i],
-                xlab="HTSeq count (log2 + pseudo-count)",
-                ylab="Kallisto count (log2 + pseudo-count)",
-                )
-})
-```
-
-```{r inv-1304, echo=FALSE}
-    quest(4)
     endQuest()
 ```

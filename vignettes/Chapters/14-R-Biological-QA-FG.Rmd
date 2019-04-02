@@ -1,0 +1,222 @@
+```{r inv-1401, echo=FALSE}
+    startQuest("Biological QA - Variance Stabilising Transformation")
+```
+
+```{r head-1401, echo=FALSE}
+    h1("Sexual dimorphism study Biological QA")
+```
+
+```{r message=FALSE,warning=FALSE,results='hide'}
+    library(RnaSeqTutorial)
+```
+
+```{r head-1402, echo=FALSE}
+    h2("Introduction")
+```
+As a running example, we use a dataset derived from a study performed
+in Populus tremula (Robinson, Delhomme et al., BMC Plant Biology, 2014}. 
+The authors test the evolutionary theory suggesting
+that males and females may evolve sexually dimorphic phenotypic and biochemical 
+traits concordant with each sex having different optimal strategies of resource 
+investment to maximise reproductive success and fitness. Such sexual dimorphism
+should result in sex biased gene expression patterns in non-floral organs for
+autosomal genes associated with the control and development of such phenotypic 
+traits. Hence, the authors, among other approaches have looked for gene expression 
+differences between sex. This was achieved by an RNA-Seq differential expression 
+analysis between samples grouped by sex. The samples have been sequenced on an
+Illumina HiSeq 2000, using TruSeq adapters, through a 101 cycles paired-end protocol,
+which yielded between 11 million and 34 million reads per sample. 
+
+This tutorial will guide you through the differential expression analysis of 
+that RNA-Seq data. This will be conducted at a high-level, where a lot of the 
+complexity of the analysis has been hidden away, and in a way that requires 
+neither knowledge about the computing environment (the unix environment) nor 
+about how to code the analysis (in the present case, using the R language).
+
+However, if you are interested, you can find the details of the former in the 
+previous chapters and for the latter, the details of the functions you will use 
+is available in appendix A.
+
+```{r head-1403, echo=FALSE}
+    h2("Processing the data")
+```
+
+```{r head-1404, echo =FALSE}
+    h3("Reading in the data")
+```
+
+First, we read in the expression quantification values we obtained running 
+the pseudo-alignment software kallisto. 
+```{r }
+    counts <- readAbundance("~/share/sex/kallisto")
+```
+
+After importing the data, a first step is to assess whether the experiment 
+worked as expected and if the obtained results are in support of the studies 
+design. This is essential to ensure that the assumptions we have about our model
+hold.
+
+First, we can calculate how many genes are not expressed in all samples. This is
+a first metric that tells us whether the experiment worked at all and some feel
+about the preponderance of gene expression in our set of samples.
+
+```{r }
+    nonExpressed(counts)
+```
+
+What can you devise from this metric? What are the underlying assumptions? What
+caveats could there be with regards to these assumptions?
+
+```{r inv-1403, echo=FALSE}
+    quest(1)
+    endQuest()
+    startQuest("Biological QA")
+```
+
+```{r head-1409, echo =FALSE}
+     h2("Biological QA")
+```
+
+```{r head-1410, echo =FALSE}
+     h3("Raw count distribution")
+```
+Obviously a single value is not representative of the data distribution across 
+all samples. Let's take a look at the average expression distribution across 
+samples, by computing the per-gene mean expression, _i.e._ the mean raw count 
+of every gene across samples is calculated and displayed on a log10 scale.
+
+```{r }
+rawDataMeanPlot(counts)
+```
+
+What information can be gathered from this plot? What is a limitation? 
+
+```{r inv-1404, echo=FALSE}
+    quest(2)
+    endQuest()
+    startQuest("Biological QA c'ed")
+```
+
+The expression range is dynamic, going from less than one to more than a 1000 (
+on a linear scale). The mode of the distribution is larger than 10, meaning that
+the majority of the _expressed_ gene have at least a count of 10.
+
+Obviously, we are only looking at the average of the gene expression across all
+samples, so specific sample biases will be obscured. The next step is hance to
+plot the same for the individual samples.
+
+```{r }
+rawDataSamplePlot(counts)
+```
+
+<!-- As one can see, most samples show  similar trends, a few samples are
+shifted to the right - those that were sequenced deeper, but this does not
+affect the global shape of the curve. -->
+The samples all show a very similar trend. This is good, but was that to be 
+expected? What could have been reasons for it to be different? What could be 
+an approach to ensure that samples are comparable?
+
+```{r inv-1405, echo=FALSE}
+    quest(3)
+    endQuest()
+    startQuest("Biological QA - normalization")
+```
+
+No, we can not assume that samples will always be so similar. The variation 
+observed in what we call the `raw` data can be technical (_e.g._ difference in 
+sequencing depth), but possibly also biological. _Data normalisation_ is a 
+necessary step to render the `raw` data comparable.
+
+```{r head-1411, echo =FALSE}
+     h2("Variance stabilisation for better visualisation")
+```
+
+For visualization, the data is submitted to a variance stabilization 
+transformation. Because we want to assess whether the data is suitable to
+answer our biological question of interest, we will perform the normalisation
+ignoring any information we have about the samples such as the sample sex or the 
+year the samples were collected. This way, the dispersion parameter of the 
+negative binomial distribution, which we assume as the best model to represent 
+gene expression, is going to be estimated independently of the 
+sample types. 
+
+First, we read in the sample information and create the object containing the 
+expression counts and the sample metadata.
+
+```{r }
+samples <- read.csv("~/share/sex/doc/samples.csv")
+dds <- createDESeqDataSet(counts,samples)
+```
+
+Once this is done, we first check the size factors, _i.e._ the difference in 
+sequencing depth.
+
+```{r }
+reportSizeFactors(dds)
+```
+
+There is little difference in sequencing depth. Large difference in sequencing
+depth have been reported to be problematic for the variance stabilising 
+transformation (although this is just an empirical observation).
+
+Let us do the VST. Here, we are interested in validating that the results are
+in agreement with our design model. As such, we do not want to give any prior 
+to the transformation,so we perform a __BLIND__ transformation. If we were 
+planning to work with the _VST_ data for non-QC analysis, then we __WOULD__ set 
+`blind=FALSE` to ensure a more adequate dispersion estimation.
+
+```{r }
+vst <- transform(dds)
+```
+
+The vst introduces an offset, i.e. non expressed gene will have a value set
+as the minimal value of the vst. To avoid lengthy unnecessary explanations, we
+simply shift all values so that non expressed genes have a vst value of 0
+
+```{r }
+vst <- vst - min(vst)
+```
+
+It is then essential to validate the vst effect and ensure its validity. To
+that extend, we visualize the corrected mean - sd relationship. As it is 
+fairly linear, we can assume homoscedasticity. The slight initial trend / bump 
+is due to genes having few counts in a few subset of the samples and hence having a 
+higher variability. This is expected.
+
+```{r }
+validateVST(vst)
+```
+
+Here is what would be observed by a log2 transformation of the raw count data,
+and for the count adjusted for the library size factor, _i.e._ not adjusted for
+the data _heteroscedasticity_.
+
+```{r }
+plotUnTransformed(dds)
+```
+
+```{r inv-1406, echo=FALSE}
+    quest(2)
+    endQuest()
+    startQuest("Biological QA - PCA and heatmap")
+```
+
+```{r head-1412, echo =FALSE}
+     h3("PCA analysis")
+```
+
+Now, that we have transformed the data, we can perform _e.g._ a Principal 
+Component Analysis (PCA) of the data to do a quality assessment, _i.e._ 
+replicates should cluster together and the first dimensions should be 
+biologically explainable. In other words, the first dimensions should represent
+the variance we expect from our studies design. In the present case, the first 
+dimension should separate the samples based on their `sex`.
+
+```{r }
+plotPca(vst,samples)
+```
+
+```{r inv-1407, echo=FALSE}
+    quest(3)
+    endQuest()
+```

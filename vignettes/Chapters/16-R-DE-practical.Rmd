@@ -1,0 +1,25 @@
+```{r inv-1601, echo=FALSE}
+    startQuest("Differential Expression Analysis - Practical")
+```
+
+```{r head-1601, echo=FALSE}
+    h1("Preformed leaves Differential Expression")
+```
+
+For the practical, you will replicate what we have been doing in the tutorial. 
+However, there are a few twists.
+
+The data has been quantified with `salmon` [@Patro2017] instead of `kallisto` 
+[@Bray2016]. The data is in the folder `share/leaf/salmon`. When reading the 
+abundance data in, you need to give additional arguments to `readAbundance`, 
+namely the `pattern`: _*\\.sf_ and the `type`: _salmon_.
+
+When performing the _DE_ analysis, you will need to change the design to match
+your observation from the biological QA you will have performed. To that end,
+you can provide a design as an argument to the `createDESeqDataSet` function, 
+using the `design` argument; _e.g._ 
+`dds <- createDESeqDataSet(counts,samples,design= ...)` where you replace `...`.
+
+```{r inv-1605, echo=FALSE}
+    endQuest()
+```

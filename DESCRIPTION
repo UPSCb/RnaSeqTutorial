@@ -1,7 +1,7 @@
 Package: RnaSeqTutorial
 Title: RNA-Seq Tutorial
-Version: 0.99.8
-Date: 2018-03-12
+Version: 0.99.11
+Date: 2019-03-21
 Author: Nicolas Delhomme, Bastian Schiffthaler, Ismael Padioleau
 Description: A tutorial package that describes the pre-processing of RNA-Seq
     data - from the raw (FASTQ) data to the alignment (mapping) to a reference
@@ -10,7 +10,7 @@ Description: A tutorial package that describes the pre-processing of RNA-Seq
 Maintainer: Nicolas Delhomme <nicolas.delhomme@umu.se>
 License: Artistic-2.0
 Depends:
-    R (>= 3.4.3),
+    R (>= 3.5.1),
     methods,
     BiocGenerics,
     easyRNASeq,
@@ -53,4 +53,4 @@ biocViews: ExperimentData, RNASeqData, Drosophila_melanogaster_Data,
     ExpressionData
 Packaged: 2015-10-17 16:37:01 UTC; bastian
 NeedsCompilation: yes
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1

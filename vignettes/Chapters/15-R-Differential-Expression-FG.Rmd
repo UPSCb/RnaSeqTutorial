@@ -1,0 +1,184 @@
+```{r echo=FALSE,eval=FALSE,message=FALSE,warning=FALSE,results='hide'}
+    # TODO keep in mind to save (as an rda in data) a copy of the count table
+```
+
+```{r inv-1501, echo=FALSE}
+    startQuest("Differential Expression Analysis - DESeq2")
+```
+
+```{r head-1501, echo=FALSE}
+    h1("Sexual dimorphism study Differential Expression")
+```
+
+```{r head-1502, echo=FALSE}
+    h2("Doing the differential expression analysis.")
+```
+
+```{r message=FALSE,warning=FALSE,results='hide'}
+    library(RnaSeqTutorial)
+    counts <- readAbundance("~/share/sex/kallisto")
+    samples <- read.csv("~/share/sex/doc/samples.csv")
+    dds <- createDESeqDataSet(counts,samples)
+```
+
+The QA revealed that we have a confounding factor. Luckily enough,
+the grouping of sex is balanced between sampling years and hence 
+we will be able to block the year effect to investigate the sex effect.
+
+```{r head-1505, echo=FALSE}
+    h3("DESeq2 differential expression analyses")
+```
+
+Let's take a look at our `DESeqDataSet` object `dds`.
+
+```{r }
+# the object
+dds
+
+# the metadata
+colData(dds)
+
+# the design
+design(dds)
+```
+
+Now, we can run the differential expression analysis. The steps will be:
+
+1. Calculate the library size factors (to account for the variation in sequencing depth)
+2. Estimate the dispersion
+3. Perform a dispersion shrinkage
+4. Perform the DE test according to the provided design
+5. Apply a multiple-testing correction (Bnejamini-Hochberg) to obtain adjusted p-values (a.k.a. False Discovery Rate (FDR))
+
+This sounds like a lot, but it is really just *one* command!
+
+```{r }
+dds <- DESeq(dds)
+```
+
+And that is it! Now, let us look at the results. 
+
+```{r }
+resultsNames(dds)
+```
+
+The model resulted in three comparisons, as we considered the variables to be
+independent. 
+
+We are interested in the `sex` effect, so let's define a significance cutoff (
+but keep in mind our discussion on the _"non"_-importance of statistical 
+significance [@Amrhein2019]).
+
+We set a FDR cuttof at 1% (that significance level is often denoted 'alpha'). 
+As shown by Schurch _et al._ [@Schurch2016], `DESeq2`
+is capable at controlling its False Positive Rate (so that choosing a 1% FDR 
+means that for 100 positive test results, one will be a false positive), even 
+for as few as 3 replicates, provided the log2 fold changes (log2FC) are larger 
+than 0.5. Hence, we also set a cutoff on the log2FC.
+
+```{r }
+alpha=0.01
+log2FC=0.5
+res <- results(dds,name = "sex_M_vs_F")
+```
+
+Let's take a look at the results
+```{r }
+res
+```
+
+It is a table with 6 columns:
+
+1. the base mean - the average "baseline" expression on a linear scale
+2. the log2 fold change between condition
+3. the standard error (SE) on 2.
+4. the Wald test statistic
+5. the p-value
+6. the FDR
+
+Here, we look at the comparison `M` _vs._ `F`, in other words the ratio `M/F`,
+or on a log scale `log(M) - log(F)`. The _baseline_ is hence the expression level
+in the female samples.
+
+Let's quickly check how many genes are selected by our criteria.
+
+```{r }
+res[abs(res$log2FoldChange) >= log2FC &
+        ! is.na(res$padj) &
+        res$padj <= alpha,]
+```
+
+Only 2 genes, that is very little and rather unexpected. Let's do some 
+validation, looking at an MA plot.
+
+```{r }
+plotMA(as(res,"DataFrame"),
+       alpha=alpha,
+       log2FC=log2FC)
+```
+The MA plot looks as expected, the vast majority of the genes as shown in the
+density plot (upper panel) and as a gradient (grey: sparse to red-yellow: dense)
+are not differentially expressed, so the main DE assumption holds. Let's take
+a look at the level of significance _vs._ the log2 fold change, using a volcano 
+plot.
+
+```{r }
+volcanoPlot(res,alpha=alpha,log2FC=log2FC)
+```
+
+The volcano plot looks pretty dead, apart from the 2 identified genes. There 
+again most of the genes have no change in expression and these have no 
+statistical significance. There seem to be no artefact from the analysis point 
+of view and the conclusion is that the seem to be no _sexual_ differences between
+Male and Female trees.
+
+Let's make some plots to look at the expression of these genes.
+
+* Potri.019G047300
+
+```{r }
+# Potri.019G047300, grouping by sex
+dotplot(counts(dds,normalized=TRUE)["Potri.019G047300",],
+        groups=samples$sex,col=c("pink","lightblue"),pch=19,
+        xlab="library size corrected counts")
+
+# Potri.019G047300, grouping by date
+dotplot(counts(dds,normalized=TRUE)["Potri.019G047300",],
+        groups=samples$date,col=c("darkgreen","brown"),pch=19,
+                xlab="library size corrected counts")
+
+```
+
+We know that Potri.019G047300 is the sex determination locus [@Pakull]. So, it 
+seems highly likely that `226.1` has been mis-sexed.
+
+* Potri.014G155300
+
+```{r }
+# Potri.014G155300, grouping by sex
+dotplot(counts(dds,normalized=TRUE)["Potri.014G155300",],
+        groups=samples$sex,col=c("pink","lightblue"),pch=19,
+        xlab="library size corrected counts")
+
+# Potri.014G155300, grouping by date
+dotplot(counts(dds,normalized=TRUE)["Potri.014G155300",],
+        groups=samples$date,col=c("darkgreen","brown"),pch=19,
+                xlab="library size corrected counts")
+```
+
+Potri.014G155300 should be considered with caution. Albeit there seem to be a
+clear sex effect, 229 behaves more like a Female and 226.1 which harvest a Male
+sex determination locus, also. Moreover, the date do not appear as random as for
+the sex determination locus. 
+
+```{r inv-1506, echo=FALSE}
+    endQuest()
+    startQuest("Before the practical")
+```
+
+Re-visit the analyses we did above, but this time, take a look at the `date` 
+results, _i.e._ the `date_Y2010_vs_Y2008` contrast.
+
+```{r inv-1507, echo=FALSE}
+    endQuest()
+```

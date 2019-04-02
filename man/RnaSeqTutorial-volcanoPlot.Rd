@@ -6,22 +6,24 @@
 \alias{volcanoPlot,DataFrame-method}
 \title{Volcano plot}
 \usage{
-volcanoPlot(object, alpha = 0.001)
+volcanoPlot(object, alpha = 0.01, log2FC = 0.5)
 }
 \arguments{
 \item{object}{an object of class \code{\linkS4class{DataFrame}} having at
 least 2 columns named \code{log2FoldChange} and \code{padj}}
 
 \item{alpha}{the significance cutoff to be used when plotting, defaults to
-10e-3.}
+10e-2.}
+
+\item{log2FC}{the log2 fold change used for plotting, defaults to 0.5}
 }
 \description{
-Draws a Volcano plot, i.e. the differential expression log 
+Draws a Volcano plot, i.e. the differential expression log
 odds vs. expression log fold change between condition.
 }
 \details{
-The function has been devised to draw a MA plot from a \code{DESeq}
-result object.
+The function has been devised to draw a Volcano plot from a \code{DESeq}
+result object. The cutoffs have been devised from Schurch et al., RNA, 2016
 }
 \examples{
 \dontrun{

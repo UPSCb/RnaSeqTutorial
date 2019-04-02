@@ -10,9 +10,10 @@
     h2("Getting your share of the data")
 ```
 
-If you have provided data, you have been instructed where to find these. Simply adapt the instruction in this chapter to pre-process your data instead. However, before you go ahead, downsize your data to an amount manageable in the limited time we have. To do so adapt the following instructions:
 
-    # read the compressed forward fasq file, 
+<!-- If you have provided data, you have been instructed where to find these. Simply adapt the instruction in this chapter to pre-process your data instead. However, before you go ahead, downsize your data to an amount manageable in the limited time we have. To do so adapt the following instructions:
+
+    # read the compressed forward fastq file, 
     # piping the result in sed to extract the 
     # first 4 million lines (equivalent to 1M sequences, 
     # as one sequence entry always span 4 lines)
@@ -21,7 +22,7 @@ If you have provided data, you have been instructed where to find these. Simply 
     # same for read 2 (the reverse read) if your data is Paired-End
     zcat pair_2.fastq.gz | sed -n 1,20000000p | gzip -c > pair-subset_2.fastq.gz
 
-If you had no data, or were not at liberty to share it, we have an exemplary dataset, described below.
+If you had no data, or were not at liberty to share it, we have an exemplary dataset, described below. -->
 
 The _P. tremula_ sexual dimorphism
 dataset [@Robinson:2014p6362] contains 17 samples in total. You will be working
@@ -116,7 +117,7 @@ FastQC command line example is as follows:
   
   # Then make copies of your sample files into your home folder. Always try to
   # work on copies of the raw source data.
-  cp share/Day02/data/fastq/*.fq.gz raw
+  cp share/Day1/data/fastq/*.fq.gz raw
   
   # Then you can run fastqc on the file(s) you have selected. FastQC can run
   # a number of files in parallel (see the -t option)
