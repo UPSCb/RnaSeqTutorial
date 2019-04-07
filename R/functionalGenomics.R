@@ -86,7 +86,7 @@ setGeneric(name="plotUnTransformed",
 
 #' @exportMethod plotPca
 setGeneric(name="plotPca",
-           def=function(x,y){
+           def=function(x,y,color=NULL,...){
                standardGeneric("plotPca")
            })
 
@@ -107,6 +107,7 @@ setMethod(f="readAbundance",
 
               files <- list.files(x,
                                   pattern = pattern,
+                                  recursive = TRUE,
                                   full.names = TRUE)
 
               if(length(files)==0){
@@ -174,6 +175,7 @@ setMethod(f="createDESeqDataSet",
           signature=c("matrix","data.frame"),
           definition=function(x,y,design= ~ date + sex){
 
+              require(DESeq2)
               DESeqDataSetFromMatrix(
                   countData = x,
                   colData = y,
@@ -183,6 +185,7 @@ setMethod(f="createDESeqDataSet",
 setMethod(f="reportSizeFactors",
           signature="DESeqDataSet",
           definition=function(x){
+              require(DESeq2)
               sizes <- sizeFactors(estimateSizeFactors(x))
               boxplot(sizes,main="relative library sizes",ylab="scaling factor")
           })
@@ -198,6 +201,7 @@ setMethod(f="validateVST",
           signature="matrix",
           definition=function(x){
               require(hexbin)
+              require(vsn)
               meanSdPlot(x[rowSums(x)>0,])
           })
 
@@ -212,30 +216,41 @@ setMethod(f="plotUnTransformed",
 
 setMethod(f="plotPca",
           signature=c("matrix","data.frame"),
-          definition=function(x,y){
+          definition=function(x,y,
+                              color=NULL,...){
 
               pc <- prcomp(t(x))
               percent <- round(summary(pc)$importance[2,]*100)
 
-              sex.cols<-c("pink","lightblue")
-              sex.names<-c(F="Female",M="Male")
+              if(is.null(color)){
+                  sex.cols<-c("pink","lightblue")
+                  sex.names<-c(F="Female",M="Male")
+                  col=sex.cols[as.integer(y$sex)]
+                  symbol=c(19,17)[as.integer(y$date)]
+              } else {
+                  col=color
+                  symbol=19
+              }
 
               plot(pc$x[,1],
                    pc$x[,2],
                    xlab=paste("Comp. 1 (",percent[1],"%)",sep=""),
                    ylab=paste("Comp. 2 (",percent[2],"%)",sep=""),
-                   col=sex.cols[as.integer(y$sex)],
-                   pch=c(19,17)[as.integer(y$date)],
+                   col=col,
+                   pch=symbol,
                    main="Principal Component Analysis",
-                   sub="variance stabilized counts")
+                   sub="variance stabilized counts",
+                   ...)
 
-              legend("bottomleft",pch=c(NA,15,15),col=c(NA,sex.cols[1:2]),
-                     legend=c("Color:",sex.names[levels(y$sex)]))
+              if(is.null(color)){
+                  legend("bottomleft",pch=c(NA,15,15),col=c(NA,sex.cols[1:2]),
+                         legend=c("Color:",sex.names[levels(y$sex)]))
 
-              legend("topright",pch=c(NA,21,24),col=c(NA,1,1),
-                     legend=c("Symbol:",sub("Y","",levels(y$dat))),cex=0.85)
+                  legend("topright",pch=c(NA,21,24),col=c(NA,1,1),
+                         legend=c("Symbol:",sub("Y","",levels(y$dat))),cex=0.85)
+              }
 
               text(pc$x[,1],
                    pc$x[,2],
-                   labels=colnames(x),cex=.5,adj=-1)
+                   labels=colnames(x),cex=.5,adj=-0.5)
           })

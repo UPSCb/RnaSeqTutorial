@@ -1,0 +1,39 @@
+```{r inv-1601, echo=FALSE}
+    startQuest("Differential Expression Analysis - Practical")
+```
+
+```{r head-1601, echo=FALSE}
+    h1("Preformed leaves Differential Expression")
+```
+
+For the practical, you will replicate what we have been doing in the tutorial. 
+However, there are a few twists.
+
+* The data has been quantified with `salmon` [@Patro2017] instead of `kallisto` 
+[@Bray2016]. The data is in the folder `share/leaf/salmon`. When reading the 
+abundance data in, you need to give additional arguments to `readAbundance`, 
+namely the `pattern`: _*\\.sf_ and the `type`: _salmon_.
+
+* The sample information is in `share/leaf/doc`.
+
+* When creating the `dds`object, you will need to change the design. Take a look
+at the sample information to devise it. You can provide a design as an argument 
+to the `createDESeqDataSet` function, using the `design` argument; _e.g._ 
+`dds <- createDESeqDataSet(counts,samples,design= ...)` where you replace `...`
+with the design of your choice.
+
+* Once you will have run `DESeq`, ask us for which comparison you should look 
+into. Note that we are performing a time series, but all conditions will have 
+been compared to D0. To compare D2 _vs._ D1, you will need to compare:
+
+"D2 _vs._ D0" _vs._ "D1 _vs._ D0", in other words, since we are on a log scale:
+
+`(D2 - D0) - (D1 - D0)` = `D2 - D1`
+
+This is written as an argument to the `results` function as follows:
+
+`res <- results(dds,contrast = list("DevStage_D2_vs_D0","DevStage_D1_vs_D0"))`
+
+```{r inv-1605, echo=FALSE}
+    endQuest()
+```

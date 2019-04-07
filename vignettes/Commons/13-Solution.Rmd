@@ -1,0 +1,79 @@
+# Solution
+
+```{r }
+library(RnaSeqTutorial)
+```
+
+```{r }
+counts <- readAbundance("~/share/leaf",
+                        pattern = "*\\.sf",
+                        type = "salmon")
+```
+
+```{r}
+nonExpressed(counts)
+```
+
+```{r }
+rawDataMeanPlot(counts)
+```
+
+```{r }
+rawDataSamplePlot(counts)
+```
+
+```{r }
+samples <- read.csv("~/share/leaf/doc/samples.csv")
+dds <- createDESeqDataSet(counts,samples,design = ~DevStage)
+```
+
+```{r }
+reportSizeFactors(dds)
+```
+
+```{r }
+plotUnTransformed(dds)
+```
+
+```{r }
+vst <- transform(dds)
+```
+
+```{r }
+validateVST(vst)
+```
+
+```{r }
+palette <- brewer.pal(length(levels(samples$DevStage)),"Dark2")
+plotPca(vst,samples,color=palette[as.integer(samples$DevStage)])
+```
+
+```{r }
+dds <- DESeq(dds)
+```
+
+```{r }
+resultsNames(dds)
+```
+
+```{r }
+alpha=0.01
+log2FC=0.5
+res <- results(dds,contrast = list("DevStage_Dminus3_vs_D0","DevStage_Dminus4_vs_D0"))
+```
+
+```{r }
+res[abs(res$log2FoldChange) >= log2FC &
+        ! is.na(res$padj) &
+        res$padj <= alpha,]
+```
+
+```{r }
+plotMA(as(res,"DataFrame"),
+       alpha=alpha,
+       log2FC=log2FC)
+```
+
+```{r }
+volcanoPlot(res,alpha=alpha,log2FC=log2FC)
+```

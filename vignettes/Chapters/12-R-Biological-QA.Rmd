@@ -199,9 +199,6 @@ counts in a few subset of the samples and hence having a
 higher variability. This is expected.
 
 ```{r }
-library(BiocManager)
-BiocManager::install("hexbin")
-library(hexbin)
 meanSdPlot(assay(vsd)[rowSums(count.table)>0,])
 ```
 

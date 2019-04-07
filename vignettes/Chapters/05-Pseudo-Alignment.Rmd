@@ -17,7 +17,7 @@ Step 1 is to create the Kallisto index from a transcriptome:
 ```{bash, eval=FALSE}
     cd
     kallisto index -i Potri03-synthetic-transcripts.idx \
-    ~/share/Day02/data/reference/fasta/Potri03-synthetic-transcripts.fa
+    ~/share/Day01/data/reference/fasta/Potri03-synthetic-transcripts.fa
 ```
 
 We could modify the _k_-mer size using the `-k` option. This is - however - often

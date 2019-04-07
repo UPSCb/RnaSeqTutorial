@@ -1,5 +1,5 @@
 ---
-title: "Functional Genomics Course Computer Lab, Umeå University, April 2019"
+title: "RNA-Sequence Analysis, EBI, UK, 8-12th April 2019"
 author: "Nicolas Delhomme, Bastian Schiffthaler"
 date: "`r Sys.Date()`"
 bibliography: Bibliography/References.bib
@@ -30,22 +30,16 @@ options(digits=2)
 ```{r child = "Chapters/05-Pseudo-Alignment.Rmd"}
 ```
 
-```{r child = "Chapters/14-R-Biological-QA-FG.Rmd"}
+```{r child = "Chapters/12-R-Biological_QA.Rmd"}
 ```
 
-```{r child = "Chapters/15-R-Differential-Expression-FG.Rmd"}
-```
-
-```{r child = "Chapters/16-R-DE-practical.Rmd"}
+```{r child = "Chapters/13-R-Differential-Expression.Rmd"}
 ```
 
 ```{r child = "Commons/17-SessionInfo.Rmd" }
 ```
 
 ```{r child = "Commons/14-Acknowledgments.Rmd" }
-```
-
-```{r child = "Commons/18-Appendix.Rmd" }
 ```
 
 ```{r child = "Commons/15-Footnotes.Rmd" }

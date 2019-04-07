@@ -15,6 +15,10 @@ splicing isoforms are encoded a given gene). The _P. trichocarpa_ gene are
 easy to extract from the transcript names, they simply have an extra dot 
 followed by numbers following the gene identifier. Using this transcript to gene
 mapping we can summarise the expression estimate at the gene level.
+An alternative pattern for the file matching can be provided. Also an alternative
+type for the files can be given. It, however, needs to be one of `kallisto` (the
+default) and `salmon`. Note that there is no rationale other than the alphabetic 
+order in selecting that default.
 
 
 ## nonExpressed
@@ -28,8 +32,68 @@ calculate the proportion of the total genes and reports these values in a text
 message.
 
 ## rawDataMeanPlot
+```{r }
+showMethods(rawDataMeanPlot,includeDefs = TRUE)
+```
 
+We create a color palette and then plot the density curve of the average 
+expression of every gene across all samples
 
 ## rawDataSamplePlot
+```{r }
+showMethods(rawDataSamplePlot,includeDefs = TRUE)
+```
+
+The function performs the same plotting as the method above, but instead of
+plotting the average, every samples is plotted individually on the same plot.
+
+## createDESeqDataSet
+```{r }
+showMethods(createDESeqDataSet,includeDefs = TRUE)
+```
+
+This function instantiate a DESeqDataSeq object from the count table and the 
+metadata. An alternative design can be provided.
+
+## reportSizeFactors
+```{r }
+showMethods(reportSizeFactors,includeDefs = TRUE)
+```
+
+This functions estimate the size factors (the effective sequencing depth) and 
+report them as a boxplot.
+
+## transform
+```{r }
+showMethods(transform,includeDefs = TRUE)
+```
+
+This function performs the Variance Stabilising Transformation (VST) of the 
+count data, not using the prior (the variable(s)) of the model (_i.e._ in `blind`
+mode).
+
+## validateVST
+```{r }
+showMethods(validateVST,includeDefs = TRUE)
+```
+
+This function validates the VST by plotting the mean-variance relationship. 
+
+## plotUnTransformed
+```{r }
+showMethods(plotUnTransformed,includeDefs = TRUE)
+```
+
+This function plots the log2 of the `raw` and of the `library-size-corrected`
+data.
+
+## plotPca
+```{r }
+showMethods(plotPca,includeDefs = TRUE)
+```
+This function runs a principal component (`prcomp`) analysis (PCA) on the samples (
+hence the count matrix is `t`ransposed first). From the `PCA` results, the 
+percentage of variance explained by each component is retrieved. Then the first
+two dimensions of the PCA are plotted.
 
 
