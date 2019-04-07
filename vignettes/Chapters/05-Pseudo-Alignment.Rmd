@@ -5,7 +5,7 @@
     h1("Pseudo-alignment and read quantification with Kallisto")
 ```
 
-Kallisto is a fairly recent program that makes heavy use of _k_-mer hash
+Kallisto is a modern read quantification software that makes heavy use of _k_-mer hash
 tables and De-Bruijn graphs to "pseudo-align" reads [@Bray2016]. This means that Kallisto
 does not map a read to a given position in a genome/transcriptome, but rather 
 to an abstract representation of a transcript. Kallisto then performs a 
@@ -16,8 +16,8 @@ Step 1 is to create the Kallisto index from a transcriptome:
 
 ```{bash, eval=FALSE}
     cd
-    kallisto index -i Potri03-synthetic-transcripts.idx \
-    ~/share/Day01/data/reference/fasta/Potri03-synthetic-transcripts.fa
+    kallisto index -i Potra01-mRNA.idx \
+    ~/share/Day01/data/reference/fasta/Potra01-mRNA.fa.gz
 ```
 
 We could modify the _k_-mer size using the `-k` option. This is - however - often
@@ -37,7 +37,7 @@ Next we can quantify the input data using this newly created index:
     do
       read RV_READ
       FILEBASE=$(basename "${FW_READ%_1.fq.gz}")
-      kallisto quant -i ../Potri03-synthetic-transcripts.idx -b 100 \
+      kallisto quant -i ../Potra01-mRNA.idx -b 100 \
       -o . -t 16 "$FW_READ" "$RV_READ"
       # Kallisto doesn't let us specify an output filename so we rename all 
       # output files
