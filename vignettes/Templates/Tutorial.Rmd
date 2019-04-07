@@ -30,10 +30,7 @@ options(digits=2)
 ```{r child = "Chapters/05-Pseudo-Alignment.Rmd"}
 ```
 
-```{r child = "Chapters/12-R-Biological_QA.Rmd"}
-```
-
-```{r child = "Chapters/13-R-Differential-Expression.Rmd"}
+```{r child = "Chapters/12-R-Biological-QA.Rmd"}
 ```
 
 ```{r child = "Commons/17-SessionInfo.Rmd" }

@@ -24,7 +24,7 @@ a <- 1
 
 ##     mkdir ~/sortmerna
 
-##    cp ~/share/Day02/data/sortmerna/* .
+##    cp ~/share/Day01/data/sortmerna/* .
 
 ##     cd ~/sortmerna
 
@@ -46,120 +46,173 @@ a <- 1
 ##     mkdir ~/kallisto
 
 
-## ----child = "Chapters/14-R-Biological-QA-FG.Rmd"------------------------
+## ----child = "Chapters/12-R-Biological-QA.Rmd"---------------------------
 
 ## ----message=FALSE,warning=FALSE,results='hide'--------------------------
     library(RnaSeqTutorial)
 
 ## ------------------------------------------------------------------------
-    counts <- readAbundance("~/share/sex/kallisto")
+    library(tximport)
+    files <- list.files("~/kallisto", 
+                    pattern = ".*_abundance.tsv",
+                    full.names = TRUE)
+    tx <- suppressMessages(tximport(files = files,
+                                     type = "kallisto", 
+                                     txOut = TRUE))
 
 ## ------------------------------------------------------------------------
-    nonExpressed(counts)
+    tx.counts <- round(tx$counts)
+    colnames(tx.counts) <- sub("_.*","",basename(files))
 
 ## ------------------------------------------------------------------------
-rawDataMeanPlot(counts)
+tx2gene <- data.frame(
+    TX=rownames(tx.counts),
+    GENEID=sub("\\.\\d+$","",rownames(tx.counts)))
 
 ## ------------------------------------------------------------------------
-rawDataSamplePlot(counts)
+    count.table <- round(summarizeToGene(tx,tx2gene)$counts)
+    colnames(count.table) <- sub("_.*","",basename(files))
 
 ## ------------------------------------------------------------------------
-samples <- read.csv("~/share/sex/doc/samples.csv")
-dds <- createDESeqDataSet(counts,samples)
+sel <- rowSums(count.table) == 0
+sprintf("%s percent of %s genes are not expressed",round(sum(sel) * 100/ nrow(count.table),digits=1),nrow(count.table))
 
 ## ------------------------------------------------------------------------
-reportSizeFactors(dds)
+sel <- rowSums(tx.counts) == 0
+sprintf("%s percent of %s transcripts are not expressed",round(sum(sel) * 100/ nrow(tx.counts),digits=1),nrow(tx.counts))
 
 ## ------------------------------------------------------------------------
-vst <- transform(dds)
+library(RColorBrewer)
+pal <- brewer.pal(8,"Dark2")
+mar <- par("mar")
+plot(density(log10(rowMeans(count.table))),col=pal[1],
+     main="gene mean raw counts distribution",
+     xlab="mean raw counts (log10)")
+
+## ------------------------------------------------------------------------
+plot.multidensity(log10(count.table),col=rep(pal,each=3),
+                  legend.x="topright",legend.cex=0.5,
+                  main="sample raw counts distribution",
+                  xlab="per gene raw counts (log10)")
+
+## ------------------------------------------------------------------------
+plot.multidensity(log10(tx.counts),col=rep(pal,each=3),
+                  legend.x="topright",legend.cex=0.5,
+                  main="sample raw counts distribution",
+                  xlab="per gene raw counts (log10)")
+
+## ------------------------------------------------------------------------
+samples <- read.csv(file.path(extdata(),"sex-samples.csv"))
+sex <- samples$sex[match(colnames(count.table),samples$sample)]
+date <- factor(samples$date[match(colnames(count.table),samples$sample)])
+
+## ------------------------------------------------------------------------
+dds <- DESeqDataSetFromMatrix(
+  countData = count.table,
+  colData = data.frame(sex=sex, date=date),
+  design = ~ date + sex)
+
+## ------------------------------------------------------------------------
+dds <- estimateSizeFactors(dds)
+sizes <- sizeFactors(dds)
+sizes
+boxplot(sizes,main="relative library sizes",ylab="scaling factor")
+
+## ------------------------------------------------------------------------
+vsd <- varianceStabilizingTransformation(dds, blind=TRUE)
+vst <- assay(vsd)
+colnames(vst) <- colnames(count.table)
 
 ## ------------------------------------------------------------------------
 vst <- vst - min(vst)
 
 ## ------------------------------------------------------------------------
-validateVST(vst)
+meanSdPlot(assay(vsd)[rowSums(count.table)>0,])
 
 ## ------------------------------------------------------------------------
-plotUnTransformed(dds)
+meanSdPlot(log2(as.matrix(count.table[rowSums(count.table)>0,])))
 
 ## ------------------------------------------------------------------------
-plotPca(vst,samples)
-
-
-## ----child = "Chapters/15-R-Differential-Expression-FG.Rmd"--------------
-
-## ----echo=FALSE,eval=FALSE,message=FALSE,warning=FALSE,results='hide'----
-##     # TODO keep in mind to save (as an rda in data) a copy of the count table
-
-## ----message=FALSE,warning=FALSE,results='hide'--------------------------
-    library(RnaSeqTutorial)
-    counts <- readAbundance("~/share/sex/kallisto")
-    samples <- read.csv("~/share/sex/doc/samples.csv")
-    dds <- createDESeqDataSet(counts,samples)
+meanSdPlot(log2(counts(dds,normalized=TRUE)[rowSums(count.table)>0,]))
 
 ## ------------------------------------------------------------------------
-# the object
-dds
-
-# the metadata
-colData(dds)
-
-# the design
-design(dds)
+pc <- prcomp(t(vst))
+percent <- round(summary(pc)$importance[2,]*100)
+smpls <- conditions
 
 ## ------------------------------------------------------------------------
-dds <- DESeq(dds)
+sex.cols<-c("pink","lightblue")
+sex.names<-c(F="Female",M="Male")
 
 ## ------------------------------------------------------------------------
-resultsNames(dds)
+scatterplot3d(pc$x[,1],
+              pc$x[,2],
+              pc$x[,3],
+              xlab=paste("Comp. 1 (",percent[1],"%)",sep=""),
+              ylab=paste("Comp. 2 (",percent[2],"%)",sep=""),
+              zlab=paste("Comp. 3 (",percent[3],"%)",sep=""),
+              color=sex.cols[as.integer(factor(sex))],
+              pch=19)
+legend("bottomright",pch=c(NA,15,15),col=c(NA,sex.cols[1:2]),
+       legend=c("Color:",sex.names[levels(factor(sex))]))
+par(mar=mar)
 
 ## ------------------------------------------------------------------------
-alpha=0.01
-log2FC=0.5
-res <- results(dds,name = "sex_M_vs_F")
+dat <- date
+scatterplot3d(pc$x[,1],
+              pc$x[,2],
+              pc$x[,3],
+              xlab=paste("Comp. 1 (",percent[1],"%)",sep=""),
+              ylab=paste("Comp. 2 (",percent[2],"%)",sep=""),
+              zlab=paste("Comp. 3 (",percent[3],"%)",sep=""),
+              color=pal[as.integer(factor(dat))],
+              pch=19)
+legend("topleft",pch=rep(c(19,23),each=10),col=rep(pal,2),legend=levels(factor(dat)),bty="n")
+par(mar=mar)
 
 ## ------------------------------------------------------------------------
-res
+scatterplot3d(pc$x[,1],
+              pc$x[,2],
+              pc$x[,3],
+              xlab=paste("Comp. 1 (",percent[1],"%)",sep=""),
+              ylab=paste("Comp. 2 (",percent[2],"%)",sep=""),
+              zlab=paste("Comp. 3 (",percent[3],"%)",sep=""),
+              color=sex.cols[as.integer(factor(sex))],
+              pch=c(19,17)[as.integer(factor(dat))])
+legend("bottomright",pch=c(NA,15,15),col=c(NA,sex.cols[1:2]),
+       legend=c("Color:",sex.names[levels(factor(sex))]))
+legend("topleft",pch=c(NA,21,24),col=c(NA,1,1),
+       legend=c("Symbol:",levels(factor(dat))),cex=0.85)
+par(mar=mar)
 
 ## ------------------------------------------------------------------------
-res[abs(res$log2FoldChange) >= log2FC &
-        ! is.na(res$padj) &
-        res$padj <= alpha,]
+plot(pc$x[,1],
+     pc$x[,2],
+     xlab=paste("Comp. 1 (",percent[1],"%)",sep=""),
+     ylab=paste("Comp. 2 (",percent[2],"%)",sep=""),
+     col=sex.cols[as.integer(factor(sex))],
+     pch=c(19,17)[as.integer(factor(dat))],
+     main="Principal Component Analysis",sub="variance stabilized counts")
+legend("bottomleft",pch=c(NA,15,15),col=c(NA,sex.cols[1:2]),
+       legend=c("Color:",sex.names[levels(factor(sex))]))
+legend("topright",pch=c(NA,21,24),col=c(NA,1,1),
+       legend=c("Symbol:",levels(factor(dat))),cex=0.85)
+text(pc$x[,1],  
+     pc$x[,2],
+     labels=colnames(count.table),cex=.5,adj=-1)
 
 ## ------------------------------------------------------------------------
-plotMA(as(res,"DataFrame"),
-       alpha=alpha,
-       log2FC=log2FC)
-
-## ------------------------------------------------------------------------
-volcanoPlot(res,alpha=alpha,log2FC=log2FC)
-
-## ------------------------------------------------------------------------
-# Potri.019G047300, grouping by sex
-dotplot(counts(dds,normalized=TRUE)["Potri.019G047300",],
-        groups=samples$sex,col=c("pink","lightblue"),pch=19,
-        xlab="library size corrected counts")
-
-# Potri.019G047300, grouping by date
-dotplot(counts(dds,normalized=TRUE)["Potri.019G047300",],
-        groups=samples$date,col=c("darkgreen","brown"),pch=19,
-                xlab="library size corrected counts")
-
-
-## ------------------------------------------------------------------------
-# Potri.014G155300, grouping by sex
-dotplot(counts(dds,normalized=TRUE)["Potri.014G155300",],
-        groups=samples$sex,col=c("pink","lightblue"),pch=19,
-        xlab="library size corrected counts")
-
-# Potri.014G155300, grouping by date
-dotplot(counts(dds,normalized=TRUE)["Potri.014G155300",],
-        groups=samples$date,col=c("darkgreen","brown"),pch=19,
-                xlab="library size corrected counts")
-
-
-## ----child = "Chapters/16-R-DE-practical.Rmd"----------------------------
-
+plot(pc$x[,2],
+     pc$x[,3],
+     xlab=paste("Comp. 2 (",percent[2],"%)",sep=""),
+     ylab=paste("Comp. 3 (",percent[3],"%)",sep=""),
+     col=sex.cols[as.integer(factor(sex))],
+     pch=c(19,17)[as.integer(factor(dat))],     
+     main="Principal Component Analysis",sub="variance stabilized counts")
+legend("bottomleft",pch=c(NA,15,15),col=c(NA,sex.cols[1:2]),
+       legend=c("Color:",sex.names[levels(factor(sex))]))
+legend("topright",pch=c(NA,21,24),col=c(NA,1,1),
+       legend=c("Symbol:",levels(factor(dat))),cex=0.85)
 
 
 ## ----child = "Commons/17-SessionInfo.Rmd"--------------------------------
@@ -170,15 +223,6 @@ sessionInfo()
 
 ## ----child = "Commons/14-Acknowledgments.Rmd"----------------------------
 
-
-
-## ----child = "Commons/18-Appendix.Rmd"-----------------------------------
-
-## ------------------------------------------------------------------------
-showMethods(readAbundance,includeDefs = TRUE)
-
-## ------------------------------------------------------------------------
-showMethods(nonExpressed,includeDefs = TRUE)
 
 
 ## ----child = "Commons/15-Footnotes.Rmd"----------------------------------
