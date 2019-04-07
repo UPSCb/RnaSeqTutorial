@@ -55,7 +55,7 @@ The `tx` object contains the transcript expression extimates of our 17 samples.
     colnames(tx.counts) <- sub("_.*","",basename(files))
 ```
 
-Next we can summarise them at the gene level. The _P. trichocarpa_ gene are 
+Next we can summarise them at the gene level. The _P. tremula_ genes are 
 easy to extract from the transcript names, they simply have an extra dot 
 followed by numbers following the gene identifier.
 
@@ -154,9 +154,7 @@ as condition (which is hence irrelevant to any comparison)
 ```{r }
 dds <- DESeqDataSetFromMatrix(
   countData = count.table,
-  colData = data.frame(
-                       sex=sex,
-                       date=date),
+  colData = data.frame(sex=sex, date=date),
   design = ~ date + sex)
 ```
 
