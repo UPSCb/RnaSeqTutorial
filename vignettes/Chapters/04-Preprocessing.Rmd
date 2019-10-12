@@ -117,7 +117,7 @@ FastQC command line example is as follows:
   
   # Then make copies of your sample files into your home folder. Always try to
   # work on copies of the raw source data.
-  cp share/Day1/data/fastq/*.fq.gz raw
+  cp share/Day1/fastq/*.fq.gz raw
   
   # Then you can run fastqc on the file(s) you have selected. FastQC can run
   # a number of files in parallel (see the -t option)
@@ -419,7 +419,7 @@ be very time consuming):
 Now we can get the rest of the files from the pre-calculated example data:
 
 ```{bash, eval=FALSE}
-   cp ~/share/Day01/data/sortmerna/* .
+   cp ~/share/Day1/sortmerna/* .
 ```
 
 The format conversion step is not required for SE samples, nor is the
