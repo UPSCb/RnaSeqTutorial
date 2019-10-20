@@ -39,30 +39,31 @@ NULL
 ## library(RnaSeqTutorial)
 ## writeNamespaceImports("RnaSeqTutorial")
 ## import while namespaces
-##' @import BSgenome.Dmelanogaster.UCSC.dm3 GenomicAlignments
-##' GenomicFeatures genomeIntervals easyRNASeq Rsamtools
-##' TxDb.Dmelanogaster.UCSC.dm3.ensGene leeBamViews
+## @import BSgenome.Dmelanogaster.UCSC.dm3 GenomicAlignments
+## GenomicFeatures genomeIntervals easyRNASeq Rsamtools
+## TxDb.Dmelanogaster.UCSC.dm3.ensGene leeBamViews
 ## import classes
-##' @importClassesFrom DESeq CountDataSet
-##' @importClassesFrom methods numeric
+## @importClassesFrom DESeq CountDataSet
+## @importClassesFrom methods numeric
 ##' @importClassesFrom S4Vectors DataFrame
+##' @importClassesFrom Biostrings DNAStringSet
 ## import S4 methods
 ## @importMethodsFrom Biobase fData varMetadata
-##' @importMethodsFrom BiocGenerics counts density paste plotMA subset
+## @importMethodsFrom BiocGenerics counts density paste plotMA subset
 ## @importMethodsFrom BSgenome colnames nrow
 ## @importMethodsFrom easyRNASeq plotDispLSD
-##' @importMethodsFrom IRanges pmax pmin quantile
-##' @importMethodsFrom S4Vectors colnames nrow
-##' @importMethodsFrom seqLogo plot
-##' @importMethodsFrom ShortRead "%in%" lapply sapply
+## @importMethodsFrom IRanges pmax pmin quantile
+## @importMethodsFrom S4Vectors colnames nrow
+## @importMethodsFrom seqLogo plot
+## @importMethodsFrom ShortRead "%in%" lapply sapply
 ## import methods
-##' @importFrom DESeq fitInfo
-##' @importFrom graphics abline axis axTicks box contour grid image legend lines
-##' mtext par points
-##' @importFrom grDevices topo.colors
-##' @importFrom LSD heatscatter
+## @importFrom DESeq fitInfo
+## @importFrom graphics abline axis axTicks box contour grid image legend lines
+## mtext par points
+## @importFrom grDevices topo.colors
+## @importFrom LSD heatscatter
 ##' @importFrom RColorBrewer brewer.pal
-##' @importFrom utils tail
+## @importFrom utils tail
 ## and export
 ## @exportClass BamFileList
 ## @exportMethod assay

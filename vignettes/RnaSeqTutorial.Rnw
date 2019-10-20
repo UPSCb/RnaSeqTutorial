@@ -5,9 +5,9 @@
 %\SweaveOpts{pdf=FALSE, png=TRUE}
 
 %% bioc style
-<<style-Sweave, eval=TRUE, echo=FALSE, results=tex>>=
-BiocStyle::latex()
-@
+%%<<style-Sweave, eval=TRUE, echo=FALSE, results=tex>>=
+%%BiocStyle::latex()
+%%@
 
 %% add verbatim possibilities
 % \usepackage{verbatim}
@@ -43,10 +43,12 @@ BiocStyle::latex()
 %% title
 \title{Tutorial on Analysis of High-Throughput Sequencing Data}
 \author{
-  Nicolas Delhomme\footnote{\href{mailto:nicolas.delhomme@umu.se}{
-  nicolas.delhomme@umu.se}}\\
-  Bastian Schiffthaler\footnote{\href{mailto:bastian.schiffthaler@umu.se}{
-  bastian.schiffthaler@umu.se}}\\
+  Nicolas Delhomme
+  %%\footnote{\href{mailto:nicolas.delhomme@umu.se}{
+  %%nicolas.delhomme@umu.se}}\\
+  Bastian Schiffthaler
+  %%\footnote{\href{mailto:bastian.schiffthaler@umu.se}{
+  %%bastian.schiffthaler@umu.se}}\\
 }
 
 \date{\today}

@@ -1,5 +1,5 @@
 ---
-title: "RNA-Sequence Analysis, EBI, UK, 8-12th April 2019"
+title: "RNA-Seq Data Analysis, Helsinki University, 21-25th October 2019"
 author: "Nicolas Delhomme, Bastian Schiffthaler"
 date: "`r Sys.Date()`"
 bibliography: Bibliography/References.bib
