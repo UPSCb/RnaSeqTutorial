@@ -416,10 +416,10 @@ be very time consuming):
     done  
 ```
 
-Now we can get the rest of the files from the pre-calculated example data:
+Now we can link the rest of the files from the pre-calculated example data:
 
 ```{bash, eval=FALSE}
-   cp ~/share/Day01/data/sortmerna/* .
+   ln -s ~/share/Day1/sortmerna/* .
 ```
 
 The format conversion step is not required for SE samples, nor is the
@@ -528,7 +528,7 @@ Now we can copy the rest of the files and run MultiQC.
 
 ```{bash, eval=FALSE}
     cd ~/trimmomatic
-    cp ~/share/Day01/data/trimmomatic/* .
+    cp ~/share/Day1/trimmomatic/* .
     multiqc .
 ```
 

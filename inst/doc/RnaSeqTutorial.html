@@ -740,8 +740,8 @@ Q = -10 \cdot log10(p)
       read READ_RV
       bash ../runSortMeRNA.sh $READ_FW $READ_RV
     done  </code></pre>
-<p>Now we can get the rest of the files from the pre-calculated example data:</p>
-<pre class="bash"><code>   cp ~/share/Day01/data/sortmerna/* .</code></pre>
+<p>Now we can link the rest of the files from the pre-calculated example data:</p>
+<pre class="bash"><code>   ln -s ~/share/Day1/sortmerna/* .</code></pre>
 <p>The format conversion step is not required for SE samples, nor is the “–paired_in” argument. The SORTMERNA_DB environment variable needs to be set at installation and the “-a” argument details the number of CPUs/threads to be used. The manual provides a comprehensive description of all functionalities. SortMeRna does not currently support compressed input, hence the first and last step to (de)compress the data.</p>
 <p>Run SortMeRna on your sample (both read_1 and read_2). This may take a while (about 10 mins). Once done, look at the produced log file.</p>
 <p>MultiQC understands SortMeRNA log files, so you can nicely summarize the data with:</p>
@@ -777,7 +777,7 @@ Q = -10 \cdot log10(p)
 <p>Run Trimmomatic on your filtered FASTQ data.</p>
 <p>Now we can copy the rest of the files and run MultiQC.</p>
 <pre class="bash"><code>    cd ~/trimmomatic
-    cp ~/share/Day01/data/trimmomatic/* .
+    cp ~/share/Day1/trimmomatic/* .
     multiqc .</code></pre>
 <p>Once again what would you do after having quality-trimmed and removed the sequencing adapter from your reads?</p>
 <p>Yes! Quality Control! As in the next section.</p>

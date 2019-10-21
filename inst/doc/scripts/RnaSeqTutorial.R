@@ -164,7 +164,7 @@ a <- 1
 ##     done
 
 
-##    cp ~/share/Day01/data/sortmerna/* .
+##    ln -s ~/share/Day1/sortmerna/* .
 
 
 ##     cd ~/sortmerna
@@ -204,7 +204,7 @@ a <- 1
 
 ##     cd ~/trimmomatic
 
-##     cp ~/share/Day01/data/trimmomatic/* .
+##     cp ~/share/Day1/trimmomatic/* .
 
 ##     multiqc .
 
