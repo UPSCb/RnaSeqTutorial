@@ -24,13 +24,13 @@ a <- 1
 
 ##   # that called "raw"
 
-##   mkdir -p qa/raw
+##   mkdir -p ~/results/qa/raw
 
 ## 
 
 ##   # We can also make a directory to hold the raw data
 
-##   mkdir raw
+##   mkdir ~/results/raw
 
 ## 
 
@@ -38,7 +38,7 @@ a <- 1
 
 ##   # work on copies of the raw source data.
 
-##   cp share/Day1/fastq/*.fq.gz raw
+##   cp share/Day1/fastq/*.fq.gz ~/results/raw
 
 ## 
 
@@ -46,17 +46,20 @@ a <- 1
 
 ##   # a number of files in parallel (see the -t option)
 
-##   fastqc -o qa/raw -t 16 raw/*.fq.gz
+##   fastqc -o ~/results/qa/raw -t 16 ~/results/raw/*.fq.gz
 
 ## 
 
 ##   # Finally, also run multiqc to summarize all data in one plot
 
-##   cd qa/raw
+##   cd ~/results/qa/raw
 
 ##   multiqc .
 
 
+##     ## THIS IS AN EXAMPLE OF THE COMMANDS! GO ON READING, do NOT execute them!
+
+## 
 ##     # First uncompress your forward and reverse reads:
 
 ##     gunzip read_1.fq.gz read_2.fq.gz
@@ -149,17 +152,17 @@ a <- 1
 ##     rm "${FILEBASE}_interleaved.fq" "${FILEBASE}-sortmerna.fq"
 
 
-##     mkdir ~/sortmerna
+##     mkdir ~/results/sortmerna
 
-##     cd ~/sortmerna
+##     cd ~/results/sortmerna
 
-##     find ../raw -name "*.fq.gz"  | sort | head -n 4 | while read READ_FW
+##     find ~/results/raw -name "*.fq.gz"  | sort | head -n 4 | while read READ_FW
 
 ##     do
 
 ##       read READ_RV
 
-##       bash ../runSortMeRNA.sh $READ_FW $READ_RV
+##       bash ~/results/runSortMeRNA.sh $READ_FW $READ_RV
 
 ##     done
 
@@ -167,21 +170,21 @@ a <- 1
 ##    ln -s ~/share/Day1/sortmerna/* .
 
 
-##     cd ~/sortmerna
+##     cd ~/results/sortmerna
 
 ##     multiqc .
 
 
-##     mkdir ~/qa/sortmerna
+##     mkdir ~/results/qa/sortmerna
 
-##     fastqc -o ~/qa/sortmerna -t 16 ~/sortmerna/*sortmerna*.fq.gz
+##     fastqc -o ~/results/qa/sortmerna -t 16 ~/results/sortmerna/*sortmerna*.fq.gz
 
 
-##     mkdir ~/trimmomatic
+##     mkdir ~/results/trimmomatic
 
-##     cd ~/trimmomatic
+##     cd ~/results/trimmomatic
 
-##     find ../sortmerna -name "*sortmerna_[12].fq.gz" | sort | head -n 4 | while read FW_READ
+##     find ~/results/sortmerna -name "*sortmerna_[12].fq.gz" | sort | head -n 4 | while read FW_READ
 
 ##     do
 
@@ -202,44 +205,46 @@ a <- 1
 ##     done
 
 
-##     cd ~/trimmomatic
+##     cd ~/results/trimmomatic
 
 ##     cp ~/share/Day1/trimmomatic/* .
 
 ##     multiqc .
 
 
-##     mkdir ~/qa/trimmomatic
+##     mkdir ~/results/qa/trimmomatic
 
-##     fastqc -o ~/qa/trimmomatic -t 16 ~/trimmomatic/*trimmomatic_[12].fq.gz
+##     fastqc -o ~/results/qa/trimmomatic -t 16 ~/results/trimmomatic/*trimmomatic_[12].fq.gz
 
 
-##     mkdir ~/qc_report
+##     mkdir ~/results/qc_report
 
-##     ln -s ~/qa/raw/*zip ~/qc_report
+##     ln -s ~/results/qa/raw/*zip ~/results/qc_report
 
-##     ln -s ~/qa/sortmerna/*zip ~/qc_report
+##     ln -s ~/results/qa/sortmerna/*zip ~/results/qc_report
 
-##     ln -s ~/qa/trimmomatic/*zip ~/qc_report
+##     ln -s ~/results/qa/trimmomatic/*zip ~/results/qc_report
 
-##     ln -s ~/sortmerna/*.log ~/qc_report
+##     ln -s ~/results/sortmerna/*.log ~/results/qc_report
 
-##     ln -s ~/trimmomatic/*.log ~/qc_report
+##     ln -s ~/results/trimmomatic/*.log ~/results/qc_report
+
+##     multiqc -o ~/results/qc_report ~/results/qc_report
 
 
 
 ## ----child = "Chapters/05-Pseudo-Alignment.Rmd"--------------------------
 
-##     cd
+##     cd ~/results
 
 ##     kallisto index -i Potra01-mRNA.idx \
 
-##     ~/share/Day01/data/reference/fasta/Potra01-mRNA.fa.gz
+##     ~/share/Day1/reference/fasta/Potra01-mRNA.fa.gz
 
 
-##     mkdir ~/kallisto
+##     mkdir -p ~/results/kallisto
 
-##     cd ~/kallisto
+##     cd ~/results/kallisto
 
 ##     find ../trimmomatic -name "*trimmomatic_[12].fq.gz" | sort | head -n 4 | while read FW_READ
 
@@ -249,7 +254,7 @@ a <- 1
 
 ##       FILEBASE=$(basename "${FW_READ%_1.fq.gz}")
 
-##       kallisto quant -i ../Potra01-mRNA.idx -b 100 \
+##       kallisto quant -i ~/results/Potra01-mRNA.idx -b 100 \
 
 ##       -o . -t 16 "$FW_READ" "$RV_READ"
 
@@ -275,7 +280,7 @@ a <- 1
 
 ## ------------------------------------------------------------------------
     library(tximport)
-    files <- list.files("~/kallisto", 
+    files <- list.files("~/results/kallisto", 
                     pattern = ".*_abundance.tsv",
                     full.names = TRUE)
     tx <- suppressMessages(tximport(files = files,

@@ -569,21 +569,21 @@ If you had no data, or were not at liberty to share it, we have an exemplary dat
 <p>Upon receiving the RNA-Seq FASTQ files from the sequencing facility, it is essential that some initial QC assessments be performed. Most importantly, one should check the overall sequence quality, the GC percentage distribution ( the proportion of guanine and cytosine bp across the reads) and the presence / absence of overrepresented sequences. FastQC has become a de-facto standard for performing this task <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/" class="uri">http://www.bioinformatics.babraham.ac.uk/projects/fastqc/</a>. A FastQC command line example is as follows:</p>
 <pre class="bash"><code>  # First, make an output directory called &quot;qa&quot; and a sub-directory of
   # that called &quot;raw&quot;
-  mkdir -p qa/raw
+  mkdir -p ~/results/qa/raw
   
   # We can also make a directory to hold the raw data
-  mkdir raw
+  mkdir ~/results/raw
   
   # Then make copies of your sample files into your home folder. Always try to
   # work on copies of the raw source data.
-  cp share/Day1/fastq/*.fq.gz raw
+  cp share/Day1/fastq/*.fq.gz ~/results/raw
   
   # Then you can run fastqc on the file(s) you have selected. FastQC can run
   # a number of files in parallel (see the -t option)
-  fastqc -o qa/raw -t 16 raw/*.fq.gz
+  fastqc -o ~/results/qa/raw -t 16 ~/results/raw/*.fq.gz
   
   # Finally, also run multiqc to summarize all data in one plot
-  cd qa/raw
+  cd ~/results/qa/raw
   multiqc .</code></pre>
 <p>The output of FastQC is a zip archive and an HTML document, which is sub-divided into sections describing the specific metrics that were analyzed. These sections are detailed below. In order to view the html page that was created, go to the course webpage and click on “Connect to Apache2” , then click on home &gt; qa &gt; raw and finally on the html file. View any <em>single</em> report and go through the following categories.</p>
 <h3>Basic Statistics</h3>
@@ -627,7 +627,9 @@ Q = -10 \cdot log10(p)
 <p><form> <hr/><br/><h3>Time for Socrative question number 3</h3><br/><hr/> <button class="s-btn">Click to proceed once you answered the question</button> </form></div><div class=checkpoint data-cp=' +      rRNA filtering '></p>
 <h2>Filtering rRNA</h2>
 <p>Typically, wet-lab protocols to extract mRNA include a step to deplete the sample of rRNA or to enrich it for poly-adenylated transcripts (rRNA is not poly-adenylated). Common approaches to achieve this are to use RiboMinus<sup>TM</sup> kits (Life Technologies) or poly-dT beads, respectively or to include a precipitation step that selectively precipitates only long (usually &gt;200 bp) nucleotidefragments. No approach will be fully sensitive and, as a result, some rRNA carryover is to be expected. This is not a problem per se as long as the remaining proportion accounts for a low percentage of the reads (commonly between 0.1 and 3%). Larger proportions will have an effect on the usable number of reads obtained from the samples, as fewer sequence reads would originate from expressed mRNAs. This is not to be overlooked as these rRNAs will produce valid alignments (in all reference genomes and for most de novo assembled transcriptomes and genomes) and hence other metrics (such as the alignment rate) will fail to identify such a bias. To control for the rRNA quantity in our sample FastQ files, we use SortMeRna, a tool originally developed to identify rRNA in metagenomics analyses <span class="citation">(Kopylova, Noé, and Touzet 2012)</span>. The tool accepts FASTQ files (SE or PE) as input and includes a set of reference libraries containing the most common rRNAs (5,5.8,16, 18, 23 and 26-28S). Example command lines for a <em>single</em> PE sample are (you shouldn’t run samples one by one):</p>
-<pre class="bash"><code>    # First uncompress your forward and reverse reads:
+<pre class="bash"><code>    ## THIS IS AN EXAMPLE OF THE COMMANDS! GO ON READING, do NOT execute them!
+
+    # First uncompress your forward and reverse reads:
     gunzip read_1.fq.gz read_2.fq.gz
 
     # Merge forward and reverse reads into a single file (this is a requirement
@@ -675,37 +677,37 @@ Q = -10 \cdot log10(p)
     gzip &quot;$READ_FW&quot; &quot;$READ_RV&quot; &quot;${FILEBASE}-sortmerna_1.fq&quot; \
     &quot;${FILEBASE}-sortmerna_2.fq&quot; &quot;${FILEBASE}-rRNA-hits.fq&quot;
     rm &quot;${FILEBASE}_interleaved.fq&quot; &quot;${FILEBASE}-sortmerna.fq&quot;</code></pre>
-<p>Press <code>Ctrl+O</code> in <code>nano</code> and write the filename <code>~/runSortMeRNA.sh</code>. Then press <code>return</code> and exit <code>nano</code> with <code>Ctrl+X</code>.</p>
+<p>Press <code>Ctrl+O</code> in <code>nano</code> and write the filename <code>~/results/runSortMeRNA.sh</code>. Then press <code>return</code> and exit <code>nano</code> with <code>Ctrl+X</code>.</p>
 <p>Now we can use a loop to execute this script for two samples (doing more would be very time consuming):</p>
-<pre class="bash"><code>    mkdir ~/sortmerna
-    cd ~/sortmerna
-    find ../raw -name &quot;*.fq.gz&quot;  | sort | head -n 4 | while read READ_FW
+<pre class="bash"><code>    mkdir ~/results/sortmerna
+    cd ~/results/sortmerna
+    find ~/results/raw -name &quot;*.fq.gz&quot;  | sort | head -n 4 | while read READ_FW
     do 
       read READ_RV
-      bash ../runSortMeRNA.sh $READ_FW $READ_RV
+      bash ~/results/runSortMeRNA.sh $READ_FW $READ_RV
     done  </code></pre>
 <p>Now we can link the rest of the files from the pre-calculated example data:</p>
 <pre class="bash"><code>   ln -s ~/share/Day1/sortmerna/* .</code></pre>
 <p>The format conversion step is not required for SE samples, nor is the “–paired_in” argument. The SORTMERNA_DB environment variable needs to be set at installation and the “-a” argument details the number of CPUs/threads to be used. The manual provides a comprehensive description of all functionalities. SortMeRna does not currently support compressed input, hence the first and last step to (de)compress the data.</p>
 <p>Run SortMeRna on your sample (both read_1 and read_2). This may take a while (about 10 mins). Once done, look at the produced log file.</p>
 <p>MultiQC understands SortMeRNA log files, so you can nicely summarize the data with:</p>
-<pre class="bash"><code>    cd ~/sortmerna
+<pre class="bash"><code>    cd ~/results/sortmerna
     multiqc .</code></pre>
 <p><form> <hr/><br/><h3>Time for Socrative question number 4</h3><br/><hr/> <button class="s-btn">Click to proceed once you answered the question</button> </form></div><div class=checkpoint data-cp=' +      Quality trimming '></p>
 <p>Next, we perform the QC on the filtered data.</p>
 <h2>Filtered data FastQC</h2>
 <p>The filtered data is again subjected to a QC assessment by FastQC to ensure the validity of the filtering steps.</p>
 <p>Redo the FastQC on the SortMeRna files you have generated.</p>
-<pre class="bash"><code>    mkdir ~/qa/sortmerna
-    fastqc -o ~/qa/sortmerna -t 16 ~/sortmerna/*sortmerna*.fq.gz</code></pre>
+<pre class="bash"><code>    mkdir ~/results/qa/sortmerna
+    fastqc -o ~/results/qa/sortmerna -t 16 ~/results/sortmerna/*sortmerna*.fq.gz</code></pre>
 <p>The GC content plot should show the biggest change, now fitting more closely to the theoretical distribution, as shown in Figure <a href="Images/example.png" title="GC Content">2A</a> and Figure <a href="Images/example.png" title="GC Content">2B</a>, which represent the raw and filtered GC content respectively. Shoulders, which were present in regions of higher GC content, should be noticeably smaller or be absent altogether. rRNA overrepresented sequences should no longer be identified in the corresponding table of over-represented sequences. Finally, the theoretical GC curve should be centered closer to the expected GC value of the sample organism.</p>
 <h2>Quality trimming and adapter removal</h2>
 <p>It is a fact that on Illumina sequencers, the quality of a base pair is linked to its position in the read, bases in the later cycles of the sequencing process have a lower average quality than the earliest cycles (as was observed in the QC report above). This effect depends on the sequencing facility and on the chemistry used and it is only recently that sequencing aligners have integrated methods to correct for this - and not all alignment software does so. A common approach to increase the mapping rate of reads is to trim (remove) low quality bases from the 3’ end until the quality reaches a user-selected Phred-quality threshold. A threshold of 20 is widely accepted as it corresponds to a base call error of 1 in a 100, which is approximately the inherent technical error rate of the Illumina sequencing platform.</p>
 <p>An additional issue encountered with Illumina sequencing is the presence of partial adapter sequences within sequenced reads. This arises when the sample fragment size has a large variance and fragments shorter than the sequencer read-length are sequenced. As the resulting reads may contain a significant part of the adapter - a bp sequence of artificial origin - earlier generation alignment software ( those that do not use Maximum Exact Matching and require global alignment of an entire read) may not be able to map such reads. Being able to identify the adapter-like sequences at the end of the read and clip/trim them - a process termed adapter removal - may consequently significantly increase the aligned read proportion.</p>
 <p>There are numerous tools available to perform either or both of these tasks (quality trimming and adapter removal). Here, we exemplify using Trimmomatic <span class="citation">(Bolger, Lohse, and Usadel 2014)</span>, a tool that does both. The command line to run the first two samples is as follows:</p>
-<pre class="bash"><code>    mkdir ~/trimmomatic
-    cd ~/trimmomatic
-    find ../sortmerna -name &quot;*sortmerna_[12].fq.gz&quot; | sort | head -n 4 | while read FW_READ
+<pre class="bash"><code>    mkdir ~/results/trimmomatic
+    cd ~/results/trimmomatic
+    find ~/results/sortmerna -name &quot;*sortmerna_[12].fq.gz&quot; | sort | head -n 4 | while read FW_READ
     do
       read RV_READ
       FILEBASE=$(basename &quot;${FW_READ%_1.fq.gz}&quot;)
@@ -717,7 +719,7 @@ Q = -10 \cdot log10(p)
     done  </code></pre>
 <p>Run Trimmomatic on your filtered FASTQ data.</p>
 <p>Now we can copy the rest of the files and run MultiQC.</p>
-<pre class="bash"><code>    cd ~/trimmomatic
+<pre class="bash"><code>    cd ~/results/trimmomatic
     cp ~/share/Day1/trimmomatic/* .
     multiqc .</code></pre>
 <p>Once again what would you do after having quality-trimmed and removed the sequencing adapter from your reads?</p>
@@ -725,16 +727,17 @@ Q = -10 \cdot log10(p)
 <h2>Trimmed data FastQC</h2>
 <p>A final FastQC run is performed to ensure that the previous quality trimming and/or adapter removal steps successfully conserved high quality reads without being too stringent and without introducing any newly apparent technical biases.</p>
 <p>Redo the FastQC on the Trimmomatic files you have generated.</p>
-<pre class="bash"><code>    mkdir ~/qa/trimmomatic
-    fastqc -o ~/qa/trimmomatic -t 16 ~/trimmomatic/*trimmomatic_[12].fq.gz</code></pre>
+<pre class="bash"><code>    mkdir ~/results/qa/trimmomatic
+    fastqc -o ~/results/qa/trimmomatic -t 16 ~/results/trimmomatic/*trimmomatic_[12].fq.gz</code></pre>
 <p>Several changes should be observed in comparison with the previous QC report: first, the per-base quality scores should be noticeably different. As shown in Figure <a href="Images/example.png" title="GC Content">2C,D</a> the per-sequence quality distribution is now shifted towards higher scores (the trimming effect) and sequencing adapters are no longer identified as over-represented (the adapter removal effect). If over-represented sequences remain, this indicates that an additional kind of contamination may be present and should be investigated.</p>
 <p>Finally, let’s create a full, final directory with all logs to have a complete MultiQC report:</p>
-<pre class="bash"><code>    mkdir ~/qc_report
-    ln -s ~/qa/raw/*zip ~/qc_report
-    ln -s ~/qa/sortmerna/*zip ~/qc_report
-    ln -s ~/qa/trimmomatic/*zip ~/qc_report
-    ln -s ~/sortmerna/*.log ~/qc_report
-    ln -s ~/trimmomatic/*.log ~/qc_report</code></pre>
+<pre class="bash"><code>    mkdir ~/results/qc_report
+    ln -s ~/results/qa/raw/*zip ~/results/qc_report
+    ln -s ~/results/qa/sortmerna/*zip ~/results/qc_report
+    ln -s ~/results/qa/trimmomatic/*zip ~/results/qc_report
+    ln -s ~/results/sortmerna/*.log ~/results/qc_report
+    ln -s ~/results/trimmomatic/*.log ~/results/qc_report
+    multiqc -o ~/results/qc_report ~/results/qc_report</code></pre>
 <p><form> <hr/><br/><h3>Time for Socrative question number 5</h3><br/><hr/> <button class="s-btn">Click to proceed once you answered the question</button> </form></div></p>
 <script>/*
 	We start by creating a hash out of some random things which will be the

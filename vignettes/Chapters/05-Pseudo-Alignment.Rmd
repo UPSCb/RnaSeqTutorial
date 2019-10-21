@@ -15,9 +15,9 @@ count and - at request - bootstraps a confidence value.
 Step 1 is to create the Kallisto index from a transcriptome:
 
 ```{bash, eval=FALSE}
-    cd
+    cd ~/results
     kallisto index -i Potra01-mRNA.idx \
-    ~/share/Day01/data/reference/fasta/Potra01-mRNA.fa.gz
+    ~/share/Day1/reference/fasta/Potra01-mRNA.fa.gz
 ```
 
 We could modify the _k_-mer size using the `-k` option. This is - however - often
@@ -31,13 +31,13 @@ pool of population genomics data.
 Next we can quantify the input data using this newly created index:
 
 ```{bash, eval=FALSE}
-    mkdir ~/kallisto
-    cd ~/kallisto
+    mkdir -p ~/results/kallisto
+    cd ~/results/kallisto
     find ../trimmomatic -name "*trimmomatic_[12].fq.gz" | sort | head -n 4 | while read FW_READ
     do
       read RV_READ
       FILEBASE=$(basename "${FW_READ%_1.fq.gz}")
-      kallisto quant -i ../Potra01-mRNA.idx -b 100 \
+      kallisto quant -i ~/results/Potra01-mRNA.idx -b 100 \
       -o . -t 16 "$FW_READ" "$RV_READ"
       # Kallisto doesn't let us specify an output filename so we rename all 
       # output files

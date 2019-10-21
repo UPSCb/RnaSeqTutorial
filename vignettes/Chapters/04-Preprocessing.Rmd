@@ -110,21 +110,21 @@ FastQC command line example is as follows:
 ```{bash fqc, eval=FALSE}
   # First, make an output directory called "qa" and a sub-directory of
   # that called "raw"
-  mkdir -p qa/raw
+  mkdir -p ~/results/qa/raw
   
   # We can also make a directory to hold the raw data
-  mkdir raw
+  mkdir ~/results/raw
   
   # Then make copies of your sample files into your home folder. Always try to
   # work on copies of the raw source data.
-  cp share/Day1/fastq/*.fq.gz raw
+  cp share/Day1/fastq/*.fq.gz ~/results/raw
   
   # Then you can run fastqc on the file(s) you have selected. FastQC can run
   # a number of files in parallel (see the -t option)
-  fastqc -o qa/raw -t 16 raw/*.fq.gz
+  fastqc -o ~/results/qa/raw -t 16 ~/results/raw/*.fq.gz
   
   # Finally, also run multiqc to summarize all data in one plot
-  cd qa/raw
+  cd ~/results/qa/raw
   multiqc .
 ```
 
@@ -345,6 +345,8 @@ most common rRNAs (5,5.8,16, 18, 23 and 26-28S). Example command lines
 for a _single_ PE sample are (you shouldn't run samples one by one):
 
 ```{bash, eval=FALSE}
+    ## THIS IS AN EXAMPLE OF THE COMMANDS! GO ON READING, do NOT execute them!
+
     # First uncompress your forward and reverse reads:
     gunzip read_1.fq.gz read_2.fq.gz
 
@@ -400,19 +402,19 @@ Let's create a script that runs all these steps for us. Open a text editor
     rm "${FILEBASE}_interleaved.fq" "${FILEBASE}-sortmerna.fq"
 ```
 
-Press `Ctrl+O` in `nano` and write the filename `~/runSortMeRNA.sh`. Then press
+Press `Ctrl+O` in `nano` and write the filename `~/results/runSortMeRNA.sh`. Then press
 `return` and exit `nano` with `Ctrl+X`.
 
 Now we can use a loop to execute this script for two samples (doing more would
 be very time consuming):
 
 ```{bash, eval=FALSE}
-    mkdir ~/sortmerna
-    cd ~/sortmerna
-    find ../raw -name "*.fq.gz"  | sort | head -n 4 | while read READ_FW
+    mkdir ~/results/sortmerna
+    cd ~/results/sortmerna
+    find ~/results/raw -name "*.fq.gz"  | sort | head -n 4 | while read READ_FW
     do 
       read READ_RV
-      bash ../runSortMeRNA.sh $READ_FW $READ_RV
+      bash ~/results/runSortMeRNA.sh $READ_FW $READ_RV
     done  
 ```
 
@@ -437,7 +439,7 @@ MultiQC understands SortMeRNA log files, so you can nicely summarize the data
 with:
 
 ```{bash, eval=FALSE}
-    cd ~/sortmerna
+    cd ~/results/sortmerna
     multiqc .
 ```
 
@@ -459,8 +461,8 @@ ensure the validity of the filtering steps.
 Redo the FastQC on the SortMeRna files you have generated.
 
 ```{bash, eval=FALSE}
-    mkdir ~/qa/sortmerna
-    fastqc -o ~/qa/sortmerna -t 16 ~/sortmerna/*sortmerna*.fq.gz
+    mkdir ~/results/qa/sortmerna
+    fastqc -o ~/results/qa/sortmerna -t 16 ~/results/sortmerna/*sortmerna*.fq.gz
 ```
 
 The GC content plot should show the biggest change, now fitting more
@@ -508,9 +510,9 @@ Trimmomatic [@Bolger:2014p6305], a tool that does both. The command line
 to run the first two samples is as follows:
 
 ```{bash, eval=FALSE}
-    mkdir ~/trimmomatic
-    cd ~/trimmomatic
-    find ../sortmerna -name "*sortmerna_[12].fq.gz" | sort | head -n 4 | while read FW_READ
+    mkdir ~/results/trimmomatic
+    cd ~/results/trimmomatic
+    find ~/results/sortmerna -name "*sortmerna_[12].fq.gz" | sort | head -n 4 | while read FW_READ
     do
       read RV_READ
       FILEBASE=$(basename "${FW_READ%_1.fq.gz}")
@@ -527,7 +529,7 @@ Run Trimmomatic on your filtered FASTQ data.
 Now we can copy the rest of the files and run MultiQC.
 
 ```{bash, eval=FALSE}
-    cd ~/trimmomatic
+    cd ~/results/trimmomatic
     cp ~/share/Day1/trimmomatic/* .
     multiqc .
 ```
@@ -549,8 +551,8 @@ newly apparent technical biases.
 Redo the FastQC on the Trimmomatic files you have generated.
 
 ```{bash, eval=FALSE}
-    mkdir ~/qa/trimmomatic
-    fastqc -o ~/qa/trimmomatic -t 16 ~/trimmomatic/*trimmomatic_[12].fq.gz
+    mkdir ~/results/qa/trimmomatic
+    fastqc -o ~/results/qa/trimmomatic -t 16 ~/results/trimmomatic/*trimmomatic_[12].fq.gz
 ```
 
 Several changes should be observed in comparison with the previous QC
@@ -566,12 +568,13 @@ Finally, let's create a full, final directory with all logs to have a complete
 MultiQC report:
 
 ```{bash, eval=FALSE}
-    mkdir ~/qc_report
-    ln -s ~/qa/raw/*zip ~/qc_report
-    ln -s ~/qa/sortmerna/*zip ~/qc_report
-    ln -s ~/qa/trimmomatic/*zip ~/qc_report
-    ln -s ~/sortmerna/*.log ~/qc_report
-    ln -s ~/trimmomatic/*.log ~/qc_report
+    mkdir ~/results/qc_report
+    ln -s ~/results/qa/raw/*zip ~/results/qc_report
+    ln -s ~/results/qa/sortmerna/*zip ~/results/qc_report
+    ln -s ~/results/qa/trimmomatic/*zip ~/results/qc_report
+    ln -s ~/results/sortmerna/*.log ~/results/qc_report
+    ln -s ~/results/trimmomatic/*.log ~/results/qc_report
+    multiqc -o ~/results/qc_report ~/results/qc_report
 ```
 
 ```{r inv-0506, echo=FALSE}

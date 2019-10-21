@@ -40,7 +40,7 @@ the pseudo-alignment software kallisto. The so-called "abundance" files are
 loaded using the `tximport` package
 ```{r }
     library(tximport)
-    files <- list.files("~/kallisto", 
+    files <- list.files("~/results/kallisto", 
                     pattern = ".*_abundance.tsv",
                     full.names = TRUE)
     tx <- suppressMessages(tximport(files = files,
