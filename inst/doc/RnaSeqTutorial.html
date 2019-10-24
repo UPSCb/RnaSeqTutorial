@@ -12,7 +12,7 @@
 
 <meta name="author" content="Nicolas Delhomme, Bastian Schiffthaler" />
 
-<meta name="date" content="2019-10-21" />
+<meta name="date" content="2019-10-24" />
 
 <title>RNA-Seq Data Analysis, Helsinki University, 21-25th October 2019</title>
 
@@ -365,7 +365,7 @@ summary {
 
 <h1 class="title toc-ignore">RNA-Seq Data Analysis, Helsinki University, 21-25th October 2019</h1>
 <h4 class="author">Nicolas Delhomme, Bastian Schiffthaler</h4>
-<h4 class="date">2019-10-21</h4>
+<h4 class="date">2019-10-24</h4>
 
 </div>
 
@@ -608,9 +608,10 @@ If you had no data, or were not at liberty to share it, we have an exemplary dat
   # We can also make a directory to hold the raw data
   mkdir ~/results/raw
   
-  # Then make copies of your sample files into your home folder. Always try to
-  # work on copies of the raw source data.
-  cp share/Day1/fastq/*.fq.gz ~/results/raw
+  # Then link the files in our home folder. Always try to
+  # work on links or copies of the raw source data to keep them safe!
+  cd ~/results/raw
+  ln -s share/Day1/fastq/*.fq.gz .
   
   # Then you can run fastqc on the file(s) you have selected. FastQC can run
   # a number of files in parallel (see the -t option)
@@ -683,7 +684,7 @@ Q = -10 \cdot log10(p)
 <div id="filtering-rrna" class="section level2">
 <h2><span class="header-section-number">3.3</span> Filtering rRNA</h2>
 <p>Typically, wet-lab protocols to extract mRNA include a step to deplete the sample of rRNA or to enrich it for poly-adenylated transcripts (rRNA is not poly-adenylated). Common approaches to achieve this are to use RiboMinus<sup>TM</sup> kits (Life Technologies) or poly-dT beads, respectively or to include a precipitation step that selectively precipitates only long (usually &gt;200 bp) nucleotidefragments. No approach will be fully sensitive and, as a result, some rRNA carryover is to be expected. This is not a problem per se as long as the remaining proportion accounts for a low percentage of the reads (commonly between 0.1 and 3%). Larger proportions will have an effect on the usable number of reads obtained from the samples, as fewer sequence reads would originate from expressed mRNAs. This is not to be overlooked as these rRNAs will produce valid alignments (in all reference genomes and for most de novo assembled transcriptomes and genomes) and hence other metrics (such as the alignment rate) will fail to identify such a bias. To control for the rRNA quantity in our sample FastQ files, we use SortMeRna, a tool originally developed to identify rRNA in metagenomics analyses <span class="citation">(Kopylova, Noé, and Touzet 2012)</span>. The tool accepts FASTQ files (SE or PE) as input and includes a set of reference libraries containing the most common rRNAs (5,5.8,16, 18, 23 and 26-28S). Example command lines for a <em>single</em> PE sample are (you shouldn’t run samples one by one):</p>
-<pre class="bash"><code>    ## THIS IS AN EXAMPLE OF THE COMMANDS! GO ON READING, do NOT execute them!
+<pre class="bash"><code>    # THIS IS AN EXAMPLE OF THE COMMANDS! GO ON READING, do NOT execute them!
 
     # First uncompress your forward and reverse reads:
     gunzip read_1.fq.gz read_2.fq.gz
@@ -712,7 +713,8 @@ Q = -10 \cdot log10(p)
     FILEBASE=$(basename &quot;${READ_FW/_1.fq.gz/}&quot;)
     
     echo &quot;Uncompressing FASTQ data of $FILEBASE&quot;
-    gunzip &quot;$READ_FW&quot; &quot;$READ_RV&quot;
+    gunzip -c &quot;$READ_FW&quot; &gt; ${FILEBASE}_1.fq 
+    gunzip -c &quot;$READ_RV&quot; &gt; ${FILEBASE}_2.fq 
     
     READ_FW=&quot;${READ_FW%.gz}&quot;
     READ_RV=&quot;${READ_RV%.gz}&quot;
@@ -773,13 +775,13 @@ Q = -10 \cdot log10(p)
       trimmomatic PE -threads 16 -phred64 &quot;$FW_READ&quot; &quot;$RV_READ&quot; \
       &quot;$FILEBASE-trimmomatic_1.fq.gz&quot; &quot;$FILEBASE-trimmomatic-unpaired_1.fq.gz&quot; \
       &quot;$FILEBASE-trimmomatic_2.fq.gz&quot; &quot;$FILEBASE-trimmomatic-unpaired_2.fq.gz&quot;  \
-      ILLUMINACLIP:&quot;/usr/share/Trimmomatic-0.36/adapters/TruSeq3-PE-2.fa&quot;:2:30:10 \
+      ILLUMINACLIP:&quot;/usr/share/Trimmomatic-0.38/adapters/TruSeq3-PE-2.fa&quot;:2:30:10 \
       SLIDINGWINDOW:5:20 MINLEN:50 2&gt; &quot;$FILEBASE-timmomatic.log&quot;
     done  </code></pre>
 <p>Run Trimmomatic on your filtered FASTQ data.</p>
 <p>Now we can copy the rest of the files and run MultiQC.</p>
 <pre class="bash"><code>    cd ~/results/trimmomatic
-    cp ~/share/Day1/trimmomatic/* .
+    ln -s ~/share/Day1/trimmomatic/* .
     multiqc .</code></pre>
 <p>Once again what would you do after having quality-trimmed and removed the sequencing adapter from your reads?</p>
 <p>Yes! Quality Control! As in the next section.</p>
@@ -791,14 +793,21 @@ Q = -10 \cdot log10(p)
 <pre class="bash"><code>    mkdir ~/results/qa/trimmomatic
     fastqc -o ~/results/qa/trimmomatic -t 16 ~/results/trimmomatic/*trimmomatic_[12].fq.gz</code></pre>
 <p>Several changes should be observed in comparison with the previous QC report: first, the per-base quality scores should be noticeably different. As shown in Figure <a href="Images/example.png" title="GC Content">2C,D</a> the per-sequence quality distribution is now shifted towards higher scores (the trimming effect) and sequencing adapters are no longer identified as over-represented (the adapter removal effect). If over-represented sequences remain, this indicates that an additional kind of contamination may be present and should be investigated.</p>
-<p>Finally, let’s create a full, final directory with all logs to have a complete MultiQC report:</p>
-<pre class="bash"><code>    mkdir ~/results/qc_report
+<!-- Finally, let's create a full, final directory with all logs to have a complete
+MultiQC report:
+
+
+```bash
+    mkdir ~/results/qc_report
     ln -s ~/results/qa/raw/*zip ~/results/qc_report
     ln -s ~/results/qa/sortmerna/*zip ~/results/qc_report
     ln -s ~/results/qa/trimmomatic/*zip ~/results/qc_report
     ln -s ~/results/sortmerna/*.log ~/results/qc_report
     ln -s ~/results/trimmomatic/*.log ~/results/qc_report
-    multiqc -o ~/results/qc_report ~/results/qc_report</code></pre>
+    multiqc -o ~/results/qc_report ~/results/qc_report
+```
+
+-->
 </div>
 </div>
 <div id="pseudo-alignment-and-read-quantification-with-kallisto" class="section level1">
@@ -817,12 +826,12 @@ Q = -10 \cdot log10(p)
       read RV_READ
       FILEBASE=$(basename &quot;${FW_READ%_1.fq.gz}&quot;)
       kallisto quant -i ~/results/Potra01-mRNA.idx -b 100 \
-      -o . -t 16 &quot;$FW_READ&quot; &quot;$RV_READ&quot;
+      -o . -t 16 &quot;$FW_READ&quot; &quot;$RV_READ&quot; | tee $FILEBASE.log
       # Kallisto doesn't let us specify an output filename so we rename all 
       # output files
-      mv &quot;abundance.tsv&quot; $FILEBASE-&quot;abundance.tsv&quot;
-      mv &quot;abundance.h5&quot; $FILEBASE-&quot;abundance.h5&quot;
-      mv &quot;run_info.json&quot; $FILEBASE-&quot;run_info.json&quot;
+      mv &quot;abundance.tsv&quot; $FILEBASE&quot;_abundance.tsv&quot;
+      mv &quot;abundance.h5&quot; $FILEBASE&quot;_abundance.h5&quot;
+      mv &quot;run_info.json&quot; $FILEBASE&quot;_run_info.json&quot;
     done</code></pre>
 <p>The option <code>-b 100</code> performs a bootstrap confidence estimation using 100 iterations.</p>
 <p>Kallisto outputs several files:</p>
@@ -831,6 +840,12 @@ Q = -10 \cdot log10(p)
 <li>abundance.h5: This file contains the bootstrap values so confidence intervals can be estimated for the gene counts</li>
 <li>run_info.json: This is a file containing the parameters supplied to Kallisto</li>
 </ul>
+<p>Now let us run <code>multiqc a final couple times</code> <code>multiqc</code> can read the kallisto log file</p>
+<pre class="bash"><code>    ~/results/kallisto
+    multiqc.</code></pre>
+<p>Finally, let’s create a full, final directory with all logs to have a complete MultiQC report:</p>
+<pre class="bash"><code>    mkdir ~/results/qc_report
+    multiqc -o ~/results/qc_report ~/results</code></pre>
 </div>
 <div id="sexual-dimorphism-study-biological-qa" class="section level1">
 <h1><span class="header-section-number">5</span> Sexual dimorphism study Biological QA</h1>

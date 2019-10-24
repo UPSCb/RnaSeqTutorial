@@ -34,11 +34,13 @@ a <- 1
 
 ## 
 
-##   # Then make copies of your sample files into your home folder. Always try to
+##   # Then link the files in our home folder. Always try to
 
-##   # work on copies of the raw source data.
+##   # work on links or copies of the raw source data to keep them safe!
 
-##   cp share/Day1/fastq/*.fq.gz ~/results/raw
+##   cd ~/results/raw
+
+##   ln -s share/Day1/fastq/*.fq.gz .
 
 ## 
 
@@ -57,7 +59,7 @@ a <- 1
 ##   multiqc .
 
 
-##     ## THIS IS AN EXAMPLE OF THE COMMANDS! GO ON READING, do NOT execute them!
+##     # THIS IS AN EXAMPLE OF THE COMMANDS! GO ON READING, do NOT execute them!
 
 ## 
 ##     # First uncompress your forward and reverse reads:
@@ -109,7 +111,9 @@ a <- 1
 
 ##     echo "Uncompressing FASTQ data of $FILEBASE"
 
-##     gunzip "$READ_FW" "$READ_RV"
+##     gunzip -c "$READ_FW" > ${FILEBASE}_1.fq
+
+##     gunzip -c "$READ_RV" > ${FILEBASE}_2.fq
 
 ## 
 
@@ -198,7 +202,7 @@ a <- 1
 
 ##       "$FILEBASE-trimmomatic_2.fq.gz" "$FILEBASE-trimmomatic-unpaired_2.fq.gz"  \
 
-##       ILLUMINACLIP:"/usr/share/Trimmomatic-0.36/adapters/TruSeq3-PE-2.fa":2:30:10 \
+##       ILLUMINACLIP:"/usr/share/Trimmomatic-0.38/adapters/TruSeq3-PE-2.fa":2:30:10 \
 
 ##       SLIDINGWINDOW:5:20 MINLEN:50 2> "$FILEBASE-timmomatic.log"
 
@@ -207,7 +211,7 @@ a <- 1
 
 ##     cd ~/results/trimmomatic
 
-##     cp ~/share/Day1/trimmomatic/* .
+##     ln -s ~/share/Day1/trimmomatic/* .
 
 ##     multiqc .
 
@@ -256,19 +260,29 @@ a <- 1
 
 ##       kallisto quant -i ~/results/Potra01-mRNA.idx -b 100 \
 
-##       -o . -t 16 "$FW_READ" "$RV_READ"
+##       -o . -t 16 "$FW_READ" "$RV_READ" | tee $FILEBASE.log
 
 ##       # Kallisto doesn't let us specify an output filename so we rename all
 
 ##       # output files
 
-##       mv "abundance.tsv" $FILEBASE-"abundance.tsv"
+##       mv "abundance.tsv" $FILEBASE"_abundance.tsv"
 
-##       mv "abundance.h5" $FILEBASE-"abundance.h5"
+##       mv "abundance.h5" $FILEBASE"_abundance.h5"
 
-##       mv "run_info.json" $FILEBASE-"run_info.json"
+##       mv "run_info.json" $FILEBASE"_run_info.json"
 
 ##     done
+
+
+##     ~/results/kallisto
+
+##     multiqc.
+
+
+##     mkdir ~/results/qc_report
+
+##     multiqc -o ~/results/qc_report ~/results
 
 
 

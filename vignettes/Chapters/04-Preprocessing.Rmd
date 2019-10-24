@@ -115,9 +115,10 @@ FastQC command line example is as follows:
   # We can also make a directory to hold the raw data
   mkdir ~/results/raw
   
-  # Then make copies of your sample files into your home folder. Always try to
-  # work on copies of the raw source data.
-  cp share/Day1/fastq/*.fq.gz ~/results/raw
+  # Then link the files in our home folder. Always try to
+  # work on links or copies of the raw source data to keep them safe!
+  cd ~/results/raw
+  ln -s share/Day1/fastq/*.fq.gz .
   
   # Then you can run fastqc on the file(s) you have selected. FastQC can run
   # a number of files in parallel (see the -t option)
@@ -345,7 +346,7 @@ most common rRNAs (5,5.8,16, 18, 23 and 26-28S). Example command lines
 for a _single_ PE sample are (you shouldn't run samples one by one):
 
 ```{bash, eval=FALSE}
-    ## THIS IS AN EXAMPLE OF THE COMMANDS! GO ON READING, do NOT execute them!
+    # THIS IS AN EXAMPLE OF THE COMMANDS! GO ON READING, do NOT execute them!
 
     # First uncompress your forward and reverse reads:
     gunzip read_1.fq.gz read_2.fq.gz
@@ -379,7 +380,8 @@ Let's create a script that runs all these steps for us. Open a text editor
     FILEBASE=$(basename "${READ_FW/_1.fq.gz/}")
     
     echo "Uncompressing FASTQ data of $FILEBASE"
-    gunzip "$READ_FW" "$READ_RV"
+    gunzip -c "$READ_FW" > ${FILEBASE}_1.fq 
+    gunzip -c "$READ_RV" > ${FILEBASE}_2.fq 
     
     READ_FW="${READ_FW%.gz}"
     READ_RV="${READ_RV%.gz}"
@@ -519,7 +521,7 @@ to run the first two samples is as follows:
       trimmomatic PE -threads 16 -phred64 "$FW_READ" "$RV_READ" \
       "$FILEBASE-trimmomatic_1.fq.gz" "$FILEBASE-trimmomatic-unpaired_1.fq.gz" \
       "$FILEBASE-trimmomatic_2.fq.gz" "$FILEBASE-trimmomatic-unpaired_2.fq.gz"  \
-      ILLUMINACLIP:"/usr/share/Trimmomatic-0.36/adapters/TruSeq3-PE-2.fa":2:30:10 \
+      ILLUMINACLIP:"/usr/share/Trimmomatic-0.38/adapters/TruSeq3-PE-2.fa":2:30:10 \
       SLIDINGWINDOW:5:20 MINLEN:50 2> "$FILEBASE-timmomatic.log"
     done  
 ```
@@ -530,7 +532,7 @@ Now we can copy the rest of the files and run MultiQC.
 
 ```{bash, eval=FALSE}
     cd ~/results/trimmomatic
-    cp ~/share/Day1/trimmomatic/* .
+    ln -s ~/share/Day1/trimmomatic/* .
     multiqc .
 ```
 
@@ -564,7 +566,7 @@ and sequencing adapters are no longer identified as over-represented
 indicates that an additional kind of contamination may be present and
 should be investigated.
 
-Finally, let's create a full, final directory with all logs to have a complete
+<!-- Finally, let's create a full, final directory with all logs to have a complete
 MultiQC report:
 
 ```{bash, eval=FALSE}
@@ -576,6 +578,8 @@ MultiQC report:
     ln -s ~/results/trimmomatic/*.log ~/results/qc_report
     multiqc -o ~/results/qc_report ~/results/qc_report
 ```
+
+-->
 
 ```{r inv-0506, echo=FALSE}
     quest(5)

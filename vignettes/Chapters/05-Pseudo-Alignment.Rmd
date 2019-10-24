@@ -38,12 +38,12 @@ Next we can quantify the input data using this newly created index:
       read RV_READ
       FILEBASE=$(basename "${FW_READ%_1.fq.gz}")
       kallisto quant -i ~/results/Potra01-mRNA.idx -b 100 \
-      -o . -t 16 "$FW_READ" "$RV_READ"
+      -o . -t 16 "$FW_READ" "$RV_READ" | tee $FILEBASE.log
       # Kallisto doesn't let us specify an output filename so we rename all 
       # output files
-      mv "abundance.tsv" $FILEBASE-"abundance.tsv"
-      mv "abundance.h5" $FILEBASE-"abundance.h5"
-      mv "run_info.json" $FILEBASE-"run_info.json"
+      mv "abundance.tsv" $FILEBASE"_abundance.tsv"
+      mv "abundance.h5" $FILEBASE"_abundance.h5"
+      mv "run_info.json" $FILEBASE"_run_info.json"
     done
 ```    
 
@@ -56,3 +56,19 @@ Kallisto outputs several files:
   * abundance.h5: This file contains the bootstrap values so confidence intervals
   can be estimated for the gene counts
   * run_info.json: This is a file containing the parameters supplied to Kallisto
+  
+Now let us run `multiqc a final couple times`
+`multiqc` can read the kallisto log file
+
+```{bash, eval=FALSE}
+    ~/results/kallisto
+    multiqc.
+```
+
+Finally, let's create a full, final directory with all logs to have a complete
+MultiQC report:
+
+```{bash, eval=FALSE}
+    mkdir ~/results/qc_report
+    multiqc -o ~/results/qc_report ~/results
+```
