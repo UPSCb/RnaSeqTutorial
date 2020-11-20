@@ -1,7 +1,7 @@
 Package: RnaSeqTutorial
 Title: RNA-Seq Tutorial
-Version: 0.99.13
-Date: 2019-10-20
+Version: 0.99.14
+Date: 2020-11-20
 Author: Nicolas Delhomme, Bastian Schiffthaler, Ismael Padioleau
 Description: A tutorial package that describes the pre-processing of RNA-Seq
     data - from the raw (FASTQ) data to the alignment (mapping) to a reference
