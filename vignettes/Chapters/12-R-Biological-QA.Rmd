@@ -38,7 +38,7 @@ which yielded between 11 million and 34 million reads per sample.
 First, we read in the expression quantification values we obtained running 
 the pseudo-alignment software kallisto. The so-called "abundance" files are  
 loaded using the `tximport` package
-```{r }
+```{r a1, eval=FALSE}
     library(tximport)
     files <- list.files("~/results/kallisto", 
                     pattern = ".*_abundance.tsv",
@@ -50,7 +50,7 @@ loaded using the `tximport` package
 
 The `tx` object contains the transcript expression extimates of our 17 samples.
 
-```{r }
+```{r a2, eval=FALSE}
     tx.counts <- round(tx$counts)
     colnames(tx.counts) <- sub("_.*","",basename(files))
 ```
@@ -59,7 +59,7 @@ Next we can summarise them at the gene level. The _P. tremula_ genes are
 easy to extract from the transcript names, they simply have an extra dot 
 followed by numbers following the gene identifier.
 
-```{r }
+```{r a3,eval=FALSE}
 tx2gene <- data.frame(
     TX=rownames(tx.counts),
     GENEID=sub("\\.\\d+$","",rownames(tx.counts)))
@@ -68,19 +68,19 @@ tx2gene <- data.frame(
 Using this transcript to gene mapping we can now summarise the expression 
 estimate at the gene level.
 
-```{r }
+```{r a4,eval=FALSE}
     count.table <- round(summarizeToGene(tx,tx2gene)$counts)
     colnames(count.table) <- sub("_.*","",basename(files))
 ```
 We can estimate how many of the genes are not expressed
 
-```{r }
+```{r a5,eval=FALSE}
 sel <- rowSums(count.table) == 0
 sprintf("%s percent of %s genes are not expressed",round(sum(sel) * 100/ nrow(count.table),digits=1),nrow(count.table))
 ```
 And similarly for transcripts
 
-```{r }
+```{r a6,eval=FALSE}
 sel <- rowSums(tx.counts) == 0
 sprintf("%s percent of %s transcripts are not expressed",round(sum(sel) * 100/ nrow(tx.counts),digits=1),nrow(tx.counts))
 ```
@@ -100,7 +100,7 @@ We start by looking at the
 per-gene mean expression, i.e. the mean raw count of every 
 gene across samples is calculated and displayed on a log10 scale
 
-```{r }
+```{r a7,eval=FALSE}
 library(RColorBrewer)
 pal <- brewer.pal(8,"Dark2")
 mar <- par("mar")
@@ -111,7 +111,7 @@ plot(density(log10(rowMeans(count.table))),col=pal[1],
 
 Then the same is done for the individual samples colored by sample type
 
-```{r }
+```{r a8,eval=FALSE}
 plot.multidensity(log10(count.table),col=rep(pal,each=3),
                   legend.x="topright",legend.cex=0.5,
                   main="sample raw counts distribution",
@@ -123,7 +123,7 @@ shifted to the right - those that were sequenced deeper, but this does not
 affect the global shape of the curve. -->
 The samples show the same trend (since they are a subset of the original data)
 
-```{r }
+```{r 9,eval=FALSE}
 plot.multidensity(log10(tx.counts),col=rep(pal,each=3),
                   legend.x="topright",legend.cex=0.5,
                   main="sample raw counts distribution",
@@ -142,7 +142,7 @@ stabilization transformation using DESeq2. The
 we nonetheless define the metadata fo importance, i.e. every
 sample sex and year of sampling
 
-```{r }
+```{r a10,eval=FALSE}
 samples <- read.csv(file.path(extdata(),"sex-samples.csv"))
 sex <- samples$sex[match(colnames(count.table),samples$sample)]
 date <- factor(samples$date[match(colnames(count.table),samples$sample)])
@@ -151,7 +151,7 @@ date <- factor(samples$date[match(colnames(count.table),samples$sample)])
 And then we create the DESeq2 object, using the sample name
 as condition (which is hence irrelevant to any comparison)
 
-```{r }
+```{r a11,eval=FALSE}
 dds <- DESeqDataSetFromMatrix(
   countData = count.table,
   colData = data.frame(sex=sex, date=date),
@@ -163,7 +163,7 @@ as there is no variation, we decide to go for a variance
 stabilisation transformation over a regularised log transformation.
 Check the DESeq2 vignette for more details about this.
 
-```{r }
+```{r a12,eval=FALSE}
 dds <- estimateSizeFactors(dds)
 sizes <- sizeFactors(dds)
 sizes
@@ -175,7 +175,7 @@ so we perform a __BLIND__ transformation. If we were planning to work with the
 _vst_ data for non-QC analysis, then we __WOULD__ set `blind=FALSE` to ensure
 a more adequate dispersion estimation.
 
-```{r }
+```{r a13,eval=FALSE}
 vsd <- varianceStabilizingTransformation(dds, blind=TRUE)
 vst <- assay(vsd)
 colnames(vst) <- colnames(count.table)
@@ -185,7 +185,7 @@ The vst introduces an offset, i.e. non expressed gene will have a value set
 as the minimal value of the vst. To avoid lengthy unnecessary explanations, we
 simply shift all values so that non expressed genes have a vst value of 0
 
-```{r }
+```{r a14,eval=FALSE}
 vst <- vst - min(vst)
 ```
 
@@ -196,19 +196,19 @@ the slight initial trend / bump is due to genes having few
 counts in a few subset of the samples and hence having a 
 higher variability. This is expected.
 
-```{r }
+```{r a15,eval=FALSE}
 meanSdPlot(assay(vsd)[rowSums(count.table)>0,])
 ```
 
 Here is what would be observed by a log2 transformation of the raw count data
 
-```{r }
+```{r a16,eval=FALSE}
 meanSdPlot(log2(as.matrix(count.table[rowSums(count.table)>0,])))
 ```
 
 or for the count adjusted for the library size factor
 
-```{r }
+```{r a17,eval=FALSE}
 meanSdPlot(log2(counts(dds,normalized=TRUE)[rowSums(count.table)>0,]))
 ```
 
@@ -227,7 +227,7 @@ to do a quick quality assessment, i.e. replicate should
 cluster and the first dimensions should be explainable by 
 biological means.
 
-```{r }
+```{r a18,eval=FALSE}
 pc <- prcomp(t(vst))
 percent <- round(summary(pc)$importance[2,]*100)
 smpls <- conditions
@@ -235,14 +235,14 @@ smpls <- conditions
 
 We color the samples by date and sex
 
-```{r }
+```{r a19,eval=FALSE}
 sex.cols<-c("pink","lightblue")
 sex.names<-c(F="Female",M="Male")
 ```
 
 And then check wheter the observed separation is due to the sample sex
 
-```{r }
+```{r a20,eval=FALSE}
 scatterplot3d(pc$x[,1],
               pc$x[,2],
               pc$x[,3],
@@ -259,7 +259,7 @@ par(mar=mar)
 This does not seem to be the case at all. There are 2 clusters of points, but
 both equally contain pink and blue dots. So, we next color by sampling date
 
-```{r }
+```{r a21,eval=FALSE}
 dat <- date
 scatterplot3d(pc$x[,1],
               pc$x[,2],
@@ -276,7 +276,7 @@ par(mar=mar)
 And here we are... The sampling data is a STRONG CONFOUNDING FACTOR in our
 analysis. So let's do a final plot with the color = sex and shape = date
 
-```{r }
+```{r a22,eval=FALSE}
 scatterplot3d(pc$x[,1],
               pc$x[,2],
               pc$x[,3],
@@ -295,7 +295,7 @@ par(mar=mar)
 Sometimes the 3D PCA are not so easy to read and we may be just
 as well off looking at 2 dimensions at a time. First the 2 first dims
 
-```{r }
+```{r a23,eval=FALSE}
 plot(pc$x[,1],
      pc$x[,2],
      xlab=paste("Comp. 1 (",percent[1],"%)",sep=""),
@@ -321,7 +321,7 @@ the fact that they group with neither cluster might be due to that fact that the
 an increased proportion of transcriptional noise.
 Looking at the 2nd and 3rd dims does not reveal any obvious effects
 
-```{r }
+```{r a24,eval=FALSE}
 plot(pc$x[,2],
      pc$x[,3],
      xlab=paste("Comp. 2 (",percent[2],"%)",sep=""),
